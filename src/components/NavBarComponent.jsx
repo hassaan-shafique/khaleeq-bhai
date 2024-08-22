@@ -68,7 +68,7 @@ export default function NavBarComponent() {
                     textDecoration: "none",
                   }}
                 >
-                  ADIMS
+                  Khurshid ChasmaWala PWD
                 </Typography>
 
                 <Box
@@ -78,25 +78,8 @@ export default function NavBarComponent() {
                     alignItems: "center",
                   }}
                 >
-                  <IconButton color="inherit">
-                    <Badge variant="dot" color="error" invisible={false}>
-                      <NotificationsOutlined
-                        sx={{ width: 32, height: 32 }}
-                        onClick={handleNotificationClicked}
-                      />
-                    </Badge>
-                  </IconButton>
-                  <Menu
-                    open={notificationOpen}
-                    anchorEl={notificationAnchorEl}
-                    onClick={notificationHandleClose}
-                    onClose={notificationHandleClose}
-                  >
-                    <MenuItem>Notification number 1 </MenuItem>
-                    <Divider />
-                    <MenuItem>Notification number 2</MenuItem>
-                    <MenuItem>Notification number 3</MenuItem>
-                  </Menu>
+                  
+                 
                   <IconButton
                     onClick={handleAvatarClicked}
                     size="small"
@@ -104,10 +87,10 @@ export default function NavBarComponent() {
                     aria-haspopup="true"
                   >
                     <Tooltip title="account settings">
-                      <Avatar sx={{ width: 32, height: 32 }}>Z</Avatar>
+                      <Avatar sx={{ width: 32, height: 32 }}></Avatar>
                     </Tooltip>
                   </IconButton>
-                  <Typography fontFamily={"Inter"}>ADMI ZAKARYAE</Typography>
+                  <Typography fontFamily={"Inter"}>Khaleeq</Typography>
                 </Box>
 
                 <Menu
@@ -116,20 +99,9 @@ export default function NavBarComponent() {
                   onClick={handleClose}
                   onClose={handleClose}
                 >
-                  <MenuItem>
-                    <ListItemIcon>
-                      <AccountCircleOutlined fontSize="small" />
-                    </ListItemIcon>
-                    Profile
-                  </MenuItem>
-                  <Divider />
+                 
 
-                  <MenuItem>
-                    <ListItemIcon>
-                      <Settings fontSize="small" />
-                    </ListItemIcon>
-                    Settings
-                  </MenuItem>
+                  
                   <MenuItem>
                     <ListItemIcon>
                       <Logout fontSize="small" />

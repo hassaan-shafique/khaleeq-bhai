@@ -1,7 +1,7 @@
 import Inter from "../public/static/fonts/Inter.ttf";
 import { ThemeProvider, CssBaseline, createTheme, Box } from "@mui/material";
 import RootComponent from "./components/RootComponent";
-import RootPage from "./components/RootPage";
+import Signup from "./components/Signup";
 import DataTable from "./test/DataTable";
 import Hello from "./test/Hello";
 // import "../app.css";
@@ -11,15 +11,15 @@ import {
   createRoutesFromElements,
   RouterProvider,
 } from "react-router-dom";
-import Home from "./components/bodyComponents/home/Home";
+
 import Inventory from "./components/bodyComponents/inventory/Inventory";
-import Customer from "./components/bodyComponents/customer/Customer";
-import Revenue from "./components/bodyComponents/revenue/Revenue";
-import Growth from "./components/bodyComponents/growth/Growth";
+// import Customer from "./components/bodyComponents/customer/Customer";
+import Glasses from "./components/bodyComponents/glasses/Glasses";
+import Expense from "./components/bodyComponents/expense/Expense";
 import Report from "./components/bodyComponents/report/Report";
 import Setting from "./components/bodyComponents/Settings/Setting";
-import Order from "./components/bodyComponents/order/Order";
-import OrderModal from "./components/bodyComponents/order/OrderModal";
+import Sales from "./components/bodyComponents/sale/Sales";
+import OrderModal from "./components/bodyComponents/sale/OrderModal";
 
 function App() {
   const theme = createTheme({
@@ -63,19 +63,25 @@ function App() {
   });
   const router = createBrowserRouter(
     createRoutesFromElements(
+      
+
       <Route path="/" element={<RootComponent />}>
-        <Route index element={<RootPage />} />
-        <Route path="/home" element={<Home />}></Route>
+        <Route index element={<Sales />} />
         <Route path="/inventory" element={<Inventory />}></Route>
-        <Route path="/orders" element={<Order />}></Route>
-        <Route path="/customers" element={<Customer />}></Route>
-        <Route path="/revenue" element={<Revenue />}></Route>
-        <Route path="/growth" element={<Growth />}></Route>
+        <Route path="/sales" element={<Sales />}></Route>
+        <Route path="/glasses" element={<Glasses />}></Route>
+        <Route path="/expense" element={<Expense />}></Route>
         <Route path="/reports" element={<Report />}></Route>
         <Route path="/settings" element={<Setting />}></Route>
       </Route>
     )
   );
+  
+
+   
+          <Signup />
+     
+
 
   return (
     <ThemeProvider theme={theme}>

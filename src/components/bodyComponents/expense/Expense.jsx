@@ -1,9 +1,9 @@
 import { Grid, Box, Typography, Button } from "@mui/material";
-import React, { Component } from "react";
+import React from "react";
 
-export default class Inventory extends Component {
-  render() {
-    return (
+const Expense = () => {
+  return (
+    <>
       <Box>
         <Grid container sx={{ mx: 3, p: 3 }}>
           <Grid item md={9}>
@@ -25,32 +25,20 @@ export default class Inventory extends Component {
                   justifyContent: "space-between",
                 }}
               >
-                Inventory
+              Expense
                 <Button
                   variant="contained"
                   sx={{ bgcolor: "#504099", m: 3, px: 12 }}
                 >
-                  Add inventory
+                  Add Expense
                 </Button>
               </Typography>
             </Box>
           </Grid>
         </Grid>
       </Box>
-    );
-  }
-}
+    </>
+  );
+};
 
-{
-  /* <Box
-              sx={{
-                margin: 3,
-                bgcolor: "white",
-                borderRadius: 2,
-                padding: 3,
-                height: "100%",
-              }}
-            >
-             
-            </Box> */
-}
+export default Expense;

@@ -4,10 +4,13 @@ import { Box, Grid } from "@mui/material";
 import SideBarComponent from "./SideBarComponent";
 import { Outlet } from "react-router-dom";
 
+
 export default function RootComponent() {
   return (
     <>
       <NavBarComponent />
+
+     
       <Box
         sx={
           {
@@ -17,6 +20,7 @@ export default function RootComponent() {
         }
       >
         <Grid container spacing={0}>
+
           <Grid item md={2} sm={0}>
             <SideBarComponent />
           </Grid>

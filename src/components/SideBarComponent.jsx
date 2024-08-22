@@ -8,12 +8,9 @@ import {
   ListItemButton,
   IconButton,
   Box,
-  Snackbar,
-  Alert,
-  Button,
 } from "@mui/material";
 import {
-  HomeOutlined,
+  
   Inventory2Outlined,
   SettingsOutlined,
   DescriptionOutlined,
@@ -21,6 +18,7 @@ import {
   CardTravelOutlined,
   TrendingUpOutlined,
   PeopleAltOutlined,
+ 
 } from "@mui/icons-material";
 import { Link, NavLink, useLocation, useNavigate } from "react-router-dom";
 
@@ -38,28 +36,22 @@ export default function SideBarComponent() {
   //     }
   //     });
   const sideBarComponent = [
-    {
-      title: "Home",
-      component: <HomeOutlined fontSize="medium" color="primary" />,
-    },
+    
     {
       title: "Inventory",
       component: <Inventory2Outlined fontSize="medium" color="primary" />,
     },
     {
-      title: "Orders",
+      title: "Sales",
       component: <CardTravelOutlined fontSize="medium" color="primary" />,
     },
+    
     {
-      title: "Customers",
-      component: <PeopleAltOutlined fontSize="medium" color="primary" />,
-    },
-    {
-      title: "Revenue",
+      title: "Glasses",
       component: <MonetizationOnOutlined fontSize="medium" color="primary" />,
     },
     {
-      title: "Growth",
+      title: "Expense",
       component: <TrendingUpOutlined fontSize="medium" color="primary" />,
     },
     {
@@ -126,17 +118,17 @@ export default function SideBarComponent() {
       </Snackbar> */}
     </>
   );
-  //   const [open, setOpen] = React.useState(false);
+    // const [open, setOpen] = React.useState(false);
 
-  //   const handleClick = () => {
-  //     setOpen(true);
-  //   };
+    // const handleClick = () => {
+    //   setOpen(true);
+    // };
 
-  //   const handleClose = (event, reason) => {
-  //     if (reason === 'clickaway') {
-  //       return;
-  //     }
+    // const handleClose = (event, reason) => {
+    //   if (reason === 'clickaway') {
+    //     return;
+    //   }
 
-  //     setOpen(false);
-  //   };
+    //   setOpen(false);
+    // };
 }

@@ -1,3 +1,4 @@
+
 import { Grid, Box, Typography, Button } from "@mui/material";
 import React, { Component } from "react";
 
@@ -25,12 +26,12 @@ export default class Inventory extends Component {
                   justifyContent: "space-between",
                 }}
               >
-                Inventory
+               Sales
                 <Button
                   variant="contained"
                   sx={{ bgcolor: "#504099", m: 3, px: 12 }}
                 >
-                  Add inventory
+                  Add Sale
                 </Button>
               </Typography>
             </Box>
@@ -41,16 +42,3 @@ export default class Inventory extends Component {
   }
 }
 
-{
-  /* <Box
-              sx={{
-                margin: 3,
-                bgcolor: "white",
-                borderRadius: 2,
-                padding: 3,
-                height: "100%",
-              }}
-            >
-             
-            </Box> */
-}

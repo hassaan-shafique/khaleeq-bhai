@@ -136,12 +136,7 @@ export default function OrderModal({ order }) {
             >
               Reject
             </Button>
-            <Button
-              variant="contained"
-              sx={{ bgcolor: "#504099", m: 3, px: 12 }}
-            >
-              Approve
-            </Button>
+           
           </Paper>
         </Box>
       </Box>
