@@ -57,3 +57,27 @@
     height: 40px;
     width: 100px;
 }
+
+.datePicker {
+    /* Customize the overall container */
+    margin: 20px;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+}
+
+.MuiPickersDay-root {
+    /* Customize the color of all days */
+    color: green;
+
+    &.Mui-selected {
+        /* Customize the selected day's background and text color */
+        background-color: blue;
+        color: white;
+    }
+
+    &:hover {
+        /* Customize the hover effect */
+        background-color: lightblue;
+    }
+}

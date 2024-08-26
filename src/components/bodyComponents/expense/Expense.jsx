@@ -1,5 +1,9 @@
 import { Grid, Box, Typography, Button } from "@mui/material";
 import React from "react";
+import ExpenseFrom from "./ExpenseForm"
+
+
+
 
 const Expense = () => {
   return (
@@ -33,7 +37,10 @@ const Expense = () => {
                   Add Expense
                 </Button>
               </Typography>
+
+              <ExpenseFrom/>
             </Box>
+       
           </Grid>
         </Grid>
       </Box>
