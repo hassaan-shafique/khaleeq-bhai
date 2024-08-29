@@ -3,6 +3,11 @@ import { Grid, Box, Typography, Button } from "@mui/material";
 import React, { Component } from "react";
 import InventoryForm from "./inventoryForm";
 
+
+
+
+
+
 export default class Inventory extends Component {
   render() {
     return (
@@ -35,7 +40,8 @@ export default class Inventory extends Component {
                   Add inventory
                 </Button>
               </Typography>
-<InventoryForm/>
+             
+              <InventoryForm/>
             </Box>
           </Grid>
         </Grid>

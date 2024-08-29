@@ -1,6 +1,7 @@
 
 import { Grid, Box, Typography, Button } from "@mui/material";
 import React, { Component } from "react";
+import SaleForm from './SaleForm'
 
 export default class Inventory extends Component {
   render() {
@@ -34,6 +35,8 @@ export default class Inventory extends Component {
                   Add Sale
                 </Button>
               </Typography>
+          
+             <SaleForm/>
             </Box>
           </Grid>
         </Grid>
