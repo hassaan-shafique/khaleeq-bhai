@@ -1,5 +1,6 @@
 import React from 'react'
 import { Grid, Box, Typography, Button } from "@mui/material";
+import GlassesFrom from './GlassesFrom'
 
 const Revenue = () => {
   return (
@@ -16,24 +17,8 @@ const Revenue = () => {
                 height: "100%",
               }}
             >
-              <Typography
-                variant="h5"
-                sx={{
-                  m: 3,
-                  fontWeight: "bold",
-                  display: "flex",
-                  justifyContent: "space-between",
-                }}
-              >
-              Glasses
-                <Button
-                  variant="contained"
-                  sx={{ bgcolor: "#504099", m: 3, px: 12 }}
-                >
-                  Add 
-                  
-                </Button>
-              </Typography>
+             
+              <GlassesFrom/>
             </Box>
           </Grid>
         </Grid>

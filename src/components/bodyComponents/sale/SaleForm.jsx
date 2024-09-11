@@ -41,6 +41,7 @@ const SalesForm = () => {
    const [leCyl, setLeCyl] = useState("");
    const [leAxis, setLeAxis] = useState("");
    const [leAdd, setLeAdd] = useState("");
+   const[instruction,setInstruction] =useState("");
 
   const handleClickOpen = () => {
     setOpen(true);
@@ -80,7 +81,7 @@ const SalesForm = () => {
           Add Sale
         </Button>
       </Typography>
-      <Dialog open={open} onClose={handleClose} fullWidth maxWidth="lg">
+      <Dialog open={open} onClose={handleClose} fullWidth maxWidth="md">
         <DialogTitle>Add Sale</DialogTitle>
         <DialogContent>
           <form onSubmit={handleSubmit}>
@@ -272,6 +273,18 @@ const SalesForm = () => {
                 fullWidth
               />
             </div>
+            <Box sx={{ width: "100%", maxWidth: 500, margin: "0 auto", mt: 4 }}>
+              <TextField
+                label="Enter Your Instructions"
+                multiline
+                value={instruction}
+                onChange={(e) => setInstruction(e.target.value)}
+                rows={6} // You can adjust the number of rows
+                variant="outlined"
+                fullWidth
+                placeholder="Write your paragraph here..."
+              />
+            </Box>
           </form>
         </DialogContent>
         <DialogActions>
