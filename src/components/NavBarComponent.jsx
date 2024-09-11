@@ -90,7 +90,7 @@ export default function NavBarComponent() {
                       <Avatar sx={{ width: 32, height: 32 }}></Avatar>
                     </Tooltip>
                   </IconButton>
-                  <Typography fontFamily={"Inter"}>Khaleeq</Typography>
+                  <Typography fontFamily={"Inter"}>khaleeq</Typography>
                 </Box>
 
                 <Menu

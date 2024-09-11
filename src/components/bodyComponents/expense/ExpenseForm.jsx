@@ -1,77 +1,117 @@
 
 
 import React, { useState } from "react";
-import { Button, TextField, Typography, Box,Select , MenuItem } from "@mui/material";
+import {
+  Button,
+  TextField,
+  Typography,
+  Box,
+  Select,
+  MenuItem,
+  Dialog,
+  DialogContent,
+  DialogTitle,
+  DialogActions,
+} from "@mui/material";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 
-const InventoryForm = () => {
-  
- 
+const ExpenseForm = () => {
+  const [open, setOpen] = useState(false); // State for popup visibility
   const [price, setPrice] = useState("");
   const [expenseType, setExpenseType] = useState("");
-   const [selectedDate, setSelectedDate] = useState(new Date());
+  const [selectedDate, setSelectedDate] = useState(new Date());
 
- 
+  const handleClickOpen = () => {
+    setOpen(true);
+  };
+
+  const handleClose = () => {
+    setOpen(false);
+  };
 
   const handleSubmit = (e) => {
     e.preventDefault();
     // Handle form submission logic here
-   
     console.log("Price:", price);
-     console.log("Selected Date:", selectedDate);
-      console.log("Expense Type:", expenseType);
-   
+    console.log("Selected Date:", selectedDate);
+    console.log("Expense Type:", expenseType);
+    setOpen(false); // Close the popup after submission
   };
 
   return (
-    <Box sx={{ p: 2 }}>
-      <Typography variant="h6">Add Your Expense</Typography>
-      <form onSubmit={handleSubmit}>
-        <Typography variant="h7">Select Date</Typography>
-        <div>
-          <DatePicker
-            className="datePicker"
-            selected={selectedDate}
-            onChange={(date) => setSelectedDate(date)}
-          />
-        </div>
-        <Typography variant="h7">Price</Typography>
-        <TextField
-          label="Price"
-          type="number"
-          value={price}
-          onChange={(e) => setPrice(e.target.value)}
-          fullWidth
-          margin="normal"
-        />
-        <Typography variant="h7">Expense Type</Typography>
-        <Select
-          label="Expense Type"
-          value={expenseType}
-          onChange={(e) => setExpenseType(e.target.value)}
-          placeholder="Expense Type"
-          margin="normal"
-          fullWidth
+    <div>
+      <Typography
+        variant="h5"
+        sx={{
+          m: 3,
+          fontWeight: "bold",
+          display: "flex",
+          justifyContent: "space-between",
+        }}
+      >
+        Expenses
+        <Button
+          variant="contained"
+          sx={{ bgcolor: "#448EE4", m: 1, px: 9 }}
+          onClick={handleClickOpen}
         >
-          <MenuItem value="salary">Chai</MenuItem>
-          <MenuItem value="rent">Rent</MenuItem>
-          {/* Add more expense types as needed */}
-        </Select>
-
-        <Button variant="contained" color="primary" type="submit">
-          Submit
+          Add Expense
         </Button>
-      </form>
-    </Box>
+      </Typography>
+      <Dialog open={open} onClose={handleClose} fullWidth maxWidth="sm">
+        <DialogTitle>Add Expense</DialogTitle>
+        <DialogContent>
+          <form onSubmit={handleSubmit}>
+            <Typography variant="h7">Select Date</Typography>
+            <div>
+              <DatePicker
+                className="datePicker"
+                selected={selectedDate}
+                onChange={(date) => setSelectedDate(date)}
+              />
+            </div>
+            <Typography variant="h7">Price</Typography>
+            <TextField
+              label="Price"
+              type="number"
+              value={price}
+              onChange={(e) => setPrice(e.target.value)}
+              fullWidth
+              margin="normal"
+            />
+            <Typography variant="h7">Expense Type</Typography>
+            <Select
+              label="Expense Type"
+              value={expenseType}
+              onChange={(e) => setExpenseType(e.target.value)}
+              placeholder="Expense Type"
+              margin="normal"
+              fullWidth
+            >
+              <MenuItem value="salary">Salary</MenuItem>
+              <MenuItem value="rent">Rent</MenuItem>
+              {/* Add more expense types as needed */}
+            </Select>
+          </form>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleClose}>Cancel</Button>
+          <Button
+            variant="contained"
+            color="primary"
+            type="submit"
+            form="expense-form"
+          >
+            Submit
+          </Button>
+        </DialogActions>
+      </Dialog>
+    </div>
   );
 };
 
-export default InventoryForm;
-
-
-
-
+export default ExpenseForm;
 
 
 

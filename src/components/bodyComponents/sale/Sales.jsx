@@ -18,23 +18,7 @@ export default class Inventory extends Component {
                 height: "100%",
               }}
             >
-              <Typography
-                variant="h5"
-                sx={{
-                  m: 3,
-                  fontWeight: "bold",
-                  display: "flex",
-                  justifyContent: "space-between",
-                }}
-              >
-               Sales
-                <Button
-                  variant="contained"
-                  sx={{ bgcolor: "#504099", m: 3, px: 12 }}
-                >
-                  Add Sale
-                </Button>
-              </Typography>
+              
           
              <SaleForm/>
             </Box>
