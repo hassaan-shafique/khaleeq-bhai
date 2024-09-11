@@ -51,8 +51,8 @@ const SalesForm = () => {
           type="number"
           value={orderNo}
           onChange={(e) => setOrderNo(e.target.value)}
-          fullWidth
           margin="normal"
+          sx={{ mr: 6 }}
         />
 
         <TextField
@@ -61,7 +61,7 @@ const SalesForm = () => {
           onChange={(e) => setCustomerName(e.target.value)}
           placeholder="Customer Name"
           margin="normal"
-          fullWidth
+          sx={{ mr: 6 }}
         ></TextField>
         <TextField
           label="Contact No"
@@ -69,7 +69,7 @@ const SalesForm = () => {
           onChange={(e) => setContactNo(e.target.value)}
           placeholder="Contact No"
           margin="normal"
-          fullWidth
+          sx={{ mr: 6 }}
         ></TextField>
         <TextField
           label="Address"
@@ -77,7 +77,7 @@ const SalesForm = () => {
           onChange={(e) => setAddress(e.target.value)}
           placeholder="Address"
           margin="normal"
-          fullWidth
+          sx={{ mr: 6 }}
         ></TextField>
         <TextField
           label="Salesman"
@@ -85,7 +85,7 @@ const SalesForm = () => {
           onChange={(e) => setSalesman(e.target.value)}
           placeholder="Salesman"
           margin="normal"
-          fullWidth
+          sx={{ mr: 6 }}
         ></TextField>
         <TextField
           label="doctor"
@@ -93,7 +93,6 @@ const SalesForm = () => {
           onChange={(e) => setDoctor(e.target.value)}
           placeholder="Doctor"
           margin="normal"
-          fullWidth
         ></TextField>
 
         <TextField
