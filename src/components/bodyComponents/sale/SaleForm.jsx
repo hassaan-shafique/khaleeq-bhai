@@ -53,10 +53,13 @@ const SalesForm = () => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
+
     // Handle form submission logic (e.g., send data to server)
     console.log("Order No:", orderNo);
     console.log("Customer Name:", customerName);
     console.log("Barcode:", barcode);
+    console.log("Date of Order:", startDate);
+    console.log("Date of Delivery:", endDate);
     // ... other fields
     setOpen(false); // Close the popup after submission
   };
@@ -145,6 +148,7 @@ const SalesForm = () => {
               <Table>
                 <TableHead>
                   <TableRow>
+                  
                     <TableCell> </TableCell>
                     <TableCell>RE</TableCell>
                     <TableCell>LE</TableCell>
@@ -295,6 +299,7 @@ const SalesForm = () => {
             color="primary"
             type="submit"
             form="inventory-form"
+            onClick={handleSubmit}
           >
             Submit
           </Button>
