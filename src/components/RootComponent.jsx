@@ -2,13 +2,14 @@ import React from "react";
 import NavBarComponent from "./NavBarComponent";
 import { Box, Grid } from "@mui/material";
 import SideBarComponent from "./SideBarComponent";
-import { Outlet } from "react-router-dom";
+import { Outlet } from "react-router-dom"; 
 
 
 export default function RootComponent() {
+
   return (
     <>
-      <NavBarComponent />
+     {<NavBarComponent />}
 
      
       <Box
@@ -22,7 +23,7 @@ export default function RootComponent() {
         <Grid container spacing={0}>
 
           <Grid item md={2} sm={0}>
-            <SideBarComponent />
+           {<SideBarComponent />}
           </Grid>
           <Grid item md={10}>
             <Outlet />

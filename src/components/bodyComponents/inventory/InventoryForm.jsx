@@ -13,19 +13,30 @@ import {
   Box,
   Select,
   MenuItem,
+  CircularProgress,
 } from "@mui/material";
 import AddAPhotoIcon from "@mui/icons-material/AddAPhoto";
+import { addDoc, collection } from "firebase/firestore";
+import { getStorage, ref, uploadBytes, getDownloadURL } from "firebase/storage";
+import { db } from "../../../config/Firebase";
 
-const InventoryForm = () => {
-  const [open, setOpen] = useState(false); // State for popup visibility
-  const [barcode, setBarcode] = useState("");
+const InventoryForm = ({ setRefresh }) => {
+  const [open, setOpen] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [value, setValue] = useState({
+    barcode: "",
+    price: "",
+    quantity: "",
+    size: "",
+    type: "",
+    name: "",
+    selectedDate: new Date(),
+  });
   const [image, setImage] = useState(null);
-  const [price, setPrice] = useState("");
-  const [quantity, setQuantity] = useState("");
-  const [size, setSize] = useState("");
-  const [type, setType] = useState("");
-   const[name,setName] =useState("");
-   const [selectedDate, setSelectedDate] = useState(new Date());
+  const [errors, setErrors] = useState({});
+
+  const storage = getStorage(); // Initialize Firebase Storage
+
   const handleImageChange = (e) => {
     const file = e.target.files[0];
     if (file) {
@@ -33,35 +44,68 @@ const InventoryForm = () => {
     }
   };
 
-  const handleSubmit = (e) => {
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    setValue((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
+  };
+
+  const handleDateChange = (date) => {
+    setValue((prev) => ({
+      ...prev,
+      selectedDate: date,
+    }));
+  };
+
+  const validateForm = () => {
+    const newErrors = {};
+    if (!value.barcode) newErrors.barcode = "Barcode is required";
+    if (!value.price) newErrors.price = "Price is required";
+    if (!value.quantity) newErrors.quantity = "Quantity is required";
+    if (!value.name) newErrors.name = "Name is required";
+    if (!image) newErrors.image = "Image is required";
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    
 
-    // Handle form submission logic here
-    console.log("Barcode:", barcode);
-    console.log("Image:", image);
-    console.log("Type:", type);
-    console.log("Price:", price);
-    console.log("Quantity:", quantity);
-    console.log("Size:", size);
-    console.log("Name:",  name);
-    console.log("Date:", selectedDate);
-    setOpen(false); // Close the popup after submission
-    setBarcode("");
-    setImage("");
-    setType("");
-    setName("");
-    setPrice("");
-    setQuantity("");
-    setSize("");
+    if (!validateForm()) return;
+
+    setLoading(true);
+
+    try {
+      // Upload image to Firebase Storage
+      const storageRef = ref(storage, `inventory-images/${image.name}`);
+      await uploadBytes(storageRef, image);
+
+      // Get the download URL of the image
+      const imageUrl = await getDownloadURL(storageRef);
+
+      // Save form data along with image URL to Firestore
+      const inventoryCollectionRef = collection(db, "inventory");
+      await addDoc(inventoryCollectionRef, {
+        ...value,
+        image: imageUrl, // Save the image URL to Firestore
+      });
+
+      setOpen(false);
+      setRefresh((prev) => !prev);
+      setLoading(false);
+    } catch (error) {
+      console.error("Error adding document: ", error);
+      setLoading(false);
+    }
   };
 
-  const handleClickOpen = () => {
-    setOpen(true);
-  };
+  const handleClickOpen = () => setOpen(true);
 
   const handleClose = () => {
     setOpen(false);
+    setErrors({});
   };
 
   return (
@@ -84,6 +128,7 @@ const InventoryForm = () => {
           Add Inventory
         </Button>
       </Typography>
+
       <Dialog open={open} onClose={handleClose} fullWidth maxWidth="sm">
         <DialogTitle>Add Inventory</DialogTitle>
         <DialogContent>
@@ -92,34 +137,42 @@ const InventoryForm = () => {
           </DialogContentText>
           <form onSubmit={handleSubmit}>
             <Typography variant="h7">Select Date</Typography>
-            <div>
-              <DatePicker
-                className="datePicker"
-                selected={selectedDate}
-                onChange={(date) => setSelectedDate(date)}
-              />
-            </div>
-
+            <DatePicker
+              selected={value.selectedDate}
+              onChange={handleDateChange}
+              customInput={
+                <TextField
+                  fullWidth
+                  variant="outlined"
+                  sx={{ mt: 1 }}
+                  error={Boolean(errors.selectedDate)}
+                  helperText={errors.selectedDate}
+                />
+              }
+            />
             <TextField
               label="Barcode"
-              value={barcode}
-              onChange={(e) => setBarcode(e.target.value)}
+              name="barcode"
+              value={value.barcode}
+              onChange={handleInputChange}
               fullWidth
               margin="normal"
-              required // Mark barcode as required
+              required
+              error={Boolean(errors.barcode)}
+              helperText={errors.barcode}
             />
-            <Box sx={{ display: "flex", alignItems: "center" }}>
+            <Box sx={{ display: "flex", alignItems: "center", my: 2 }}>
               <label htmlFor="image-upload">
                 {image ? (
                   <img
                     src={URL.createObjectURL(image)}
-                    alt="Product Image"
+                    alt="Product Preview"
                     style={{ width: "100px", height: "100px" }}
                   />
                 ) : (
                   <AddAPhotoIcon />
                 )}
-                <Typography> Choose Image </Typography>
+                <Typography sx={{ ml: 1 }}>Choose Image</Typography>
               </label>
               <input
                 type="file"
@@ -128,19 +181,21 @@ const InventoryForm = () => {
                 onChange={handleImageChange}
               />
             </Box>
-            <hr/>
+            {errors.image && (
+              <Typography color="error">{errors.image}</Typography>
+            )}
 
-            <Typography variant="h7">Inventory Type</Typography>
             <Select
-              label="Expense Type"
-              value={type}
-              onChange={(e) => setType(e.target.value)}
-              placeholder="Expense Type"
-              margin="normal"
+              label="Inventory Type"
+              name="type"
+              value={value.type}
+              onChange={handleInputChange}
               fullWidth
+              margin="normal"
+              required
             >
               <MenuItem value="glasses">Glasses</MenuItem>
-              <MenuItem value="ContactLenses">Contact Lense</MenuItem>
+              <MenuItem value="ContactLenses">Contact Lenses</MenuItem>
               <MenuItem value="covers">Covers</MenuItem>
               <MenuItem value="Frames">Frames</MenuItem>
               <MenuItem value="solutions">Solutions</MenuItem>
@@ -149,35 +204,44 @@ const InventoryForm = () => {
 
             <TextField
               label="Name"
-              type="name"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
+              name="name"
+              value={value.name}
+              onChange={handleInputChange}
               fullWidth
               margin="normal"
               required
+              error={Boolean(errors.name)}
+              helperText={errors.name}
             />
             <TextField
               label="Price"
               type="number"
-              value={price}
-              onChange={(e) => setPrice(e.target.value)}
+              name="price"
+              value={value.price}
+              onChange={handleInputChange}
               fullWidth
               margin="normal"
               required
+              error={Boolean(errors.price)}
+              helperText={errors.price}
             />
             <TextField
               label="Quantity"
               type="number"
-              value={quantity}
-              onChange={(e) => setQuantity(e.target.value)}
+              name="quantity"
+              value={value.quantity}
+              onChange={handleInputChange}
               fullWidth
               margin="normal"
               required
+              error={Boolean(errors.quantity)}
+              helperText={errors.quantity}
             />
             <TextField
               label="Size"
-              value={size}
-              onChange={(e) => setSize(e.target.value)}
+              name="size"
+              value={value.size}
+              onChange={handleInputChange}
               fullWidth
               margin="normal"
             />
@@ -188,11 +252,10 @@ const InventoryForm = () => {
           <Button
             variant="contained"
             color="primary"
-            type="submit"
-            form="inventory-form"
             onClick={handleSubmit}
+            disabled={loading}
           >
-            Submit
+            {loading ? <CircularProgress size={24} /> : "Submit"}
           </Button>
         </DialogActions>
       </Dialog>
@@ -201,61 +264,3 @@ const InventoryForm = () => {
 };
 
 export default InventoryForm;
-
-// import { Grid, Box, Typography, Button } from "@mui/material";
-// import React, { Component } from "react";
-
-// export default class Inventory extends Component {
-//   render() {
-//     return (
-//       <Box>
-//         <Grid container sx={{ mx: 3, p: 3 }}>
-//           <Grid item md={9}>
-//             <Box
-//               sx={{
-//                 margin: 3,
-//                 bgcolor: "white",
-//                 borderRadius: 2,
-//                 padding: 3,
-//                 height: "100%",
-//               }}
-//             >
-//               <Typography
-//                 variant="h5"
-//                 sx={{
-//                   m: 3,
-//                   fontWeight: "bold",
-//                   display: "flex",
-//                   justifyContent: "space-between",
-//                 }}
-//               >
-//                 Inventory
-//                 <Button
-//                   variant="contained"
-//                   sx={{ bgcolor: "#504099", m: 3, px: 12 }}
-//                 >
-//                   Add inventory
-//                 </Button>
-//               </Typography>
-
-//             </Box>
-//           </Grid>
-//         </Grid>
-//       </Box>
-//     );
-//   }
-// }
-
-{
-  /* <Box
-              sx={{
-                margin: 3,
-                bgcolor: "white",
-                borderRadius: 2,
-                padding: 3,
-                height: "100%",
-              }}
-            >
-             
-            </Box> */
-}

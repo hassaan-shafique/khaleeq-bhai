@@ -1,5 +1,3 @@
-
-
 import React, { useState } from "react";
 import {
   Button,
@@ -12,32 +10,64 @@ import {
   DialogContent,
   DialogTitle,
   DialogActions,
+  InputLabel,
 } from "@mui/material";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
+import { addDoc, collection } from "firebase/firestore";
+import { db } from "../../../config/Firebase";
 
-const ExpenseForm = () => {
-  const [open, setOpen] = useState(false); // State for popup visibility
-  const [price, setPrice] = useState("");
-  const [expenseType, setExpenseType] = useState("");
-  const [selectedDate, setSelectedDate] = useState(new Date());
+const EXPENSE_TYPES = [
+  { name: "Salary", value: "salary" },
+  { name: "Rent", value: "rent" },
+  { name: "Food", value: "food" },
+  { name: "Electricity Bill", value: "electricityBill" },
+  { name: "Loan", value: "loan" },
+  { name: "Other", value: "other" },
+];
 
-  const handleClickOpen = () => {
-    setOpen(true);
+const ExpenseForm = ({ setRefresh }) => {
+  const [open, setOpen] = useState(false);
+  const [values, setValues] = useState({
+    price: 0,
+    expenseType: "",
+    otherExpense: "",
+    selectedDate: new Date(),
+  });
+
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    setValues((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
   };
 
-  const handleClose = () => {
-    setOpen(false);
+  const handleDateChange = (date) => {
+    setValues((prev) => ({
+      ...prev,
+      selectedDate: date,
+    }));
   };
- 
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    // Handle form submission logic here
-    console.log("Price:", price);
-    console.log("Selected Date:", selectedDate);
-    console.log("Expense Type:", expenseType);
-    setOpen(false); // Close the popup after submission
+    const { price, expenseType, selectedDate, otherExpense } = values;
+
+    try {
+      const expensesCollectionRef = collection(db, "expenses");
+      await addDoc(expensesCollectionRef, {
+        price,
+        expenseType,
+        selectedDate,
+        otherExpense: expenseType === "other" ? otherExpense : "",
+      });
+
+      setOpen(false);
+      setRefresh((prev) => !prev);
+    } catch (error) {
+      console.error("Error adding document: ", error);
+    }
   };
 
   return (
@@ -55,54 +85,98 @@ const ExpenseForm = () => {
         <Button
           variant="contained"
           sx={{ bgcolor: "#448EE4", m: 1, px: 9 }}
-          onClick={handleClickOpen}
+          onClick={() => setOpen(true)}
         >
           Add Expense
         </Button>
       </Typography>
-      <Dialog open={open} onClose={handleClose} fullWidth maxWidth="sm">
+
+      <Dialog
+        open={open}
+        onClose={() => setOpen(false)}
+        fullWidth
+        maxWidth="sm"
+      >
         <DialogTitle>Add Expense</DialogTitle>
         <DialogContent>
           <form onSubmit={handleSubmit}>
-            <Typography variant="h7">Select Date</Typography>
-            <div>
-              <DatePicker
-                className="datePicker"
-                selected={selectedDate}
-                onChange={(date) => setSelectedDate(date)}
-              />
-            </div>
+            <Box sx={{ mb: 3 }}>
+              <Typography variant="h7" sx={{ mb: 1 }}>
+                Select Date
+              </Typography>
+              <Box sx={{ mt: 1 }}>
+                <DatePicker
+                  selected={values.selectedDate}
+                  onChange={handleDateChange}
+                  dateFormat="dd-MM-yyyy"
+                  customInput={
+                    <TextField
+                      fullWidth
+                      variant="outlined"
+                      sx={{ mt: 1 }}
+                      value={
+                        values.selectedDate
+                          ? values.selectedDate.toISOString().split("T")[0]
+                          : "" // Empty string if no date is selected
+                      }
+                    />
+                  }
+                />
+                 
+              </Box>
+            </Box>
+
             <Typography variant="h7">Price</Typography>
             <TextField
               label="Price"
               type="number"
-              value={price}
-              onChange={(e) => setPrice(e.target.value)}
+              name="price"
+              value={values.price}
+              onChange={handleInputChange}
               fullWidth
               margin="normal"
+              required
             />
-            <Typography variant="h7">Expense Type</Typography>
+
+            <InputLabel id="expense-type">Expense Type</InputLabel>
             <Select
               label="Expense Type"
-              value={expenseType}
-              onChange={(e) => setExpenseType(e.target.value)}
-              placeholder="Expense Type"
-              margin="normal"
+              labelId="expense-type"
+              name="expenseType"
+              value={values.expenseType}
+              onChange={handleInputChange}
               fullWidth
+              margin="normal"
+              required
             >
-              <MenuItem value="salary">Salary</MenuItem>
-              <MenuItem value="rent">Rent</MenuItem>
-              {/* Add more expense types as needed */}
+              {EXPENSE_TYPES.map((expense) => (
+                <MenuItem key={expense.value} value={expense.value}>
+                  {expense.name}
+                </MenuItem>
+              ))}
             </Select>
+
+            {values.expenseType === "other" && (
+              <TextField
+                label="Other Expense Type"
+                name="otherExpense"
+                value={values.otherExpense}
+                onChange={handleInputChange}
+                margin="normal"
+                fullWidth
+                required
+              />
+            )}
           </form>
         </DialogContent>
+
         <DialogActions>
-          <Button onClick={handleClose}>Cancel</Button>
+          <Button onClick={() => setOpen(false)}>Cancel</Button>
           <Button
             variant="contained"
             color="primary"
             type="submit"
-            form="expense-form"
+            onClick={handleSubmit}
           >
             Submit
           </Button>
@@ -113,81 +187,3 @@ const ExpenseForm = () => {
 };
 
 export default ExpenseForm;
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-// import React, { useState } from "react";
-// import {
-//   Button,
-//   TextField,
-//   Typography,
-//   Box,
-//   DatePicker,
-//   Select,
-//   MenuItem,
-// } from "@mui/material";
-
-// const ExpenseForm = () => {
-//   const [date, setDate] = useState(new Date());
-//   const [expenseType, setExpenseType] = useState("");
-//   const [price, setPrice] = useState("");
-
-//   const handleSubmit = (e) => {
-//     e.preventDefault();
-//     // Handle form submission logic here
-//     console.log("Date:", date);
-//     console.log("Expense Type:", expenseType);
-//     console.log("Price:", price);
-//   };
-
-//   return (
-//     <Box sx={{ p: 2 }}>
-//       <Typography variant="h6"> Expenses</Typography>
-//       <form onSubmit={handleSubmit}>
-//         <DatePicker
-//           label="Select Date"
-//           value={date}
-//           onChange={(newValue) => setDate(newValue)}
-//           fullWidth
-//         />
-//         <Select
-//           label="Expense Type"
-//           value={expenseType}
-//           onChange={(e) => setExpenseType(e.target.value)}
-//           fullWidth
-//         >
-//           <MenuItem value="salary">Salary</MenuItem>
-//           <MenuItem value="rent">Rent</MenuItem>
-//           {/* Add more expense types as needed */}
-//         </Select>
-//         <TextField
-//           label="Price"
-//           type="number"
-//           value={price}
-//           onChange={(e) => setPrice(e.target.value)}
-//           fullWidth
-//         />
-//         <Button variant="contained" color="primary" type="submit">
-//           Submit
-//         </Button>
-//       </form>
-//     </Box>
-//   );
-// };
-
-// export default ExpenseForm;

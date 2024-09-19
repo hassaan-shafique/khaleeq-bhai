@@ -14,34 +14,43 @@ import {
   TableContainer,
   Table,
   TableBody,
-  Tab,
+  RadioGroup,
+  FormControlLabel,
+  Radio,
 } from "@mui/material";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
+import { addDoc, collection } from "firebase/firestore";
+import { db } from "../../../config/Firebase";
 
 const SalesForm = () => {
+  // Use one state object for all form fields
+  const [value, setValue] = useState({
+    barcode: "",
+    orderNo: "",
+    customerName: "",
+    contactNo: "",
+    address: "",
+    salesman: "",
+    doctor: "",
+    totalAmount: "",
+    pendingAmount: "",
+    advance: "",
+    startDate: null,
+    endDate: null,
+    reSph: "",
+    reCyl: "",
+    reAxis: "",
+    reAdd: "",
+    leSph: "",
+    leCyl: "",
+    leAxis: "",
+    leAdd: "",
+    instruction: "",
+    status: "Pending",
+  });
+
   const [open, setOpen] = useState(false);
-  const [orderNo, setOrderNo] = useState("");
-  const [barcode, setBarcode] = useState("");
-  const [customerName, setCustomerName] = useState("");
-  const [contactNo, setContactNo] = useState("");
-  const [address, setAddress] = useState("");
-  const [salesman, setSalesman] = useState("");
-  const [doctor, setDoctor] = useState("");
-  const [totalAmount, setTotalAmount] = useState("");
-  const [pendingAmount, setPendingAmount] = useState("");
-  const [advance,setAdvance] =useState("");
-  const [startDate, setStartDate] = useState(null);
-  const [endDate, setEndDate] = useState(null);
-   const [reSph, setReSph] = useState("");
-   const [reCyl, setReCyl] = useState("");
-   const [reAxis, setReAxis] = useState("");
-   const [reAdd, setReAdd] = useState("");
-   const [leSph, setLeSph] = useState("");
-   const [leCyl, setLeCyl] = useState("");
-   const [leAxis, setLeAxis] = useState("");
-   const [leAdd, setLeAdd] = useState("");
-   const[instruction,setInstruction] =useState("");
 
   const handleClickOpen = () => {
     setOpen(true);
@@ -51,17 +60,82 @@ const SalesForm = () => {
     setOpen(false);
   };
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
+  // Generic handler for TextField changes
+  const handleChange = (e) => {
+    const { name, value: inputValue } = e.target;
+    setValue((prev) => ({
+      ...prev,
+      [name]: inputValue,
+    }));
+  };
 
-    // Handle form submission logic (e.g., send data to server)
-    console.log("Order No:", orderNo);
-    console.log("Customer Name:", customerName);
-    console.log("Barcode:", barcode);
-    console.log("Date of Order:", startDate);
-    console.log("Date of Delivery:", endDate);
-    // ... other fields
-    setOpen(false); // Close the popup after submission
+  // Specific handler for date changes
+  const handleDateChange = (date, field) => {
+    setValue((prev) => ({
+      ...prev,
+      [field]: date,
+    }));
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    const {
+     barcode,
+    orderNo,
+    customerName,
+    contactNo,
+    address,
+    salesman,
+    doctor,
+    totalAmount,
+    pendingAmount,
+    advance,
+    startDate,
+    endDate,
+    reSph ,
+    reCyl,
+    reAxis,
+    reAdd,
+    leSph,
+    leCyl,
+    leAxis,
+    leAdd,
+    instruction,
+    status,
+    } = value;
+
+    try {
+      const expensesCollectionRef = collection(db, "sales");
+      await addDoc(expensesCollectionRef, {
+        barcode,
+        orderNo,
+        customerName,
+        contactNo,
+        address,
+        salesman,
+        doctor,
+        totalAmount,
+        pendingAmount,
+        advance,
+        startDate,
+        endDate,
+        reSph,
+        reCyl,
+        reAxis,
+        reAdd,
+        leSph,
+        leCyl,
+        leAxis,
+        leAdd,
+        instruction,
+        status,
+      });
+
+      setOpen(false);
+      setRefresh((prev) => !prev);
+    } catch (error) {
+      console.error("Error adding document: ", error);
+    }
   };
 
   return (
@@ -88,67 +162,90 @@ const SalesForm = () => {
         <DialogTitle>Add Sale</DialogTitle>
         <DialogContent>
           <form onSubmit={handleSubmit}>
+            <Typography variant="h7">Date of Order</Typography>
+            <div>
+              <DatePicker
+                selected={value.startDate}
+                onChange={(date) => handleDateChange(date, "startDate")}
+                fullWidth
+              />
+            </div>
+            <Typography variant="h7">Date of Delivery</Typography>
+            <div>
+              <DatePicker
+                selected={value.endDate}
+                onChange={(date) => handleDateChange(date, "endDate")}
+                fullWidth
+              />
+            </div>
             <TextField
               label="Barcode"
               type="number"
-              value={barcode}
-              onChange={(e) => setBarcode(e.target.value)}
+              name="barcode" // Name matches the key in the value object
+              value={value.barcode}
+              onChange={handleChange}
               fullWidth
               margin="normal"
             />
             <TextField
               label="Order No"
               type="number"
-              value={orderNo}
-              onChange={(e) => setOrderNo(e.target.value)}
+              name="orderNo"
+              value={value.orderNo}
+              onChange={handleChange}
               margin="normal"
               sx={{ mr: 6 }}
             />
             <TextField
               label="Customer Name"
-              value={customerName}
-              onChange={(e) => setCustomerName(e.target.value)}
+              name="customerName"
+              value={value.customerName}
+              onChange={handleChange}
               placeholder="Customer Name"
               margin="normal"
               sx={{ mr: 1 }}
             />
             <TextField
               label="Contact No"
-              value={contactNo}
-              onChange={(e) => setContactNo(e.target.value)}
+              name="contactNo"
+              value={value.contactNo}
+              onChange={handleChange}
               placeholder="Contact No"
               margin="normal"
               sx={{ mr: 6 }}
             />
             <TextField
               label="Address"
-              value={address}
-              onChange={(e) => setAddress(e.target.value)}
+              name="address"
+              value={value.address}
+              onChange={handleChange}
               placeholder="Address"
               margin="normal"
               sx={{ mr: 1 }}
             />
             <TextField
               label="Salesman"
-              value={salesman}
-              onChange={(e) => setSalesman(e.target.value)}
+              name="salesman"
+              value={value.salesman}
+              onChange={handleChange}
               placeholder="Salesman"
               margin="normal"
               sx={{ mr: 6 }}
             />
             <TextField
               label="Doctor"
-              value={doctor}
-              onChange={(e) => setDoctor(e.target.value)}
+              name="doctor"
+              value={value.doctor}
+              onChange={handleChange}
               placeholder="Doctor"
               margin="normal"
               sx={{ mr: 1 }}
             />
+
             <TableContainer>
               <Table>
                 <TableHead>
                   <TableRow>
-                  
                     <TableCell> </TableCell>
                     <TableCell>RE</TableCell>
                     <TableCell>LE</TableCell>
@@ -160,16 +257,18 @@ const SalesForm = () => {
                     <TableCell>
                       <TextField
                         type="number"
-                        value={reSph}
-                        onChange={(e) => setReSph(e.target.value)}
+                        name="reSph"
+                        value={value.reSph}
+                        onChange={handleChange}
                         fullWidth
                       />
                     </TableCell>
                     <TableCell>
                       <TextField
                         type="number"
-                        value={leSph}
-                        onChange={(e) => setLeSph(e.target.value)}
+                        name="leSph"
+                        value={value.leSph}
+                        onChange={handleChange}
                         fullWidth
                       />
                     </TableCell>
@@ -179,16 +278,18 @@ const SalesForm = () => {
                     <TableCell>
                       <TextField
                         type="number"
-                        value={reCyl}
-                        onChange={(e) => setReCyl(e.target.value)}
+                        name="reCyl"
+                        value={value.reCyl}
+                        onChange={handleChange}
                         fullWidth
                       />
                     </TableCell>
                     <TableCell>
                       <TextField
                         type="number"
-                        value={leCyl}
-                        onChange={(e) => setLeCyl(e.target.value)}
+                        name="leCyl"
+                        value={value.leCyl}
+                        onChange={handleChange}
                         fullWidth
                       />
                     </TableCell>
@@ -198,16 +299,18 @@ const SalesForm = () => {
                     <TableCell>
                       <TextField
                         type="number"
-                        value={reAxis}
-                        onChange={(e) => setReAxis(e.target.value)}
+                        name="reAxis"
+                        value={value.reAxis}
+                        onChange={handleChange}
                         fullWidth
                       />
                     </TableCell>
                     <TableCell>
                       <TextField
                         type="number"
-                        value={leAxis}
-                        onChange={(e) => setLeAxis(e.target.value)}
+                        name="leAxis"
+                        value={value.leAxis}
+                        onChange={handleChange}
                         fullWidth
                       />
                     </TableCell>
@@ -217,16 +320,18 @@ const SalesForm = () => {
                     <TableCell>
                       <TextField
                         type="number"
-                        value={reAdd}
-                        onChange={(e) => setReAdd(e.target.value)}
+                        name="reAdd"
+                        value={value.reAdd}
+                        onChange={handleChange}
                         fullWidth
                       />
                     </TableCell>
                     <TableCell>
                       <TextField
                         type="number"
-                        value={leAdd}
-                        onChange={(e) => setLeAdd(e.target.value)}
+                        name="leAdd"
+                        value={value.leAdd}
+                        onChange={handleChange}
                         fullWidth
                       />
                     </TableCell>
@@ -237,137 +342,85 @@ const SalesForm = () => {
 
             <TextField
               label="Total Amount"
-              value={totalAmount}
-              onChange={(e) => setTotalAmount(e.target.value)}
+              name="totalAmount"
+              value={value.totalAmount}
+              onChange={handleChange}
               placeholder="Total Amount"
               margin="normal"
               fullWidth
             />
             <TextField
               label="Advance"
-              value={advance}
-              onChange={(e) => setAdvance(e.target.value)}
+              name="advance"
+              value={value.advance}
+              onChange={handleChange}
               placeholder="Advance"
               margin="normal"
               fullWidth
             />
             <TextField
               label="Pending Amount"
-              value={pendingAmount}
-              onChange={(e) => setPendingAmount(e.target.value)}
+              name="pendingAmount"
+              value={value.pendingAmount}
+              onChange={handleChange}
               placeholder="Pending Amount"
               margin="normal"
               fullWidth
             />
-            <Typography variant="h7">Date of Order</Typography>
-            <div>
-              <DatePicker
-                label="Start Date"
-                value={startDate}
-                onChange={(newValue) => setStartDate(newValue)}
-                fullWidth
+
+            {/* Status Radio Buttons */}
+            <Typography variant="h7" sx={{ mt: 2 }}>
+              Sale Status
+            </Typography>
+            <RadioGroup
+              row
+              name="status"
+              value={value.status}
+              onChange={handleChange}
+              sx={{ mt: 1 }}
+            >
+              <FormControlLabel
+                value="Pending"
+                control={<Radio />}
+                label="Pending"
               />
-            </div>
-            <Typography variant="h7">Date of Delivery</Typography>
-            <div>
-              <DatePicker
-                label="End Date"
-                value={endDate}
-                onChange={(newValue) => setEndDate(newValue)}
-                fullWidth
+              <FormControlLabel
+                value="Completed"
+                control={<Radio />}
+                label="Completed"
               />
-            </div>
-            <Box sx={{ width: "100%", maxWidth: 500, margin: "0 auto", mt: 4 }}>
-              <TextField
-                label="Enter Your Instructions"
-                multiline
-                value={instruction}
-                onChange={(e) => setInstruction(e.target.value)}
-                rows={6} // You can adjust the number of rows
-                variant="outlined"
-                fullWidth
-                placeholder="Write your paragraph here..."
-              />
-            </Box>
+            </RadioGroup>
+
+            <TextField
+              label="Instruction"
+              name="instruction"
+              value={value.instruction}
+              onChange={handleChange}
+              placeholder="Instruction"
+              fullWidth
+              margin="normal"
+            />
+
+            <DialogActions>
+              <Button
+                onClick={handleClose}
+                sx={{
+                  mt: 4,
+                  bgcolor: "#005eff",
+                  px: 3,
+                  ":hover": { bgcolor: "#005eff" },
+                }}
+                variant="contained"
+                type="submit"
+              >
+                Submit
+              </Button>
+            </DialogActions>
           </form>
         </DialogContent>
-        <DialogActions>
-          <Button onClick={handleClose}>Cancel</Button>
-
-          <Button
-            variant="contained"
-            color="primary"
-            type="submit"
-            form="inventory-form"
-            onClick={handleSubmit}
-          >
-            Submit
-          </Button>
-        </DialogActions>
       </Dialog>
     </div>
   );
 };
 
 export default SalesForm;
-
-// import React, { useState } from "react";
-// import {
-//   Button,
-//   TextField,
-//   Typography,
-//   Box,
-//   DatePicker,
-//   Select,
-//   MenuItem,
-// } from "@mui/material";
-
-// const ExpenseForm = () => {
-//   const [date, setDate] = useState(new Date());
-//   const [expenseType, setExpenseType] = useState("");
-//   const [price, setPrice] = useState("");
-
-//   const handleSubmit = (e) => {
-//     e.preventDefault();
-//     // Handle form submission logic here
-//     console.log("Date:", date);
-//     console.log("Expense Type:", expenseType);
-//     console.log("Price:", price);
-//   };
-
-//   return (
-//     <Box sx={{ p: 2 }}>
-//       <Typography variant="h6"> Expenses</Typography>
-//       <form onSubmit={handleSubmit}>
-//         <DatePicker
-//           label="Select Date"
-//           value={date}
-//           onChange={(newValue) => setDate(newValue)}
-//           fullWidth
-//         />
-//         <Select
-//           label="Expense Type"
-//           value={expenseType}
-//           onChange={(e) => setExpenseType(e.target.value)}
-//           fullWidth
-//         >
-//           <MenuItem value="salary">Salary</MenuItem>
-//           <MenuItem value="rent">Rent</MenuItem>
-//           {/* Add more expense types as needed */}
-//         </Select>
-//         <TextField
-//           label="Price"
-//           type="number"
-//           value={price}
-//           onChange={(e) => setPrice(e.target.value)}
-//           fullWidth
-//         />
-//         <Button variant="contained" color="primary" type="submit">
-//           Submit
-//         </Button>
-//       </form>
-//     </Box>
-//   );
-// };
-
-// export default ExpenseForm;

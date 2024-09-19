@@ -1,7 +1,7 @@
 import Inter from "../public/static/fonts/Inter.ttf";
 import { ThemeProvider, CssBaseline, createTheme, Box } from "@mui/material";
 import RootComponent from "./components/RootComponent";
-import Signup from "./components/Signup";
+
 import DataTable from "./test/DataTable";
 import Hello from "./test/Hello";
 // import "../app.css";
@@ -20,26 +20,25 @@ import Report from "./components/bodyComponents/report/Report";
 import Setting from "./components/bodyComponents/Settings/Setting";
 import Sales from "./components/bodyComponents/sale/Sales";
 import OrderModal from "./components/bodyComponents/sale/OrderModal";
+import Login from './components/Login'
+import Signup from "./components/Signup";
+
+import { app } from "./config/Firebase";
+import { getAuth } from "firebase/auth";
+
+
 
 function App() {
+
+  const auth = getAuth(app);
+  const authToken  = localStorage.getItem("authToken") ?? "";
+  console.log({authToken});
+  
+
   const theme = createTheme({
     spacing: 4,
     palette: {
       mode: "light",
-
-      // primary: {
-      //   main: "#573BFE",
-      // },
-      // text: {
-      //   primary: "#202635",
-      //   secondary: "#A0AEC0",
-      // },
-      // secondary: {
-      //   main: "#01C0F6",
-      // },
-      // error: {
-      //   main: "#E03137",
-      // },
     },
 
     typography: {
@@ -63,25 +62,18 @@ function App() {
   });
   const router = createBrowserRouter(
     createRoutesFromElements(
-      
-
       <Route path="/" element={<RootComponent />}>
-        <Route index element={<Sales />} />
-        <Route path="/inventory" element={<Inventory />}></Route>
-        <Route path="/sales" element={<Sales />}></Route>
-        <Route path="/glasses" element={<Glasses />}></Route>
-        <Route path="/expense" element={<Expense />}></Route>
-        <Route path="/reports" element={<Report />}></Route>
-        <Route path="/settings" element={<Setting />}></Route>
+        <Route path="/login" element={<Login />} />
+        <Route path="/register" element={<Signup />} />
+        <Route path="/inventory" element={<Inventory />} />
+        <Route path="/sales" element={<Sales />} />
+        <Route path="/glasses" element={<Glasses />} />
+        <Route path="/expense" element={<Expense />} />
+        <Route path="/reports" element={<Report />} />
+        <Route path="/settings" element={<Setting />} />
       </Route>
     )
   );
-  
-
-   
-          <Signup />
-     
-
 
   return (
     <ThemeProvider theme={theme}>

@@ -1,16 +1,35 @@
 
+import React from "react";
+import { useState, useEffect } from "react";
 import { Grid, Box, Typography, Button } from "@mui/material";
-import React, { Component } from "react";
-import InventoryForm from "./inventoryForm";
+import InventoryList from "./InventoryList"
+import InventoryForm from "./InventoryForm"
+import { db } from "../../../config/Firebase";
+import { collection, getDocs } from "firebase/firestore";
 
-
-
-
-
-
-export default class Inventory extends Component {
-  render() {
-    return (
+const Inventory = () => {
+  const [inventory, setInventory] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [refresh, setRefresh] = useState(false);
+  useEffect(() => {
+    const fetchInventory = async () => {
+      try {
+        const querySnapshot = await getDocs(collection(db, "inventory"));
+        const inventoryData = [];
+        querySnapshot.forEach((doc) => {
+          inventoryData.push({ id: doc.id, ...doc.data() });
+        });
+        setInventory(inventoryData);
+        setLoading(false);
+      } catch (error) {
+        console.error("Error fetching Inventory: ", error);
+        setLoading(false);
+      }
+    };
+    fetchInventory();
+  }, [refresh]);
+  return (
+    <>
       <Box>
         <Grid container sx={{ mx: 3, p: 3 }}>
           <Grid item md={9}>
@@ -23,16 +42,17 @@ export default class Inventory extends Component {
                 height: "100%",
               }}
             >
-             
-             
-              <InventoryForm/>
+              <InventoryForm setRefresh={setRefresh} />
+              <InventoryList inventory={inventory} />
             </Box>
           </Grid>
         </Grid>
       </Box>
-    );
-  }
-}
+    </>
+  );
+};
+
+export default Inventory;
 
 
 // import React, { useState } from "react";

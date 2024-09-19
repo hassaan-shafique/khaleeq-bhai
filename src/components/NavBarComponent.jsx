@@ -21,6 +21,11 @@ import {
   AccountCircleOutlined,
 } from "@mui/icons-material";
 import { useState } from "react";
+import { getAuth, signOut } from "firebase/auth";
+import { app } from "../config/Firebase";
+import { useNavigate } from "react-router-dom";
+
+const auth = getAuth(app);
 
 export default function NavBarComponent() {
   const [notificationAnchorEl, setNotificationAnchorEl] = useState(null);
@@ -40,6 +45,21 @@ export default function NavBarComponent() {
   };
   const notificationHandleClose = () => {
     setNotificationAnchorEl(null);
+  };
+
+  const navigate = useNavigate();
+
+  const handleLogout = async () => {
+    try {
+      await signOut(auth);
+      // Remove the token from localStorage
+      localStorage.removeItem("authToken");
+      console.log("Successfully logged out");
+      navigate("/login"); // Redirect to login page or any other page
+    } catch (error) {
+      console.error("Error logging out:", error);
+      alert("Failed to log out. Please try again.");
+    }
   };
 
   return (
@@ -102,7 +122,7 @@ export default function NavBarComponent() {
                  
 
                   
-                  <MenuItem>
+                  <MenuItem onClick={() => handleLogout()}>
                     <ListItemIcon>
                       <Logout fontSize="small" />
                     </ListItemIcon>
