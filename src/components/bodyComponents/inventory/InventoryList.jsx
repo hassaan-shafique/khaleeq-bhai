@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import {
   Table,
   TableBody,
@@ -10,6 +10,10 @@ import {
   CircularProgress,
   Box,
   Typography,
+  Select,
+  MenuItem,
+  FormControl,
+  InputLabel,
 } from "@mui/material";
 
 // Function to format Firestore timestamp
@@ -25,6 +29,22 @@ const formatTimestamp = (timestamp) => {
 };
 
 const InventoryList = ({ inventory = [], loading = false }) => {
+  // State to hold the selected inventory type filter
+  const [selectedType, setSelectedType] = useState("");
+
+  // Handle inventory type change
+  const handleTypeChange = (event) => {
+    setSelectedType(event.target.value);
+  };
+
+  // Filter the inventory based on the selected type
+  const filteredInventory = selectedType
+    ? inventory.filter((item) => item.type === selectedType)
+    : inventory; // Show all if no type is selected
+
+  // Extract unique inventory types from the inventory array
+  const inventoryTypes = [...new Set(inventory.map((item) => item.type))];
+
   return (
     <Box>
       {loading ? (
@@ -33,7 +53,24 @@ const InventoryList = ({ inventory = [], loading = false }) => {
         </Box>
       ) : (
         <>
-          {inventory.length === 0 ? (
+          {/* Inventory Type Filter Dropdown */}
+          <FormControl fullWidth sx={{ marginBottom: 2 }}>
+            <InputLabel>Filter by Inventory Type</InputLabel>
+            <Select
+              value={selectedType}
+              onChange={handleTypeChange}
+              label="Filter by Inventory Type"
+            >
+              <MenuItem value="">All</MenuItem>
+              {inventoryTypes.map((type, index) => (
+                <MenuItem key={index} value={type}>
+                  {type}
+                </MenuItem>
+              ))}
+            </Select>
+          </FormControl>
+
+          {filteredInventory.length === 0 ? (
             <Typography variant="h6" align="center" sx={{ marginTop: 4 }}>
               No Inventory found....
             </Typography>
@@ -58,7 +95,7 @@ const InventoryList = ({ inventory = [], loading = false }) => {
                   </TableRow>
                 </TableHead>
                 <TableBody>
-                  {inventory.map((item, i) => (
+                  {filteredInventory.map((item, i) => (
                     <TableRow key={item.id}>
                       <TableCell>{i + 1}</TableCell>
                       <TableCell>

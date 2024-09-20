@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import {
   Table,
   TableBody,
@@ -10,12 +10,16 @@ import {
   CircularProgress,
   Box,
   Typography,
+  Select,
+  MenuItem,
+  InputLabel,
+  FormControl,
 } from "@mui/material";
 
 // Function to format Firestore timestamp
 const formatTimestamp = (timestamp) => {
   if (!timestamp) return "";
-  const date = timestamp.toDate(); // Convert Firestore timestamp to JavaScript Date object
+  const date = timestamp.toDate();
   const options = {
     day: "2-digit",
     month: "long",
@@ -24,7 +28,17 @@ const formatTimestamp = (timestamp) => {
   return date.toLocaleDateString("en-GB", options);
 };
 
-const expenseList = ({ expenses = [], loading = false }) => {
+const ExpenseList = ({ expenses = [], loading = false }) => {
+  const [selectedType, setSelectedType] = useState("");
+
+  const filteredExpenses = selectedType
+    ? expenses.filter((item) => item.expenseType === selectedType)
+    : expenses;
+
+  const uniqueExpenseTypes = [
+    ...new Set(expenses.map((item) => item.expenseType)),
+  ];
+
   return (
     <Box>
       {loading ? (
@@ -33,39 +47,81 @@ const expenseList = ({ expenses = [], loading = false }) => {
         </Box>
       ) : (
         <>
-          {expenses.length === 0 ? (
+          <Box
+            sx={{ display: "flex", justifyContent: "center", marginBottom: 3 }}
+          >
+            <FormControl variant="outlined" sx={{ minWidth: 200 }}>
+              <InputLabel>Filter by Expense Type</InputLabel>
+              <Select
+                value={selectedType}
+                onChange={(e) => setSelectedType(e.target.value)}
+                label="Filter by Expense Type"
+              >
+                <MenuItem value="">All</MenuItem>
+                {uniqueExpenseTypes.map((type, index) => (
+                  <MenuItem key={index} value={type}>
+                    {type}
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+          </Box>
+
+          {filteredExpenses.length === 0 ? (
             <Typography variant="h6" align="center" sx={{ marginTop: 4 }}>
-              No Inventory found....
+              No Expenses found....
             </Typography>
           ) : (
-            <TableContainer component={Paper}>
+            <TableContainer component={Paper} sx={{ boxShadow: 3 }}>
               <Table>
                 <TableHead>
-                  <TableRow>
+                  <TableRow sx={{ bgcolor: "#f5f5f5" }}>
                     <TableCell sx={{ fontWeight: "bold" }}>
                       Expense ID
                     </TableCell>
-
                     <TableCell sx={{ fontWeight: "bold" }}>
                       Expense Type
                     </TableCell>
                     <TableCell sx={{ fontWeight: "bold" }}>
-                      other Expenses
+                      Other Expenses
                     </TableCell>
                     <TableCell sx={{ fontWeight: "bold" }}>Price</TableCell>
-
                     <TableCell sx={{ fontWeight: "bold" }}>Date</TableCell>
                   </TableRow>
                 </TableHead>
                 <TableBody>
-                  {expenses.map((item, i) => (
-                    <TableRow key={item.id}>
-                      <TableCell>{i + 1}</TableCell>
-
-                      <TableCell>{item.expenseType}</TableCell>
-                      <TableCell>{item.otherExpense}</TableCell>
-                      <TableCell>Rs.{item.price}</TableCell>
-                      <TableCell>
+                  {filteredExpenses.map((item, i) => (
+                    <TableRow
+                      key={item.id}
+                      sx={{
+                        "&:hover": { backgroundColor: "#e9f7ff" },
+                        backgroundColor: i % 2 === 0 ? "#ffffff" : "#f9f9f9",
+                        borderBottom: "1px solid #e0e0e0",
+                      }}
+                    >
+                      <TableCell
+                        sx={{ border: "1px solid #e0e0e0", padding: "16px" }}
+                      >
+                        {i + 1}
+                      </TableCell>
+                      <TableCell
+                        sx={{ border: "1px solid #e0e0e0", padding: "16px" }}
+                      >
+                        {item.expenseType}
+                      </TableCell>
+                      <TableCell
+                        sx={{ border: "1px solid #e0e0e0", padding: "16px" }}
+                      >
+                        {item.otherExpense}
+                      </TableCell>
+                      <TableCell
+                        sx={{ border: "1px solid #e0e0e0", padding: "16px" }}
+                      >
+                        Rs.{item.price}
+                      </TableCell>
+                      <TableCell
+                        sx={{ border: "1px solid #e0e0e0", padding: "16px" }}
+                      >
                         {item.selectedDate
                           ? formatTimestamp(item.selectedDate)
                           : "No Date"}
@@ -82,4 +138,4 @@ const expenseList = ({ expenses = [], loading = false }) => {
   );
 };
 
-export default expenseList;
+export default ExpenseList;

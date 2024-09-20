@@ -1,7 +1,5 @@
-import React from "react";
-import { useState, useEffect } from "react";
-import { Grid, Box, Typography, Button } from "@mui/material";
-
+import React, { useState, useEffect } from "react";
+import { Grid, Box, Typography, CircularProgress } from "@mui/material";
 import { db } from "../../../config/Firebase";
 import { collection, getDocs } from "firebase/firestore";
 import SalesForm from "./SaleForm";
@@ -11,44 +9,72 @@ const Sales = () => {
   const [sales, setSales] = useState([]);
   const [loading, setLoading] = useState(true);
   const [refresh, setRefresh] = useState(false);
+  const [error, setError] = useState(null); // To handle error in UI
+
   useEffect(() => {
-    const fetchInventory = async () => {
+    const fetchSales = async () => {
+      setLoading(true); // Set loading to true when fetch starts
+      setError(null); // Reset error before fetch
       try {
         const querySnapshot = await getDocs(collection(db, "sales"));
         const salesData = [];
         querySnapshot.forEach((doc) => {
           salesData.push({ id: doc.id, ...doc.data() });
         });
+
+        if (salesData.length === 0) {
+          setError("No sales available."); // Handle no data case
+        }
         setSales(salesData);
-        setLoading(false);
       } catch (error) {
-        console.error("Error fetching Sales: ", error);
-        setLoading(false);
+        console.error("Error fetching sales: ", error);
+        setError("Error fetching sales data. Please try again later.");
+      } finally {
+        setLoading(false); // Set loading to false after fetch
       }
     };
-    fetchInventory();
+
+    fetchSales();
   }, [refresh]);
+
   return (
-    <>
-      <Box>
-        <Grid container sx={{ mx: 3, p: 3 }}>
-          <Grid item md={9}>
-            <Box
-              sx={{
-                margin: 3,
-                bgcolor: "white",
-                borderRadius: 2,
-                padding: 3,
-                height: "100%",
-              }}
-            >
-              <SalesForm setRefresh={setRefresh} />
-            <SaleList sales={sales}/>
-            </Box>
-          </Grid>
+    <Box>
+      <Grid container sx={{ mx: 3, p: 3 }}>
+        <Grid item md={9}>
+          <Box
+            sx={{
+              margin: 3,
+              bgcolor: "white",
+              borderRadius: 2,
+              padding: 3,
+              height: "100%",
+            }}
+          >
+            {/* Show loading spinner */}
+            {loading && (
+              <Box display="flex" justifyContent="center">
+                <CircularProgress />
+              </Box>
+            )}
+
+            {/* Show error message if any */}
+            {error && (
+              <Typography color="error" align="center" sx={{ mt: 2 }}>
+                {error}
+              </Typography>
+            )}
+
+            {/* Render Sales Form and List only if not loading and no errors */}
+            {!loading && !error && (
+              <>
+                <SalesForm setRefresh={setRefresh} />
+                <SaleList sales={sales} />
+              </>
+            )}
+          </Box>
         </Grid>
-      </Box>
-    </>
+      </Grid>
+    </Box>
   );
 };
 
