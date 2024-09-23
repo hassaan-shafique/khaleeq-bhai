@@ -14,6 +14,11 @@ import {
   MenuItem,
   FormControl,
   InputLabel,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  Button,
 } from "@mui/material";
 
 // Function to format Firestore timestamp
@@ -31,10 +36,25 @@ const formatTimestamp = (timestamp) => {
 const InventoryList = ({ inventory = [], loading = false }) => {
   // State to hold the selected inventory type filter
   const [selectedType, setSelectedType] = useState("");
+  // State to manage dialog visibility and selected image
+  const [openDialog, setOpenDialog] = useState(false);
+  const [selectedImage, setSelectedImage] = useState("");
 
   // Handle inventory type change
   const handleTypeChange = (event) => {
     setSelectedType(event.target.value);
+  };
+
+  // Open dialog with selected image
+  const handleImageClick = (image) => {
+    setSelectedImage(image);
+    setOpenDialog(true);
+  };
+
+  // Close dialog
+  const handleCloseDialog = () => {
+    setOpenDialog(false);
+    setSelectedImage("");
   };
 
   // Filter the inventory based on the selected type
@@ -94,6 +114,7 @@ const InventoryList = ({ inventory = [], loading = false }) => {
                     <TableCell sx={{ fontWeight: "bold" }}>Date</TableCell>
                   </TableRow>
                 </TableHead>
+
                 <TableBody>
                   {filteredInventory.map((item, i) => (
                     <TableRow key={item.id}>
@@ -103,7 +124,12 @@ const InventoryList = ({ inventory = [], loading = false }) => {
                           <img
                             src={item.image}
                             alt={`Image ${i + 1}`}
-                            style={{ width: "100px", height: "100px" }}
+                            style={{
+                              width: "100px",
+                              height: "100px",
+                              cursor: "pointer",
+                            }}
+                            onClick={() => handleImageClick(item.image)} // Open dialog on click
                           />
                         ) : (
                           "No Image"
@@ -126,6 +152,23 @@ const InventoryList = ({ inventory = [], loading = false }) => {
               </Table>
             </TableContainer>
           )}
+
+          {/* Image Dialog */}
+          <Dialog open={openDialog} onClose={handleCloseDialog} maxWidth="md">
+            <DialogTitle>Image Preview</DialogTitle>
+            <DialogContent>
+              <img
+                src={selectedImage}
+                alt="Selected"
+                style={{ width: "100%", height: "auto" }}
+              />
+            </DialogContent>
+            <DialogActions>
+              <Button onClick={handleCloseDialog} color="primary">
+                Close
+              </Button>
+            </DialogActions>
+          </Dialog>
         </>
       )}
     </Box>

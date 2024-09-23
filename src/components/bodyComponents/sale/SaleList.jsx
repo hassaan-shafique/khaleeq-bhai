@@ -31,6 +31,7 @@ const SaleList = ({ sales = [], loading = false, setRefresh }) => {
   const [open, setOpen] = useState(false);
   const [Dsale, setDSale] = useState(null);
   const [salesData, setSalesData] = useState(sales); // Local sales state
+  
 
   // Open dialog with sale details
   const handleOpenDialog = (sale) => {
@@ -54,7 +55,7 @@ const SaleList = ({ sales = [], loading = false, setRefresh }) => {
        sale.id === saleId ? { ...sale, status: "Completed" } : sale
      );
      setSalesData(updatedSales);
-     setRefresh((prev) => !prev); // Optional refresh
+    //  setRefresh((prev) => !prev); // Optional refresh
    } catch (error) {
      console.error("Error updating sale status:", error); // Log the error
      alert(`Error updating sale status: ${error.message}`); // Show alert with error message

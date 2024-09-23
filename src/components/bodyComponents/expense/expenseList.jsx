@@ -75,18 +75,52 @@ const ExpenseList = ({ expenses = [], loading = false }) => {
             <TableContainer component={Paper} sx={{ boxShadow: 3 }}>
               <Table>
                 <TableHead>
-                  <TableRow sx={{ bgcolor: "#f5f5f5" }}>
-                    <TableCell sx={{ fontWeight: "bold" }}>
+                  <TableRow sx={{ bgcolor: "#0056b3" }}>
+                    <TableCell
+                      sx={{
+                        fontWeight: "bold",
+                        color: "white",
+                        border: "1px solid #e0e0e0",
+                      }}
+                    >
                       Expense ID
                     </TableCell>
-                    <TableCell sx={{ fontWeight: "bold" }}>
+                    <TableCell
+                      sx={{
+                        fontWeight: "bold",
+                        color: "white",
+                        border: "1px solid #e0e0e0",
+                      }}
+                    >
                       Expense Type
                     </TableCell>
-                    <TableCell sx={{ fontWeight: "bold" }}>
+                    <TableCell
+                      sx={{
+                        fontWeight: "bold",
+                        color: "white",
+                        border: "1px solid #e0e0e0",
+                      }}
+                    >
                       Other Expenses
                     </TableCell>
-                    <TableCell sx={{ fontWeight: "bold" }}>Price</TableCell>
-                    <TableCell sx={{ fontWeight: "bold" }}>Date</TableCell>
+                    <TableCell
+                      sx={{
+                        fontWeight: "bold",
+                        color: "white",
+                        border: "1px solid #e0e0e0",
+                      }}
+                    >
+                      Price
+                    </TableCell>
+                    <TableCell
+                      sx={{
+                        fontWeight: "bold",
+                        color: "white",
+                        border: "1px solid #e0e0e0",
+                      }}
+                    >
+                      Date
+                    </TableCell>
                   </TableRow>
                 </TableHead>
                 <TableBody>
