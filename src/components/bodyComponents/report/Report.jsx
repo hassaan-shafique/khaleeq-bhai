@@ -1,5 +1,6 @@
 import React from "react";
 import { Grid, Card, CardContent, Typography, Box } from "@mui/material";
+import reportExpense from "./reportExpense";
 
 const ReportCards = () => {
   // Example data for each card
@@ -55,6 +56,7 @@ const ReportCards = () => {
           </Grid>
         ))}
       </Grid>
+      <reportExpense />
     </Box>
   );
 };

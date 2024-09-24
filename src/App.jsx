@@ -17,6 +17,7 @@ import Inventory from "./components/bodyComponents/inventory/Inventory";
 import Glasses from "./components/bodyComponents/glasses/Glasses";
 import Expense from "./components/bodyComponents/expense/Expense";
 import Report from "./components/bodyComponents/report/Report";
+import reportExpense from "./components/bodyComponents/report/reportExpense";
 import Setting from "./components/bodyComponents/Settings/Setting";
 import Sales from "./components/bodyComponents/sale/Sales";
 import OrderModal from "./components/bodyComponents/sale/OrderModal";
@@ -70,6 +71,7 @@ function App() {
         <Route path="/glasses" element={<Glasses />} />
         <Route path="/expense" element={<Expense />} />
         <Route path="/reports" element={<Report />} />
+        <Route path="/reports/expense" element= { <reportExpense/>} />
         <Route path="/settings" element={<Setting />} />
       </Route>
     )

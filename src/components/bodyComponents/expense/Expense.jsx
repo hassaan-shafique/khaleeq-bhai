@@ -39,7 +39,7 @@ const Expense = () => {
             <Box
               sx={{
                 margin: 3,
-                bgcolor: "white",
+                bgcolor: "#FAF9F6",
                 borderRadius: 2,
                 padding: 3,
                 height: "100%",

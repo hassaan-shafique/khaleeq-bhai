@@ -28,40 +28,54 @@ const EXPENSE_TYPES = [
 
 const ExpenseForm = ({ setRefresh }) => {
   const [open, setOpen] = useState(false);
-  const [values, setValues] = useState({
-    price: 0,
-    expenseType: "",
-    otherExpense: "",
-    selectedDate: new Date(),
-  });
+  const [selectedDate, setSelectedDate] = useState(new Date());
+  const [expenses, setExpenses] = useState([
+    { price: 0, expenseType: "", otherExpense: "" },
+  ]);
+  const [dynamicExpenseTypes, setDynamicExpenseTypes] = useState(EXPENSE_TYPES);
 
-  const handleInputChange = (e) => {
-    const { name, value } = e.target;
-    setValues((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
+  // Handle input change for dynamic expenses
+  const handleExpenseChange = (index, field, value) => {
+    const newExpenses = [...expenses];
+    newExpenses[index][field] = value;
+    setExpenses(newExpenses);
   };
 
-  const handleDateChange = (date) => {
-    setValues((prev) => ({
-      ...prev,
-      selectedDate: date,
-    }));
+  // Handle adding new expense entry
+  const handleAddExpense = () => {
+    setExpenses([...expenses, { price: 0, expenseType: "", otherExpense: "" }]);
+  };
+
+  // Handle removing an expense entry
+  const handleRemoveExpense = (index) => {
+    const newExpenses = [...expenses];
+    newExpenses.splice(index, 1);
+    setExpenses(newExpenses);
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    const { price, expenseType, selectedDate, otherExpense } = values;
-
     try {
       const expensesCollectionRef = collection(db, "expenses");
-      await addDoc(expensesCollectionRef, {
-        price,
-        expenseType,
-        selectedDate,
-        otherExpense: expenseType === "other" ? otherExpense : "",
-      });
+
+      for (const expense of expenses) {
+        // Add new expense type to the dynamic list if it's not empty
+        if (expense.expenseType === "other" && expense.otherExpense) {
+          const newExpenseType = {
+            name: expense.otherExpense,
+            value: expense.otherExpense.toLowerCase().replace(/\s+/g, ""),
+          };
+          setDynamicExpenseTypes((prev) => [...prev, newExpenseType]);
+        }
+
+        // Submit the expense
+        await addDoc(expensesCollectionRef, {
+          ...expense,
+          selectedDate,
+          otherExpense:
+            expense.expenseType === "other" ? expense.otherExpense : "",
+        });
+      }
 
       setOpen(false);
       setRefresh((prev) => !prev);
@@ -97,88 +111,111 @@ const ExpenseForm = ({ setRefresh }) => {
         fullWidth
         maxWidth="sm"
       >
-        <DialogTitle>Add Expense</DialogTitle>
+        <DialogTitle>Add Expenses</DialogTitle>
         <DialogContent>
-          <form onSubmit={handleSubmit}>
-            <Box sx={{ mb: 3 }}>
-              <Typography variant="h7" sx={{ mb: 1 }}>
-                Select Date
-              </Typography>
-              <Box sx={{ mt: 1 }}>
-                <DatePicker
-                  selected={values.selectedDate}
-                  onChange={handleDateChange}
-                  dateFormat="dd-MM-yyyy"
-                  customInput={
-                    <TextField
-                      fullWidth
-                      variant="outlined"
-                      sx={{ mt: 1 }}
-                      value={
-                        values.selectedDate
-                          ? values.selectedDate.toISOString().split("T")[0]
-                          : "" // Empty string if no date is selected
-                      }
-                    />
-                  }
-                />
-                 
-              </Box>
+          <Box sx={{ mb: 3 }}>
+            <Typography variant="h7" sx={{ mb: 1 }}>
+              Select Date
+            </Typography>
+            <Box sx={{ mt: 1 }}>
+              <DatePicker
+                selected={selectedDate}
+                onChange={(date) => setSelectedDate(date)}
+                dateFormat="dd-MM-yyyy"
+                customInput={
+                  <TextField
+                    fullWidth
+                    variant="outlined"
+                    sx={{ mt: 1 }}
+                    value={
+                      selectedDate
+                        ? selectedDate.toISOString().split("T")[0]
+                        : ""
+                    }
+                  />
+                }
+              />
             </Box>
+          </Box>
 
-            <Typography variant="h7">Price</Typography>
-            <TextField
-              label="Price"
-              type="number"
-              name="price"
-              value={values.price}
-              onChange={handleInputChange}
-              fullWidth
-              margin="normal"
-              required
-            />
-
-            <InputLabel id="expense-type">Expense Type</InputLabel>
-            <Select
-              label="Expense Type"
-              labelId="expense-type"
-              name="expenseType"
-              value={values.expenseType}
-              onChange={handleInputChange}
-              fullWidth
-              margin="normal"
-              required
+          {expenses.map((expense, index) => (
+            <Box
+              key={index}
+              sx={{ mb: 3, border: "1px solid #ddd", padding: 2 }}
             >
-              {EXPENSE_TYPES.map((expense) => (
-                <MenuItem key={expense.value} value={expense.value}>
-                  {expense.name}
-                </MenuItem>
-              ))}
-            </Select>
-
-            {values.expenseType === "other" && (
+              <Typography variant="h6">Expense {index + 1}</Typography>
               <TextField
-                label="Other Expense Type"
-                name="otherExpense"
-                value={values.otherExpense}
-                onChange={handleInputChange}
-                margin="normal"
+                label="Price"
+                type="number"
+                name="price"
+                value={expense.price}
+                onChange={(e) =>
+                  handleExpenseChange(index, "price", e.target.value)
+                }
                 fullWidth
+                margin="normal"
                 required
               />
-            )}
-          </form>
+
+              <InputLabel id={`expense-type-${index}`}>Expense Type</InputLabel>
+              <Select
+                label="Expense Type"
+                labelId={`expense-type-${index}`}
+                name="expenseType"
+                value={expense.expenseType}
+                onChange={(e) =>
+                  handleExpenseChange(index, "expenseType", e.target.value)
+                }
+                fullWidth
+                margin="normal"
+                required
+              >
+                {dynamicExpenseTypes.map((expenseOption) => (
+                  <MenuItem
+                    key={expenseOption.value}
+                    value={expenseOption.value}
+                  >
+                    {expenseOption.name}
+                  </MenuItem>
+                ))}
+              </Select>
+
+              {expense.expenseType === "other" && (
+                <TextField
+                  label="Other Expense Type"
+                  name="otherExpense"
+                  value={expense.otherExpense}
+                  onChange={(e) =>
+                    handleExpenseChange(index, "otherExpense", e.target.value)
+                  }
+                  margin="normal"
+                  fullWidth
+                  required
+                />
+              )}
+
+              {index > 0 && (
+                <Button
+                  variant="contained"
+                  color="secondary"
+                  onClick={() => handleRemoveExpense(index)}
+                  sx={{ mt: 2 }}
+                >
+                  Remove Expense
+                </Button>
+              )}
+            </Box>
+          ))}
+
+          <Button variant="outlined" onClick={handleAddExpense} sx={{ mt: 3 }}>
+            Add Another Expense
+          </Button>
         </DialogContent>
 
         <DialogActions>
           <Button onClick={() => setOpen(false)}>Cancel</Button>
-          <Button
-            variant="contained"
-            color="primary"
-            type="submit"
-            onClick={handleSubmit}
-          >
-            Submit
+          <Button variant="contained" color="primary" onClick={handleSubmit}>
+            Submit Expenses
           </Button>
         </DialogActions>
       </Dialog>
