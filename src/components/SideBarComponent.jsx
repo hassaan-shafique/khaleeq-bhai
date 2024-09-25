@@ -50,6 +50,10 @@ export default function SideBarComponent() {
       title: "Glasses",
       component: <MonetizationOnOutlined fontSize="medium" color="primary" />,
     },
+     {
+      title: "Vendors",
+      component: <SettingsOutlined fontSize="medium" color="primary" />,
+    },
     {
       title: "Expense",
       component: <TrendingUpOutlined fontSize="medium" color="primary" />,
@@ -58,10 +62,7 @@ export default function SideBarComponent() {
       title: "Reports",
       component: <DescriptionOutlined fontSize="medium" color="primary" />,
     },
-    {
-      title: "Settings",
-      component: <SettingsOutlined fontSize="medium" color="primary" />,
-    },
+   
   ];
   const [selected, setSelected] = useState(0);
   const handlSelectedComponent = (event, index) => {

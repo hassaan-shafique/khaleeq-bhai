@@ -18,7 +18,7 @@ import Glasses from "./components/bodyComponents/glasses/Glasses";
 import Expense from "./components/bodyComponents/expense/Expense";
 import Report from "./components/bodyComponents/report/Report";
 import reportExpense from "./components/bodyComponents/report/reportExpense";
-import Setting from "./components/bodyComponents/Settings/Setting";
+import Vendors from "./components/bodyComponents/Vendors/Vendors";
 import Sales from "./components/bodyComponents/sale/Sales";
 import OrderModal from "./components/bodyComponents/sale/OrderModal";
 import Login from './components/Login'
@@ -59,7 +59,6 @@ function App() {
         `,
       },
     },
-    //here we customize our typographi and in the variant prop we can use out myVar value
   });
   const router = createBrowserRouter(
     createRoutesFromElements(
@@ -72,7 +71,7 @@ function App() {
         <Route path="/expense" element={<Expense />} />
         <Route path="/reports" element={<Report />} />
         <Route path="/reports/expense" element= { <reportExpense/>} />
-        <Route path="/settings" element={<Setting />} />
+        <Route path="/vendors" element={<Vendors />} />
       </Route>
     )
   );

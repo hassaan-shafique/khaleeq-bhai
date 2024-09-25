@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Button,
   TextField,
@@ -34,7 +34,7 @@ const SalesForm = () => {
     salesman: "",
     doctor: "",
     totalAmount: "",
-    pendingAmount: "",
+    pendingAmount: "", // Pending amount will be calculated
     advance: "",
     startDate: null,
     endDate: null,
@@ -42,10 +42,12 @@ const SalesForm = () => {
     reCyl: "",
     reAxis: "",
     reAdd: "",
+    reIpd: "",
     leSph: "",
     leCyl: "",
     leAxis: "",
     leAdd: "",
+    leIpd: "",
     instruction: "",
     status: "Pending",
   });
@@ -77,31 +79,44 @@ const SalesForm = () => {
     }));
   };
 
+  // Effect to calculate pending amount
+  useEffect(() => {
+    const total = parseFloat(value.totalAmount) || 0;
+    const advance = parseFloat(value.advance) || 0;
+    const pending = total - advance;
+    setValue((prev) => ({
+      ...prev,
+      pendingAmount: pending >= 0 ? pending : 0,
+    }));
+  }, [value.totalAmount, value.advance]);
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     const {
-     barcode,
-    orderNo,
-    customerName,
-    contactNo,
-    address,
-    salesman,
-    doctor,
-    totalAmount,
-    pendingAmount,
-    advance,
-    startDate,
-    endDate,
-    reSph ,
-    reCyl,
-    reAxis,
-    reAdd,
-    leSph,
-    leCyl,
-    leAxis,
-    leAdd,
-    instruction,
-    status,
+      barcode,
+      orderNo,
+      customerName,
+      contactNo,
+      address,
+      salesman,
+      doctor,
+      totalAmount,
+      pendingAmount,
+      advance,
+      startDate,
+      endDate,
+      reSph,
+      reCyl,
+      reAxis,
+      reAdd,
+      leSph,
+      leCyl,
+      leAxis,
+      leAdd,
+      reIpd,
+      leIpd,
+      instruction,
+      status,
     } = value;
 
     try {
@@ -127,7 +142,8 @@ const SalesForm = () => {
         leCyl,
         leAxis,
         leAdd,
-        instruction,
+        reIpd,
+        leIpd,
         status,
       });
 
@@ -181,7 +197,7 @@ const SalesForm = () => {
             <TextField
               label="Barcode"
               type="number"
-              name="barcode" // Name matches the key in the value object
+              name="barcode"
               value={value.barcode}
               onChange={handleChange}
               fullWidth
@@ -336,48 +352,71 @@ const SalesForm = () => {
                       />
                     </TableCell>
                   </TableRow>
+                  <TableRow>
+                    <TableCell>IPD</TableCell>
+                    <TableCell>
+                      <TextField
+                        type="number"
+                        name="reIpd"
+                        value={value.reIpd}
+                        onChange={handleChange}
+                        fullWidth
+                      />
+                    </TableCell>
+                    <TableCell>
+                      <TextField
+                        type="number"
+                        name="leIpd"
+                        value={value.leIpd}
+                        onChange={handleChange}
+                        fullWidth
+                      />
+                    </TableCell>
+                  </TableRow>
                 </TableBody>
               </Table>
             </TableContainer>
-
             <TextField
               label="Total Amount"
+              type="number"
               name="totalAmount"
               value={value.totalAmount}
               onChange={handleChange}
-              placeholder="Total Amount"
-              margin="normal"
               fullWidth
+              margin="normal"
             />
             <TextField
               label="Advance"
+              type="number"
               name="advance"
               value={value.advance}
               onChange={handleChange}
-              placeholder="Advance"
-              margin="normal"
               fullWidth
+              margin="normal"
             />
             <TextField
               label="Pending Amount"
+              type="number"
               name="pendingAmount"
               value={value.pendingAmount}
+              disabled
+              fullWidth
+              margin="normal"
+            />
+            <TextField
+              label="Instruction"
+              name="instruction"
+              value={value.instruction}
               onChange={handleChange}
-              placeholder="Pending Amount"
+              placeholder="Instruction"
               margin="normal"
               fullWidth
             />
-
-            {/* Status Radio Buttons */}
-            <Typography variant="h7" sx={{ mt: 2 }}>
-              Sale Status
-            </Typography>
             <RadioGroup
               row
               name="status"
               value={value.status}
               onChange={handleChange}
-              sx={{ mt: 1 }}
             >
               <FormControlLabel
                 value="Pending"
@@ -390,30 +429,10 @@ const SalesForm = () => {
                 label="Completed"
               />
             </RadioGroup>
-
-            <TextField
-              label="Instruction"
-              name="instruction"
-              value={value.instruction}
-              onChange={handleChange}
-              placeholder="Instruction"
-              fullWidth
-              margin="normal"
-            />
-
             <DialogActions>
-              <Button
-                onClick={handleClose}
-                sx={{
-                  mt: 4,
-                  bgcolor: "#005eff",
-                  px: 3,
-                  ":hover": { bgcolor: "#005eff" },
-                }}
-                variant="contained"
-                type="submit"
-              >
-                Submit
+              <Button onClick={handleClose}>Cancel</Button>
+              <Button type="submit" variant="contained">
+                Add
               </Button>
             </DialogActions>
           </form>

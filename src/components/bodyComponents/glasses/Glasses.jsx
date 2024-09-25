@@ -1,7 +1,7 @@
 import React from 'react'
 import { useState, useEffect } from 'react';
 import { Grid, Box, Typography, Button } from "@mui/material";
-import GlassesFrom from './GlassesFrom'
+import GlassesForm from './GlassesForm'
 import GlassesList from './glassesList';
 import { db } from "../../../config/Firebase";
 import { collection, getDocs } from "firebase/firestore";
@@ -41,7 +41,7 @@ const Revenue = () => {
                 height: "100%",
               }}
             >
-              <GlassesFrom setRefresh={setRefresh} />
+              <GlassesForm setRefresh={setRefresh} />
               <GlassesList glasses={glasses} />
             </Box>
           </Grid>

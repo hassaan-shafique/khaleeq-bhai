@@ -75,7 +75,10 @@ const SaleList = ({ sales = [], loading = false, setRefresh }) => {
               No Sales found....
             </Typography>
           ) : (
-            <TableContainer component={Paper}>
+            <TableContainer
+              component={Paper}
+              sx={{ maxHeight: 500, overflowY: "auto" }}
+            >
               <Table>
                 <TableHead>
                   <TableRow>
@@ -95,13 +98,15 @@ const SaleList = ({ sales = [], loading = false, setRefresh }) => {
                     <TableCell sx={{ fontWeight: "bold" }}>Salesman</TableCell>
                     <TableCell sx={{ fontWeight: "bold" }}>Doctor</TableCell>
                     <TableCell sx={{ fontWeight: "bold" }}>RSph</TableCell>
-                    <TableCell sx={{ fontWeight: "bold" }}>LSph</TableCell>
                     <TableCell sx={{ fontWeight: "bold" }}>RCyl</TableCell>
-                    <TableCell sx={{ fontWeight: "bold" }}>LCyl</TableCell>
                     <TableCell sx={{ fontWeight: "bold" }}>RAxis</TableCell>
-                    <TableCell sx={{ fontWeight: "bold" }}>LAxis</TableCell>
                     <TableCell sx={{ fontWeight: "bold" }}>RAdd</TableCell>
+                    <TableCell sx={{ fontWeight: "bold" }}>RIPD</TableCell>
+                    <TableCell sx={{ fontWeight: "bold" }}>LSph</TableCell>
+                    <TableCell sx={{ fontWeight: "bold" }}>LCyl</TableCell>
+                    <TableCell sx={{ fontWeight: "bold" }}>LAxis</TableCell>
                     <TableCell sx={{ fontWeight: "bold" }}>LAdd</TableCell>
+                    <TableCell sx={{ fontWeight: "bold" }}>LIPD</TableCell>
                     <TableCell sx={{ fontWeight: "bold" }}>
                       Total Amount
                     </TableCell>
@@ -136,13 +141,15 @@ const SaleList = ({ sales = [], loading = false, setRefresh }) => {
                       <TableCell>{sale.salesman}</TableCell>
                       <TableCell>{sale.doctor}</TableCell>
                       <TableCell>{sale.reSph}</TableCell>
-                      <TableCell>{sale.leSph}</TableCell>
                       <TableCell>{sale.reCyl}</TableCell>
-                      <TableCell>{sale.leCyl}</TableCell>
                       <TableCell>{sale.reAxis}</TableCell>
-                      <TableCell>{sale.leAxis}</TableCell>
                       <TableCell>{sale.reAdd}</TableCell>
+                      <TableCell>{sale.reIpd}</TableCell>
+                      <TableCell>{sale.leSph}</TableCell>
+                      <TableCell>{sale.leCyl}</TableCell>
+                      <TableCell>{sale.leAxis}</TableCell>
                       <TableCell>{sale.leAdd}</TableCell>
+                      <TableCell>{sale.leIpd}</TableCell>
                       <TableCell>{sale.totalAmount}</TableCell>
                       <TableCell>{sale.advance}</TableCell>
                       <TableCell>{sale.pendingAmount}</TableCell>
@@ -152,9 +159,8 @@ const SaleList = ({ sales = [], loading = false, setRefresh }) => {
                       <TableCell>
                         <Box
                           sx={{
-                            display: "flex", // Use flexbox to align items horizontally
-                            alignItems: "center", // Vertically center the buttons
-                            gap: 1, // Space between the buttons
+                            display: "flex",
+                            alignItems: "center",
                           }}
                         >
                           <Button
@@ -178,7 +184,7 @@ const SaleList = ({ sales = [], loading = false, setRefresh }) => {
                             <Button
                               variant="outlined"
                               color="success"
-                              size="small" // Makes the button smaller
+                              size="small"
                               onClick={() => handleMarkAsComplete(sale.id)}
                               sx={{ ml: 1 }}
                             >
