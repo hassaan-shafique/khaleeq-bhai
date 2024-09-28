@@ -13,17 +13,18 @@ import "react-datepicker/dist/react-datepicker.css";
 import { addDoc, collection } from "firebase/firestore";
 import { db } from "../../../config/Firebase";
 
-const ExpenseForm = ({ setRefresh }) => {
+const GlassesForm = ({ setRefresh }) => {
   const [open, setOpen] = useState(false);
 
   // State for form values
   const [value, setValue] = useState({
     price: 0,
-    itemId: "",
-    branchBorrowedFrom: "",
-    borrowedItem: "",
+    type: "",
+    glass: "",
+    number: "",
+    quantity:"",
     barcodeNumber: "",
-    selectedDate: new Date(),
+    selectedDate: new Date(), // Initializing with the current date
   });
 
   // Update form state when inputs change
@@ -39,7 +40,7 @@ const ExpenseForm = ({ setRefresh }) => {
   const handleDateChange = (date) => {
     setValue((prev) => ({
       ...prev,
-      selectedDate: date,
+      selectedDate: date, // Ensure selected date is updated
     }));
   };
 
@@ -53,21 +54,23 @@ const ExpenseForm = ({ setRefresh }) => {
     e.preventDefault();
     const {
       price,
-      itemId,
+      type,
+      glass,
       selectedDate,
-      branchBorrowedFrom,
+      number,
+      quantity,
       barcodeNumber,
-      borrowedItem,
     } = value;
 
     try {
       const expensesCollectionRef = collection(db, "glasses");
       await addDoc(expensesCollectionRef, {
         price,
-        itemId,
-        branchBorrowedFrom,
+        type,
+        glass,
         barcodeNumber,
-        borrowedItem,
+        number,
+        quantity,
         selectedDate,
       });
 
@@ -113,25 +116,58 @@ const ExpenseForm = ({ setRefresh }) => {
                 className="datePicker"
                 selected={value.selectedDate}
                 onChange={handleDateChange}
+                dateFormat="MM/dd/yyyy" // Format the date
                 customInput={
-                  <TextField fullWidth variant="outlined" sx={{ mt: 1 }} />
+                  <TextField
+                    fullWidth
+                    variant="outlined"
+                    sx={{ mt: 1 }}
+                    value={value.selectedDate.toLocaleDateString()} // Display selected date
+                  />
                 }
               />
             </div>
             <TextField
-              label="Item ID"
-              type="text"
-              name="itemId"  
-              value={value.itemId}
+              label="Barcode Number"
+              name="barcodeNumber"
+              type="number"
+              value={value.barcodeNumber}
               onChange={handleInputChange}
               fullWidth
               margin="normal"
             />
             <TextField
-              label="Branch Borrowed From"
-              name="branchBorrowedFrom" 
+              label="Glass Name"
               type="text"
-              value={value.branchBorrowedFrom}
+              name="glass"
+              value={value.glass}
+              onChange={handleInputChange}
+              fullWidth
+              margin="normal"
+            />
+            <TextField
+              label=" Glass Type"
+              type="text"
+              name="type"
+              value={value.type}
+              onChange={handleInputChange}
+              fullWidth
+              margin="normal"
+            />
+            <TextField
+              label="Number"
+              name="number"
+              type="number"
+              value={value.number}
+              onChange={handleInputChange}
+              fullWidth
+              margin="normal"
+            />
+            <TextField
+              label="Quantity"
+              name="quantity"
+              type="number"
+              value={value.quantity}
               onChange={handleInputChange}
               fullWidth
               margin="normal"
@@ -141,24 +177,6 @@ const ExpenseForm = ({ setRefresh }) => {
               name="price"
               type="number"
               value={value.price}
-              onChange={handleInputChange}
-              fullWidth
-              margin="normal"
-            />
-            <TextField
-              label="Borrowed Item"
-              name="borrowedItem" 
-              type="text"
-              value={value.borrowedItem}
-              onChange={handleInputChange}
-              fullWidth
-              margin="normal"
-            />
-            <TextField
-              label="Barcode Number"
-              name="barcodeNumber" 
-              type="number"
-              value={value.barcodeNumber}
               onChange={handleInputChange}
               fullWidth
               margin="normal"
@@ -176,4 +194,4 @@ const ExpenseForm = ({ setRefresh }) => {
   );
 };
 
-export default ExpenseForm;
+export default GlassesForm;

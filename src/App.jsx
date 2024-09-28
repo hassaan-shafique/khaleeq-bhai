@@ -34,7 +34,7 @@ function App() {
   const auth = getAuth(app);
   const authToken  = localStorage.getItem("authToken") ?? "";
   console.log({authToken});
-  
+ 
 
   const theme = createTheme({
     spacing: 4,

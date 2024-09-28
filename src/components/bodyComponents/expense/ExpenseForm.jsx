@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Button,
   TextField,
@@ -14,9 +14,10 @@ import {
 } from "@mui/material";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
-import { addDoc, collection } from "firebase/firestore";
+import { addDoc, collection, getDocs } from "firebase/firestore";
 import { db } from "../../../config/Firebase";
 
+// Initial set of expense types
 const EXPENSE_TYPES = [
   { name: "Salary", value: "salary" },
   { name: "Rent", value: "rent" },
@@ -33,6 +34,26 @@ const ExpenseForm = ({ setRefresh }) => {
     { price: 0, expenseType: "", otherExpense: "" },
   ]);
   const [dynamicExpenseTypes, setDynamicExpenseTypes] = useState(EXPENSE_TYPES);
+
+  // Fetch expense types from Firestore when component mounts
+  useEffect(() => {
+    const fetchExpenseTypes = async () => {
+      try {
+        const expenseTypesCollectionRef = collection(db, "expenseTypes");
+        const expenseTypesSnapshot = await getDocs(expenseTypesCollectionRef);
+        const fetchedExpenseTypes = expenseTypesSnapshot.docs.map((doc) =>
+          doc.data()
+        );
+
+        // Merge default expense types with fetched ones
+        setDynamicExpenseTypes((prev) => [...prev, ...fetchedExpenseTypes]);
+      } catch (error) {
+        console.error("Error fetching expense types: ", error);
+      }
+    };
+
+    fetchExpenseTypes();
+  }, []);
 
   // Handle input change for dynamic expenses
   const handleExpenseChange = (index, field, value) => {
@@ -53,22 +74,29 @@ const ExpenseForm = ({ setRefresh }) => {
     setExpenses(newExpenses);
   };
 
+  // Handle form submission
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
       const expensesCollectionRef = collection(db, "expenses");
+      const expenseTypesCollectionRef = collection(db, "expenseTypes");
 
       for (const expense of expenses) {
-        // Add new expense type to the dynamic list if it's not empty
+        // Add new expense type to Firestore if it's not already there
         if (expense.expenseType === "other" && expense.otherExpense) {
           const newExpenseType = {
             name: expense.otherExpense,
             value: expense.otherExpense.toLowerCase().replace(/\s+/g, ""),
           };
+
+          // Save the new expense type to Firestore
+          await addDoc(expenseTypesCollectionRef, newExpenseType);
+
+          // Update the dynamic expense types in the state
           setDynamicExpenseTypes((prev) => [...prev, newExpenseType]);
         }
 
-        // Submit the expense
+        // Submit the expense to Firestore
         await addDoc(expensesCollectionRef, {
           ...expense,
           selectedDate,
@@ -78,7 +106,7 @@ const ExpenseForm = ({ setRefresh }) => {
       }
 
       setOpen(false);
-      setRefresh((prev) => !prev);
+      setRefresh((prev) => !prev); // Trigger refresh
     } catch (error) {
       console.error("Error adding document: ", error);
     }

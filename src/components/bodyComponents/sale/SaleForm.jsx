@@ -38,6 +38,7 @@ const SalesForm = () => {
     advance: "",
     startDate: null,
     endDate: null,
+    DeliveredDate: null,
     reSph: "",
     reCyl: "",
     reAxis: "",
@@ -105,6 +106,7 @@ const SalesForm = () => {
       advance,
       startDate,
       endDate,
+      DeliveredDate,
       reSph,
       reCyl,
       reAxis,
@@ -134,6 +136,7 @@ const SalesForm = () => {
         advance,
         startDate,
         endDate,
+        DeliveredDate,
         reSph,
         reCyl,
         reAxis,
@@ -144,6 +147,7 @@ const SalesForm = () => {
         leAdd,
         reIpd,
         leIpd,
+        instruction,
         status,
       });
 
@@ -194,15 +198,15 @@ const SalesForm = () => {
                 fullWidth
               />
             </div>
-            <TextField
-              label="Barcode"
-              type="number"
-              name="barcode"
-              value={value.barcode}
-              onChange={handleChange}
-              fullWidth
-              margin="normal"
-            />
+            <Typography variant="h7">Delivered Date</Typography>
+            <div>
+              <DatePicker
+                selected={value.DeliveredDate}
+                onChange={(date) => handleDateChange(date, "DeliveredDate")}
+                fullWidth
+              />
+            </div>
+           
             <TextField
               label="Order No"
               type="number"

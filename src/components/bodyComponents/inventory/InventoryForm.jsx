@@ -20,6 +20,15 @@ import { addDoc, collection } from "firebase/firestore";
 import { getStorage, ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import { db } from "../../../config/Firebase";
 
+const INVENTORY_TYPES = [
+  { label: "Contact Lenses", value: "ContactLenses" },
+  { label: "Covers", value: "covers" },
+  { label: "Frames", value: "Frames" },
+  { label: "Solutions", value: "solutions" },
+  { label: "Cleaners", value: "cleaners" },
+  { label: "Other", value: "other" }, // Added "Other" option
+];
+
 const InventoryForm = ({ setRefresh }) => {
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -33,9 +42,10 @@ const InventoryForm = ({ setRefresh }) => {
     selectedDate: new Date(),
   });
   const [image, setImage] = useState(null);
+  const [customType, setCustomType] = useState(""); // State to handle custom type
   const [errors, setErrors] = useState({});
 
-  const storage = getStorage(); // Initialize Firebase Storage
+  const storage = getStorage();
 
   const handleImageChange = (e) => {
     const file = e.target.files[0];
@@ -62,10 +72,10 @@ const InventoryForm = ({ setRefresh }) => {
   const validateForm = () => {
     const newErrors = {};
     if (!value.barcode) newErrors.barcode = "Barcode is required";
-    if (!value.price) newErrors.price = "Price is required";
     if (!value.quantity) newErrors.quantity = "Quantity is required";
-    if (!value.name) newErrors.name = "Name is required";
     if (!image) newErrors.image = "Image is required";
+    if (value.type === "other" && !customType)
+      newErrors.customType = "Custom type is required";
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -78,18 +88,16 @@ const InventoryForm = ({ setRefresh }) => {
     setLoading(true);
 
     try {
-      // Upload image to Firebase Storage
       const storageRef = ref(storage, `inventory-images/${image.name}`);
       await uploadBytes(storageRef, image);
 
-      // Get the download URL of the image
       const imageUrl = await getDownloadURL(storageRef);
 
-      // Save form data along with image URL to Firestore
       const inventoryCollectionRef = collection(db, "inventory");
       await addDoc(inventoryCollectionRef, {
         ...value,
-        image: imageUrl, // Save the image URL to Firestore
+        type: value.type === "other" ? customType : value.type, // Use custom type if "Other" is selected
+        image: imageUrl,
       });
 
       setOpen(false);
@@ -106,6 +114,7 @@ const InventoryForm = ({ setRefresh }) => {
   const handleClose = () => {
     setOpen(false);
     setErrors({});
+    setImage(null); // Clear image selection on close
   };
 
   return (
@@ -147,6 +156,7 @@ const InventoryForm = ({ setRefresh }) => {
                   sx={{ mt: 1 }}
                   error={Boolean(errors.selectedDate)}
                   helperText={errors.selectedDate}
+                  required
                 />
               }
             />
@@ -177,8 +187,11 @@ const InventoryForm = ({ setRefresh }) => {
               <input
                 type="file"
                 id="image-upload"
+                accept="image/*" // Allow all image types
+                capture="camera" // Open the camera directly
                 style={{ display: "none" }}
                 onChange={handleImageChange}
+                required
               />
             </Box>
             {errors.image && (
@@ -194,13 +207,26 @@ const InventoryForm = ({ setRefresh }) => {
               margin="normal"
               required
             >
-              <MenuItem value="glasses">Glasses</MenuItem>
-              <MenuItem value="ContactLenses">Contact Lenses</MenuItem>
-              <MenuItem value="covers">Covers</MenuItem>
-              <MenuItem value="Frames">Frames</MenuItem>
-              <MenuItem value="solutions">Solutions</MenuItem>
-              <MenuItem value="cleaners">Cleaners</MenuItem>
+              {INVENTORY_TYPES.map((item) => (
+                <MenuItem key={item.value} value={item.value}>
+                  {item.label}
+                </MenuItem>
+              ))}
             </Select>
+
+            {value.type === "other" && (
+              <TextField
+                label="Custom Inventory Type"
+                name="customType"
+                value={customType}
+                onChange={(e) => setCustomType(e.target.value)}
+                fullWidth
+                margin="normal"
+                required
+                error={Boolean(errors.customType)}
+                helperText={errors.customType}
+              />
+            )}
 
             <TextField
               label="Name"
@@ -209,7 +235,6 @@ const InventoryForm = ({ setRefresh }) => {
               onChange={handleInputChange}
               fullWidth
               margin="normal"
-              required
               error={Boolean(errors.name)}
               helperText={errors.name}
             />
@@ -221,7 +246,6 @@ const InventoryForm = ({ setRefresh }) => {
               onChange={handleInputChange}
               fullWidth
               margin="normal"
-              required
               error={Boolean(errors.price)}
               helperText={errors.price}
             />

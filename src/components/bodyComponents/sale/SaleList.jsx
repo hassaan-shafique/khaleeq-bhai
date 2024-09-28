@@ -16,10 +16,16 @@ import {
   DialogContent,
   DialogContentText,
   DialogActions,
+  TextField,
+  RadioGroup,
+  FormControlLabel,
+  Radio,  
 } from "@mui/material";
-import { doc, updateDoc } from "firebase/firestore"; // Firestore functions
+import DatePicker from "react-datepicker";
+import { doc, updateDoc, deleteDoc } from "firebase/firestore"; // Firestore functions
 import { db } from "../../../config/Firebase"; // Ensure db is correctly imported
 
+// Helper function to format Firestore timestamp
 const formatTimestamp = (timestamp) => {
   if (!timestamp) return "";
   const date = timestamp.toDate();
@@ -29,9 +35,10 @@ const formatTimestamp = (timestamp) => {
 
 const SaleList = ({ sales = [], loading = false, setRefresh }) => {
   const [open, setOpen] = useState(false);
-  const [Dsale, setDSale] = useState(null);
+  const [DSale, setDSale] = useState(null);
   const [salesData, setSalesData] = useState(sales); // Local sales state
-  
+  const [editOpen, setEditOpen] = useState(false);
+  const [editSale, setEditSale] = useState(null); // For editing
 
   // Open dialog with sale details
   const handleOpenDialog = (sale) => {
@@ -45,22 +52,78 @@ const SaleList = ({ sales = [], loading = false, setRefresh }) => {
   };
 
   // Mark sale as complete and update the UI
- const handleMarkAsComplete = async (saleId) => {
-   try {
-     const saleDocRef = doc(db, "sales", saleId); // Ensure the saleId is valid
-     await updateDoc(saleDocRef, { status: "Completed" });
+  const handleMarkAsComplete = async (saleId, deliveredDate) => {
+    if (!deliveredDate) {
+      alert("Delivered Date is not added. Please provide a Delivered Date.");
+      return;
+    }
 
-     // Update local sales data
-     const updatedSales = salesData.map((sale) =>
-       sale.id === saleId ? { ...sale, status: "Completed" } : sale
-     );
-     setSalesData(updatedSales);
-    //  setRefresh((prev) => !prev); // Optional refresh
-   } catch (error) {
-     console.error("Error updating sale status:", error); // Log the error
-     alert(`Error updating sale status: ${error.message}`); // Show alert with error message
-   }
- };
+    try {
+      const saleDocRef = doc(db, "sales", saleId); // Ensure the saleId is valid
+      await updateDoc(saleDocRef, { status: "Completed" });
+
+      // Update local sales data
+      const updatedSales = salesData.map((sale) =>
+        sale.id === saleId ? { ...sale, status: "Completed" } : sale
+      );
+      setSalesData(updatedSales);
+    } catch (error) {
+      console.error("Error updating sale status:", error); // Log the error
+      alert(`Error updating sale status: ${error.message}`); // Show alert with error message
+    }
+  };
+
+  // Delete sale
+  const handleDeleteSale = async (saleId) => {
+    const confirmation = window.confirm(
+      "Are you sure you want to delete this sale?"
+    );
+    if (confirmation) {
+      try {
+        const saleDocRef = doc(db, "sales", saleId); // Ensure the saleId is valid
+        await deleteDoc(saleDocRef);
+
+        // Update local sales data
+        const updatedSales = salesData.filter((sale) => sale.id !== saleId);
+        setSalesData(updatedSales);
+      } catch (error) {
+        console.error("Error deleting sale:", error); // Log the error
+        alert(`Error deleting sale: ${error.message}`); // Show alert with error message
+      }
+    }
+  };
+
+  // Open edit dialog
+  const handleEditSale = (sale) => {
+    setEditSale(sale);
+    setEditOpen(true);
+  };
+
+  // Close edit dialog
+  const handleCloseEditDialog = () => {
+    setEditOpen(false);
+    setEditSale(null);
+  };
+
+  // Save edited sale
+  const handleSaveEdit = async () => {
+    if (!editSale) return;
+
+    const saleDocRef = doc(db, "sales", editSale.id); // Ensure the saleId is valid
+    try {
+      await updateDoc(saleDocRef, editSale); // Update the Firestore document
+
+      // Update local sales data
+      const updatedSales = salesData.map((sale) =>
+        sale.id === editSale.id ? editSale : sale
+      );
+      setSalesData(updatedSales);
+      handleCloseEditDialog(); // Close the edit dialog
+    } catch (error) {
+      console.error("Error updating sale:", error);
+      alert(`Error updating sale: ${error.message}`);
+    }
+  };
 
   return (
     <Box>
@@ -88,6 +151,9 @@ const SaleList = ({ sales = [], loading = false, setRefresh }) => {
                     </TableCell>
                     <TableCell sx={{ fontWeight: "bold" }}>
                       Delivery Date
+                    </TableCell>
+                    <TableCell sx={{ fontWeight: "bold" }}>
+                      Delivered Date
                     </TableCell>
                     <TableCell sx={{ fontWeight: "bold" }}>Barcode</TableCell>
                     <TableCell sx={{ fontWeight: "bold" }}>
@@ -134,6 +200,11 @@ const SaleList = ({ sales = [], loading = false, setRefresh }) => {
                           ? formatTimestamp(sale.endDate)
                           : "No Date"}
                       </TableCell>
+                      <TableCell>
+                        {sale.DeliveredDate
+                          ? formatTimestamp(sale.DeliveredDate)
+                          : "No Date"}
+                      </TableCell>
                       <TableCell>{sale.barcode}</TableCell>
                       <TableCell>{sale.customerName}</TableCell>
                       <TableCell>{sale.contactNo}</TableCell>
@@ -154,43 +225,50 @@ const SaleList = ({ sales = [], loading = false, setRefresh }) => {
                       <TableCell>{sale.advance}</TableCell>
                       <TableCell>{sale.pendingAmount}</TableCell>
                       <TableCell>{sale.instruction}</TableCell>
-
-                      {/* Status button with click handler */}
                       <TableCell>
-                        <Box
-                          sx={{
-                            display: "flex",
-                            alignItems: "center",
-                          }}
+                        <Button
+                          variant="contained"
+                          color={
+                            sale.status === "Pending" ? "error" : "success"
+                          } // Set color based on status
+                          sx={{ textTransform: "none", minWidth: "100px" }} // Style the button
                         >
-                          <Button
-                            variant="contained"
-                            onClick={() => handleOpenDialog(sale)} // Open dialog on click
-                            sx={{
-                              bgcolor:
-                                sale.status === "Pending" ? "red" : "green",
-                              ":hover": {
-                                bgcolor:
-                                  sale.status === "Pending"
-                                    ? "darkred"
-                                    : "darkgreen",
-                              },
-                            }}
-                          >
-                            {sale.status}
-                          </Button>
+                          {sale.status === "Pending" ? "Pending" : "Completed"}
+                        </Button>
+                      </TableCell>
 
+                      {/* Status buttons with click handlers */}
+                      <TableCell>
+                        <Box sx={{ display: "flex", alignItems: "center" }}>
                           {sale.status === "Pending" && (
                             <Button
-                              variant="outlined"
-                              color="success"
-                              size="small"
-                              onClick={() => handleMarkAsComplete(sale.id)}
-                              sx={{ ml: 1 }}
+                              variant="contained"
+                              onClick={() =>
+                                handleMarkAsComplete(
+                                  sale.id,
+                                  sale.deliveredDate
+                                )
+                              }
                             >
-                              Mark as Complete
+                              Mark as Completed
                             </Button>
                           )}
+                          <Button
+                            variant="outlined"
+                            color="primary"
+                            onClick={() => handleEditSale(sale)}
+                            sx={{ marginLeft: 1 }}
+                          >
+                            Edit
+                          </Button>
+                          <Button
+                            variant="outlined"
+                            color="error"
+                            onClick={() => handleDeleteSale(sale.id)}
+                            sx={{ marginLeft: 1 }}
+                          >
+                            Delete
+                          </Button>
                         </Box>
                       </TableCell>
                     </TableRow>
@@ -199,84 +277,232 @@ const SaleList = ({ sales = [], loading = false, setRefresh }) => {
               </Table>
             </TableContainer>
           )}
-
-          {/* Dialog for displaying sale details */}
-          <Dialog
-            open={open}
-            onClose={handleCloseDialog}
-            fullWidth
-            maxWidth="sm"
-          >
-            <DialogTitle>Sale Details</DialogTitle>
-            <DialogContent>
-              {Dsale && (
-                <DialogContentText>
-                  <p>
-                    <strong>Order No:</strong> {Dsale.orderNo}
-                  </p>
-                  <p>
-                    <strong>Customer Name:</strong> {Dsale.customerName}
-                  </p>
-                  <p>
-                    <strong>Barcode:</strong> {Dsale.barcode}
-                  </p>
-                  <p>
-                    <strong>Contact:</strong> {Dsale.contactNo}
-                  </p>
-                  <p>
-                    <strong>Address:</strong> {Dsale.address}
-                  </p>
-                  <p>
-                    <strong>Salesman:</strong> {Dsale.salesman}
-                  </p>
-                  <p>
-                    <strong>Doctor:</strong> {Dsale.doctor}
-                  </p>
-                  <p>
-                    <strong>Right Sph:</strong> {Dsale.reSph}
-                  </p>
-                  <p>
-                    <strong>Left Sph:</strong> {Dsale.leSph}
-                  </p>
-                  <p>
-                    <strong>Right Cyl:</strong> {Dsale.reCyl}
-                  </p>
-                  <p>
-                    <strong>Left Cyl:</strong> {Dsale.leCyl}
-                  </p>
-                  <p>
-                    <strong>Right Axis:</strong> {Dsale.reAxis}
-                  </p>
-                  <p>
-                    <strong>Left Axis:</strong> {Dsale.leAxis}
-                  </p>
-                  <p>
-                    <strong>Right Add:</strong> {Dsale.reAdd}
-                  </p>
-                  <p>
-                    <strong>Left Add:</strong> {Dsale.leAdd}
-                  </p>
-                  <p>
-                    <strong>Total Amount:</strong> {Dsale.totalAmount}
-                  </p>
-                  <p>
-                    <strong>Advance:</strong> {Dsale.advance}
-                  </p>
-                  <p>
-                    <strong>Pending Amount:</strong> {Dsale.pendingAmount}
-                  </p>
-                  <p>
-                    <strong>Instructions:</strong> {Dsale.instruction}
-                  </p>
-                </DialogContentText>
-              )}
-            </DialogContent>
-            <DialogActions>
-              <Button onClick={handleCloseDialog}>Close</Button>
-            </DialogActions>
-          </Dialog>
         </>
       )}
+
+      {/* Dialog for displaying sale details */}
+      <Dialog open={open} onClose={handleCloseDialog}>
+        <DialogTitle>Sale Details</DialogTitle>
+        <DialogContent>
+          <DialogContentText>
+            <strong>Sale ID:</strong> {DSale?.id}
+          </DialogContentText>
+          <DialogContentText>
+            <strong>Customer Name:</strong> {DSale?.customerName}
+          </DialogContentText>
+          {/* Add more fields as needed */}
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleCloseDialog}>Close</Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Dialog for editing sale */}
+      <Dialog open={editOpen} onClose={handleCloseEditDialog}>
+        <DialogTitle>Edit Sale</DialogTitle>
+        <DialogContent>
+        
+         
+
+          {/* <Typography variant="h7">Date of Order</Typography>
+          <DatePicker
+            selected={editSale?.startDate}
+            onChange={(date) => setEditSale({ ...editSale, startDate: date })}
+            fullWidth
+          />
+
+          <Typography variant="h7">Date of Delivery</Typography>
+          <DatePicker
+            selected={editSale?.endDate}
+            onChange={(date) => setEditSale({ ...editSale, endDate: date })}
+            fullWidth
+          />
+
+          <Typography variant="h7">Delivered Date</Typography>
+          <DatePicker
+            selected={editSale?.DeliveredDate}
+            onChange={(date) =>
+              setEditSale({ ...editSale, DeliveredDate: date })
+            }
+            fullWidth
+          /> */}
+
+          <TextField
+            label="Order No"
+            type="number"
+            name="orderNo"
+            value={editSale?.orderNo || ""}
+            onChange={(e) =>
+              setEditSale({ ...editSale, orderNo: e.target.value })
+            }
+            margin="normal"
+            sx={{ mr: 6 }}
+          />
+          <TextField
+            label="Customer Name"
+            name="customerName"
+            value={editSale?.customerName || ""}
+            onChange={(e) =>
+              setEditSale({ ...editSale, customerName: e.target.value })
+            }
+            placeholder="Customer Name"
+            margin="normal"
+            sx={{ mr: 1 }}
+          />
+          <TextField
+            label="Contact No"
+            name="contactNo"
+            value={editSale?.contactNo || ""}
+            onChange={(e) =>
+              setEditSale({ ...editSale, contactNo: e.target.value })
+            }
+            placeholder="Contact No"
+            margin="normal"
+            sx={{ mr: 6 }}
+          />
+          <TextField
+            label="Address"
+            name="address"
+            value={editSale?.address || ""}
+            onChange={(e) =>
+              setEditSale({ ...editSale, address: e.target.value })
+            }
+            placeholder="Address"
+            margin="normal"
+            sx={{ mr: 1 }}
+          />
+          <TextField
+            label="Salesman"
+            name="salesman"
+            value={editSale?.salesman || ""}
+            onChange={(e) =>
+              setEditSale({ ...editSale, salesman: e.target.value })
+            }
+            placeholder="Salesman"
+            margin="normal"
+            sx={{ mr: 6 }}
+          />
+          <TextField
+            label="Doctor"
+            name="doctor"
+            value={editSale?.doctor || ""}
+            onChange={(e) =>
+              setEditSale({ ...editSale, doctor: e.target.value })
+            }
+            placeholder="Doctor"
+            margin="normal"
+            sx={{ mr: 1 }}
+          />
+
+          {/* Additional Table for SPH, CYL, AXIS, ADD, IPD */}
+          <TableContainer>
+            <Table>
+              <TableHead>
+                <TableRow>
+                  <TableCell> </TableCell>
+                  <TableCell>RE</TableCell>
+                  <TableCell>LE</TableCell>
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                <TableRow>
+                  <TableCell>SPH</TableCell>
+                  <TableCell>
+                    <TextField
+                      type="number"
+                      name="reSph"
+                      value={editSale?.reSph || ""}
+                      onChange={(e) =>
+                        setEditSale({ ...editSale, reSph: e.target.value })
+                      }
+                      fullWidth
+                    />
+                  </TableCell>
+                  <TableCell>
+                    <TextField
+                      type="number"
+                      name="leSph"
+                      value={editSale?.leSph || ""}
+                      onChange={(e) =>
+                        setEditSale({ ...editSale, leSph: e.target.value })
+                      }
+                      fullWidth
+                    />
+                  </TableCell>
+                </TableRow>
+                {/* Repeat similar structure for CYL, AXIS, ADD, and IPD */}
+              </TableBody>
+            </Table>
+          </TableContainer>
+
+          <TextField
+            label="Total Amount"
+            type="number"
+            name="totalAmount"
+            value={editSale?.totalAmount || ""}
+            onChange={(e) =>
+              setEditSale({ ...editSale, totalAmount: e.target.value })
+            }
+            fullWidth
+            margin="normal"
+          />
+          <TextField
+            label="Advance"
+            type="number"
+            name="advance"
+            value={editSale?.advance || ""}
+            onChange={(e) =>
+              setEditSale({ ...editSale, advance: e.target.value })
+            }
+            fullWidth
+            margin="normal"
+          />
+          <TextField
+            label="Pending Amount"
+            type="number"
+            name="pendingAmount"
+            value={editSale?.pendingAmount || ""}
+            disabled
+            fullWidth
+            margin="normal"
+          />
+          <TextField
+            label="Instruction"
+            name="instruction"
+            value={editSale?.instruction || ""}
+            onChange={(e) =>
+              setEditSale({ ...editSale, instruction: e.target.value })
+            }
+            placeholder="Instruction"
+            margin="normal"
+            fullWidth
+          />
+          <RadioGroup
+            row
+            name="status"
+            value={editSale?.status || ""}
+            onChange={(e) =>
+              setEditSale({ ...editSale, status: e.target.value })
+            }
+          >
+            <FormControlLabel
+              value="Pending"
+              control={<Radio />}
+              label="Pending"
+            />
+            <FormControlLabel
+              value="Completed"
+              control={<Radio />}
+              label="Completed"
+            />
+          </RadioGroup>
+        </DialogContent>
+
+        <DialogActions>
+          <Button onClick={handleCloseEditDialog}>Cancel</Button>
+          <Button onClick={handleSaveEdit}>Save</Button>
+        </DialogActions>
+      </Dialog>
     </Box>
   );
 };

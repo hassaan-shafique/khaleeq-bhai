@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React from "react";
 import {
   Table,
   TableBody,
@@ -14,19 +14,28 @@ import {
 
 const GlassesList = ({ glasses = [], loading = false }) => {
   const formatTimestamp = (timestamp) => {
-    // Parse the timestamp string into a Date object
-    const date = new Date(timestamp);
+    try {
+      // Convert timestamp to a Date object
+      const date = new Date(
+        timestamp.seconds ? timestamp.seconds * 1000 : timestamp
+      );
 
-    // Define options for formatting the date and time
-    const options = {
-      day: "2-digit",
-      month: "long",
-      year: "numeric",
-    };
+      // Check if the date is valid
+      if (isNaN(date.getTime())) {
+        return "Invalid Date";
+      }
 
-    const formattedDate = date.toLocaleDateString("en-GB", options);
+      // Format the date
+      const options = {
+        day: "2-digit",
+        month: "long",
+        year: "numeric",
+      };
 
-    return `${formattedDate}`;
+      return date.toLocaleDateString("en-GB", options);
+    } catch (error) {
+      return "Invalid Date";
+    }
   };
 
   return (
@@ -50,11 +59,17 @@ const GlassesList = ({ glasses = [], loading = false }) => {
                       Glasses ID
                     </TableCell>
                     <TableCell sx={{ fontWeight: "bold" }}>
-                      Branch Name
+                      Glass Name
                     </TableCell>
-                    <TableCell sx={{ fontWeight: "bold" }}>Barcode</TableCell>
-                    <TableCell sx={{ fontWeight: "bold" }}>Item Name</TableCell>
+                    <TableCell sx={{ fontWeight: "bold" }}>
+                      Glass Type
+                    </TableCell>
+                    <TableCell sx={{ fontWeight: "bold" }}>
+                      Glass Number
+                    </TableCell>
                     <TableCell sx={{ fontWeight: "bold" }}>Amount</TableCell>
+                    <TableCell sx={{ fontWeight: "bold" }}>Barcode</TableCell>
+                    <TableCell sx={{ fontWeight: "bold" }}>Quantity</TableCell>
                     <TableCell sx={{ fontWeight: "bold" }}>Date</TableCell>
                   </TableRow>
                 </TableHead>
@@ -62,12 +77,14 @@ const GlassesList = ({ glasses = [], loading = false }) => {
                   {glasses.map((glasses, i) => (
                     <TableRow key={glasses.id}>
                       <TableCell>{i + 1}</TableCell>
-                      <TableCell>{glasses.branchBorrowedFrom}</TableCell>
-                      <TableCell> {glasses.barcodeNumber}</TableCell>
-                      <TableCell> {glasses.borrowedItem}</TableCell>
-                      <TableCell> Rs.{glasses.price}</TableCell>
+                      <TableCell>{glasses.glass}</TableCell>
+                      <TableCell>{glasses.type}</TableCell>
+                      <TableCell>{glasses.number}</TableCell>
+                      <TableCell>Rs.{glasses.price}</TableCell>
+                      <TableCell>{glasses.barcodeNumber}</TableCell>
+                      <TableCell>{glasses.quantity}</TableCell>
                       <TableCell>
-                        {formatTimestamp(Date(glasses.selectedDate))}
+                        {formatTimestamp(glasses.selectedDate)}
                       </TableCell>
                     </TableRow>
                   ))}

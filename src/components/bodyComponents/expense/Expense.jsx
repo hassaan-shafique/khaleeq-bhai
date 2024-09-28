@@ -7,8 +7,6 @@ import { db } from "../../../config/Firebase";
 import { collection, getDocs } from "firebase/firestore";
 
 const Expense = () => {
-  const [searchTerm, setSearchTerm] = useState("");
-
   const [expenses, setExpenses] = useState([]);
   const [loading, setLoading] = useState(true);
   const [refresh, setRefresh] = useState(false)
