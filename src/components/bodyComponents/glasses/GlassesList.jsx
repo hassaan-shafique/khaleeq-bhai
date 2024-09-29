@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import {
   Table,
   TableBody,
@@ -10,22 +10,34 @@ import {
   CircularProgress,
   Box,
   Typography,
+  Button,
+  TextField,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
+  Snackbar,
+  Alert,
 } from "@mui/material";
+import { doc, updateDoc, deleteDoc } from "firebase/firestore";
+import { db } from "../../../config/Firebase"; // Assuming you have firebase initialized
 
-const GlassesList = ({ glasses = [], loading = false }) => {
+const GlassesList = ({ glasses = [], loading = false, onDelete, onEdit }) => {
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
+  const [currentGlass, setCurrentGlass] = useState(null);
+  const [editedGlass, setEditedGlass] = useState({});
+  const [snackbarOpen, setSnackbarOpen] = useState(false);
+  const [snackbarMessage, setSnackbarMessage] = useState("");
+  const [snackbarSeverity, setSnackbarSeverity] = useState("success");
+
+  // Format date
   const formatTimestamp = (timestamp) => {
     try {
-      // Convert timestamp to a Date object
       const date = new Date(
         timestamp.seconds ? timestamp.seconds * 1000 : timestamp
       );
+      if (isNaN(date.getTime())) return "Invalid Date";
 
-      // Check if the date is valid
-      if (isNaN(date.getTime())) {
-        return "Invalid Date";
-      }
-
-      // Format the date
       const options = {
         day: "2-digit",
         month: "long",
@@ -37,6 +49,72 @@ const GlassesList = ({ glasses = [], loading = false }) => {
       return "Invalid Date";
     }
   };
+
+  // Open edit dialog
+  const handleEdit = (glass) => {
+    setCurrentGlass(glass);
+    setEditedGlass(glass); // Start with the existing glass data
+    setEditDialogOpen(true);
+  };
+
+  // Close edit dialog
+  const handleClose = () => {
+    setEditDialogOpen(false);
+    setCurrentGlass(null);
+  };
+
+  // Show snackbar message
+  const handleSnackbar = (message, severity = "success") => {
+    setSnackbarMessage(message);
+    setSnackbarSeverity(severity);
+    setSnackbarOpen(true);
+  };
+
+  // Update the glass data in Firestore
+  const handleSave = async () => {
+    try {
+      const glassDocRef = doc(db, "glasses", currentGlass.id); // 'glasses' is your Firestore collection
+      await updateDoc(glassDocRef, {
+        glass: editedGlass.glass,
+        type: editedGlass.type,
+        price: editedGlass.price,
+        // Add other fields you want to update
+      });
+
+      // Update the local glasses array with the edited glass
+      onEdit((prevGlasses) =>
+        prevGlasses.map((glass) =>
+          glass.id === currentGlass.id ? { ...glass, ...editedGlass } : glass
+        )
+      );
+
+      handleSnackbar("Successfully Updated");
+      handleClose();
+    } catch (error) {
+      console.error("Error updating document: ", error);
+      handleSnackbar("Error updating document", "error");
+    }
+  };
+
+
+  // Delete functionality with Firestore
+ const handleDelete = async (glassId) => {
+   try {
+     const glassDocRef = doc(db, "glasses", glassId); // 'glasses' is your Firestore collection
+     await deleteDoc(glassDocRef);
+
+     // Update the local glasses array to remove the deleted glass
+     onDelete((prevGlasses) =>
+       prevGlasses.filter((glass) => glass.id !== glassId)
+     );
+
+     handleSnackbar("Successfully Deleted");
+   } catch (error) {
+     console.error("Error deleting document: ", error);
+     handleSnackbar("Error deleting document", "error");
+   }
+ };
+
 
   return (
     <Box>
@@ -55,36 +133,45 @@ const GlassesList = ({ glasses = [], loading = false }) => {
               <Table>
                 <TableHead>
                   <TableRow>
-                    <TableCell sx={{ fontWeight: "bold" }}>
-                      Glasses ID
-                    </TableCell>
+                    <TableCell sx={{ fontWeight: "bold" }}>ID</TableCell>
                     <TableCell sx={{ fontWeight: "bold" }}>
                       Glass Name
                     </TableCell>
-                    <TableCell sx={{ fontWeight: "bold" }}>
-                      Glass Type
-                    </TableCell>
-                    <TableCell sx={{ fontWeight: "bold" }}>
-                      Glass Number
-                    </TableCell>
-                    <TableCell sx={{ fontWeight: "bold" }}>Amount</TableCell>
+                    <TableCell sx={{ fontWeight: "bold" }}>Type</TableCell>
+                    <TableCell sx={{ fontWeight: "bold" }}>Number</TableCell>
+                    <TableCell sx={{ fontWeight: "bold" }}>Price</TableCell>
                     <TableCell sx={{ fontWeight: "bold" }}>Barcode</TableCell>
                     <TableCell sx={{ fontWeight: "bold" }}>Quantity</TableCell>
                     <TableCell sx={{ fontWeight: "bold" }}>Date</TableCell>
+                    <TableCell sx={{ fontWeight: "bold" }}>Actions</TableCell>
                   </TableRow>
                 </TableHead>
                 <TableBody>
-                  {glasses.map((glasses, i) => (
-                    <TableRow key={glasses.id}>
+                  {glasses.map((glass, i) => (
+                    <TableRow key={glass.id}>
                       <TableCell>{i + 1}</TableCell>
-                      <TableCell>{glasses.glass}</TableCell>
-                      <TableCell>{glasses.type}</TableCell>
-                      <TableCell>{glasses.number}</TableCell>
-                      <TableCell>Rs.{glasses.price}</TableCell>
-                      <TableCell>{glasses.barcodeNumber}</TableCell>
-                      <TableCell>{glasses.quantity}</TableCell>
+                      <TableCell>{glass.glass}</TableCell>
+                      <TableCell>{glass.type}</TableCell>
+                      <TableCell>{glass.number}</TableCell>
+                      <TableCell>Rs.{glass.price}</TableCell>
+                      <TableCell>{glass.barcodeNumber}</TableCell>
+                      <TableCell>{glass.quantity}</TableCell>
                       <TableCell>
-                        {formatTimestamp(glasses.selectedDate)}
+                        {formatTimestamp(glass.selectedDate)}
+                      </TableCell>
+                      <TableCell>
+                        <Button
+                          onClick={() => handleEdit(glass)}
+                          color="primary"
+                        >
+                          Edit
+                        </Button>
+                        <Button
+                          onClick={() => handleDelete(glass.id)}
+                          color="secondary"
+                        >
+                          Delete
+                        </Button>
                       </TableCell>
                     </TableRow>
                   ))}
@@ -94,6 +181,64 @@ const GlassesList = ({ glasses = [], loading = false }) => {
           )}
         </>
       )}
+
+      {/* Edit Glass Dialog */}
+      <Dialog open={editDialogOpen} onClose={handleClose}>
+        <DialogTitle>Edit Glass</DialogTitle>
+        <DialogContent>
+          <TextField
+            fullWidth
+            label="Glass Name"
+            value={editedGlass?.glass || ""}
+            onChange={(e) =>
+              setEditedGlass({ ...editedGlass, glass: e.target.value })
+            }
+            margin="normal"
+          />
+          <TextField
+            fullWidth
+            label="Glass Type"
+            value={editedGlass?.type || ""}
+            onChange={(e) =>
+              setEditedGlass({ ...editedGlass, type: e.target.value })
+            }
+            margin="normal"
+          />
+          <TextField
+            fullWidth
+            label="Price"
+            value={editedGlass?.price || ""}
+            onChange={(e) =>
+              setEditedGlass({ ...editedGlass, price: e.target.value })
+            }
+            margin="normal"
+          />
+          {/* Add more fields as necessary */}
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleClose} color="primary">
+            Cancel
+          </Button>
+          <Button onClick={handleSave} color="primary">
+            Save
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Snackbar for success/error messages */}
+      <Snackbar
+        open={snackbarOpen}
+        autoHideDuration={4000}
+        onClose={() => setSnackbarOpen(false)}
+      >
+        <Alert
+          onClose={() => setSnackbarOpen(false)}
+          severity={snackbarSeverity}
+          sx={{ width: "100%" }}
+        >
+          {snackbarMessage}
+        </Alert>
+      </Snackbar>
     </Box>
   );
 };

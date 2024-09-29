@@ -17,6 +17,7 @@ import {
   RadioGroup,
   FormControlLabel,
   Radio,
+  MenuItem,
 } from "@mui/material";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
@@ -28,6 +29,7 @@ const SalesForm = () => {
   const [value, setValue] = useState({
     barcode: "",
     orderNo: "",
+    source:"",
     customerName: "",
     contactNo: "",
     address: "",
@@ -96,6 +98,7 @@ const SalesForm = () => {
     const {
       barcode,
       orderNo,
+      source,
       customerName,
       contactNo,
       address,
@@ -126,6 +129,7 @@ const SalesForm = () => {
       await addDoc(expensesCollectionRef, {
         barcode,
         orderNo,
+        source,
         customerName,
         contactNo,
         address,
@@ -206,7 +210,26 @@ const SalesForm = () => {
                 fullWidth
               />
             </div>
-           
+            <div>
+              <TextField
+                id="source-dropdown"
+                select
+                name="source"
+                label="Source"
+                value={value.source}
+                onChange={handleChange}
+                helperText="Please select the sale source"
+                variant="outlined"
+                fullWidth
+              >
+                {/* Dropdown options */}
+                <MenuItem value="Our Listing">Our Listing</MenuItem>
+                <MenuItem value="Vendor">Vendor</MenuItem>
+              </TextField>
+
+              { <p>Selected Source: {value.source}</p>}
+            </div>
+
             <TextField
               label="Order No"
               type="number"

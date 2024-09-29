@@ -23,7 +23,6 @@ import Sales from "./components/bodyComponents/sale/Sales";
 import OrderModal from "./components/bodyComponents/sale/OrderModal";
 import Login from './components/Login'
 import Signup from "./components/Signup";
-
 import { app } from "./config/Firebase";
 import { getAuth } from "firebase/auth";
 
@@ -71,6 +70,7 @@ function App() {
         <Route path="/expense" element={<Expense />} />
         <Route path="/reports" element={<Report />} />
         <Route path="/reports/expense" element= { <reportExpense/>} />
+        <Route path="/reports/sale" element= {<reportSale/>} />
         <Route path="/vendors" element={<Vendors />} />
       </Route>
     )

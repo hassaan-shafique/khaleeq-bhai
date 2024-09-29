@@ -42,7 +42,12 @@ const Revenue = () => {
               }}
             >
               <GlassesForm setRefresh={setRefresh} />
-              <GlassesList glasses={glasses} />
+              <GlassesList
+                glasses={glasses}
+                loading={loading}
+                onEdit={setGlasses} // Pass setGlasses to handle edits
+                onDelete={setGlasses} // Pass setGlasses to handle deletes
+              />
             </Box>
           </Grid>
         </Grid>
