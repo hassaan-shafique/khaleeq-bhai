@@ -38,16 +38,17 @@ const Sales = () => {
   }, [refresh]);
 
   return (
-    <Box>
-      <Grid container sx={{ mx: 3, p: 3 }}>
-        <Grid item md={9}>
+    <Box sx={{ width: "99%" }}>
+      <Grid container sx={{ mx: 3, p: 3, width: "99%" }}>
+        <Grid item md={12}>
+         
           <Box
             sx={{
               margin: 3,
               bgcolor: "white",
               borderRadius: 2,
               padding: 3,
-              height: "100%",
+              width: "99%", // Ensure full width
             }}
           >
             {/* Show loading spinner */}
@@ -64,7 +65,7 @@ const Sales = () => {
               </Typography>
             )}
 
-            {/* Render Sales Form and List only if not loading and no errors */}
+           
             {!loading && !error && (
               <>
                 <SalesForm setRefresh={setRefresh} />

@@ -80,6 +80,38 @@ const ExpenseList = ({ expenses = [], loading = false }) => {
     return dateB - dateA; // Descending order
   });
 
+  const calculateTotalExpense = (expenses) => {
+    // Check if expenses is an empty array
+    if (!expenses?.length) {
+      return 0; // Return 0 for empty arrays to avoid errors
+    }
+
+    const total = expenses.reduce(
+      (accumulator, expense) => accumulator + expense.price,
+      0
+    );
+    return total;
+  };
+
+  // Calculate the grand total across all expenses (grouped by date)
+  const calculateGrandTotal = (groupedExpenses) => {
+    // Check if groupedExpenses is an empty object
+    if (!Object.keys(groupedExpenses).length) {
+      return "No expenses found."; // Return a message for no expenses
+    }
+
+    // Calculate the total sum of the expenses directly
+    const totalSum = Object.values(groupedExpenses).reduce(
+      (accumulator, expensesForDate) =>
+        accumulator +
+        expensesForDate.reduce((total, expense) => total + expense.price, 0),
+      0
+    );
+
+    // Return the total sum
+    return totalSum;
+  };
+
   // Handle page change
   const handleChangePage = (event, newPage) => {
     setPage(newPage);
@@ -166,6 +198,15 @@ const ExpenseList = ({ expenses = [], loading = false }) => {
                       >
                         Expenses
                       </TableCell>
+                      <TableCell
+                        sx={{
+                          fontWeight: "bold",
+                          color: "white",
+                          border: "1px solid #e0e0e0",
+                        }}
+                      >
+                        Total (Rs.)
+                      </TableCell>
                     </TableRow>
                   </TableHead>
                   <TableBody>
@@ -235,11 +276,27 @@ const ExpenseList = ({ expenses = [], loading = false }) => {
                               </Box>
                             ))}
                           </TableCell>
+                          <TableCell
+                            sx={{
+                              border: "1px solid #e0e0e0",
+                              padding: "16px",
+                              fontWeight: "bold",
+                            }}
+                          >
+                            Rs. {calculateTotalExpense(groupedExpenses[date])}
+                          </TableCell>
                         </TableRow>
                       ))}
                   </TableBody>
                 </Table>
               </TableContainer>
+
+              <Typography
+                variant="h6"
+                sx={{ marginTop: 2, textAlign: "right", fontWeight: "bold" }}
+              >
+                Grand Total: Rs. {calculateGrandTotal(groupedExpenses)}
+              </Typography>
 
               <TablePagination
                 rowsPerPageOptions={[5, 10, 25]}
@@ -249,7 +306,6 @@ const ExpenseList = ({ expenses = [], loading = false }) => {
                 page={page}
                 onPageChange={handleChangePage}
                 onRowsPerPageChange={handleChangeRowsPerPage}
-                sx={{ marginTop: 2 }}
               />
             </>
           )}

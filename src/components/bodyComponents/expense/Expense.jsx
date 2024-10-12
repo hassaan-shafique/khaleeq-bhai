@@ -1,15 +1,14 @@
-import { Grid, Box, Typography, Button,TextField } from "@mui/material";
-import React, { useEffect } from "react";
-import ExpenseFrom from "./ExpenseForm"
-import { useState } from "react";
-import ExpenseList from "./expenseList";
+import { Grid, Box } from "@mui/material";
+import React, { useEffect, useState } from "react";
+import ExpenseFrom from "./ExpenseForm";
+import ExpenseList from "./ExpenseList";
 import { db } from "../../../config/Firebase";
 import { collection, getDocs } from "firebase/firestore";
 
 const Expense = () => {
   const [expenses, setExpenses] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [refresh, setRefresh] = useState(false)
+  const [refresh, setRefresh] = useState(false);
 
   useEffect(() => {
     const fetchExpenses = async () => {
@@ -31,15 +30,22 @@ const Expense = () => {
 
   return (
     <>
-      <Box>
-        <Grid container sx={{ mx: 4, p: 3 }}>
-          <Grid item md={9}>
+      <Box sx={{ width: "100%" }}>
+        {" "}
+        {/* Set Box to full width */}
+        <Grid container sx={{ mx: 4, p: 3, width: "100%" }}>
+          {" "}
+          {/* Set Grid to full width */}
+          <Grid item xs={12}>
+            {" "}
+            {/* Full width for all screen sizes */}
             <Box
               sx={{
                 margin: 3,
                 bgcolor: "#FAF9F6",
                 borderRadius: 2,
                 padding: 3,
+                width: "100%", // Ensure full width of Box
                 height: "100%",
               }}
             >

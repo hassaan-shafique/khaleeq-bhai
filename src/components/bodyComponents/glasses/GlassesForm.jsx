@@ -92,7 +92,7 @@ const GlassesForm = ({ setRefresh }) => {
           justifyContent: "space-between",
         }}
       >
-        Glasses
+        Glasses Inventory
         <Button
           variant="contained"
           sx={{ bgcolor: "#448EE4", m: 1, px: 9 }}

@@ -140,7 +140,7 @@ const SaleList = ({ sales = [], loading = false, setRefresh }) => {
           ) : (
             <TableContainer
               component={Paper}
-              sx={{ maxHeight: 500, overflowY: "auto" }}
+              sx={{ maxHeight: 500, maxWidth: "100%", overflowX: "auto" }}
             >
               <Table>
                 <TableHead>
@@ -301,9 +301,6 @@ const SaleList = ({ sales = [], loading = false, setRefresh }) => {
       <Dialog open={editOpen} onClose={handleCloseEditDialog}>
         <DialogTitle>Edit Sale</DialogTitle>
         <DialogContent>
-        
-         
-
           {/* <Typography variant="h7">Date of Order</Typography>
           <DatePicker
             selected={editSale?.startDate}
@@ -430,7 +427,6 @@ const SaleList = ({ sales = [], loading = false, setRefresh }) => {
                     />
                   </TableCell>
                 </TableRow>
-                {/* Repeat similar structure for CYL, AXIS, ADD, and IPD */}
               </TableBody>
             </Table>
           </TableContainer>

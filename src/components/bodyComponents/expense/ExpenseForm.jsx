@@ -82,7 +82,7 @@ const ExpenseForm = ({ setRefresh }) => {
       const expenseTypesCollectionRef = collection(db, "expenseTypes");
 
       for (const expense of expenses) {
-        // Add new expense type to Firestore if it's not already there
+        
         if (expense.expenseType === "other" && expense.otherExpense) {
           const newExpenseType = {
             name: expense.otherExpense,
