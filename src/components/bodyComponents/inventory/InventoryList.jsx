@@ -220,7 +220,16 @@ const InventoryList = ({ inventory = [], loading = false }) => {
                       <TableCell>{item.type}</TableCell>
                       <TableCell>{item.name}</TableCell>
                       <TableCell>Rs.{item.price}</TableCell>
-                      <TableCell>{item.quantity}</TableCell>
+                      <TableCell
+                        sx={{
+                          backgroundColor:
+                            item.quantity <= 10 ? "red" : "lightgreen",
+                          color: "white",
+                          fontWeight: "bold",
+                        }}
+                      >
+                        {item.quantity}
+                      </TableCell>
                       <TableCell>{item.size}</TableCell>
                       <TableCell>
                         {item.selectedDate
