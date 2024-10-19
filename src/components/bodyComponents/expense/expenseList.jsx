@@ -1,143 +1,145 @@
-import React, { useState } from "react";
+import React, { useState ,useEffect  } from "react";
 import {
-  Table,
-  TableBody,
-  TableCell,
   TableContainer,
+  Table,
   TableHead,
   TableRow,
+  TableCell,
+  TableBody,
   Paper,
   CircularProgress,
   Box,
   Typography,
+  Accordion,
+  AccordionSummary,
+  AccordionDetails,
   Select,
   MenuItem,
   InputLabel,
   FormControl,
   TextField,
   TablePagination,
+  Grid,
 } from "@mui/material";
+import DeleteIcon from "@mui/icons-material/Delete";
+import IconButton from "@mui/material/IconButton";
+import { db } from "../../../config/Firebase";// Ensure Firebase is configured
+import {
+  doc,
+  deleteDoc,
+  collection,
+  getDocs,
+  onSnapshot,
+  query,
+  where,
+} from "firebase/firestore";
+import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
+import { Timestamp } from "firebase/firestore";
 
-// Function to format Firestore timestamp
-const formatTimestamp = (timestamp) => {
-  if (!timestamp) return "";
-  const date = timestamp.toDate();
-  const options = {
-    day: "2-digit",
-    month: "long",
-    year: "numeric",
-  };
-  return date.toLocaleDateString("en-GB", options);
-};
-
-// Group expenses by date
-const groupExpensesByDate = (expenses) => {
-  return expenses.reduce((acc, expense) => {
-    const formattedDate = expense.selectedDate
-      ? formatTimestamp(expense.selectedDate)
-      : "No Date";
-    if (!acc[formattedDate]) {
-      acc[formattedDate] = [];
-    }
-    acc[formattedDate].push(expense);
-    return acc;
-  }, {});
-};
 
 const ExpenseList = ({ expenses = [], loading = false }) => {
   const [selectedType, setSelectedType] = useState("");
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
-
   const [page, setPage] = useState(0);
-  const [rowsPerPage, setRowsPerPage] = useState(5); // Default rows per page
+  const [expenseData, setExpenseData] = useState(expenses)
+  const [rowsPerPage, setRowsPerPage] = useState(5);
 
-  // Filter expenses by selected type
+  const formatTimestamp = (timestamp) =>
+    timestamp ? timestamp.toDate().toLocaleDateString("en-GB") : "";
+  // where("selectedDate", "==", new Date(date));
+  // const q = query(
+  //   collection(db, "expenses"),
+  //   where("selectedDate", "==", Timestamp.fromDate(new Date(date)))
+  // );
+
+  const groupExpensesByDate = (expenses) =>
+    expenses.reduce((acc, expense) => {
+      const date = expense.selectedDate
+        ? formatTimestamp(expense.selectedDate)
+        : "No Date";
+      acc[date] = acc[date] ? [...acc[date], expense] : [expense];
+      return acc;
+    }, {});
+
   const filteredExpenses = selectedType
-    ? expenses.filter((item) => item.expenseType === selectedType)
+    ? expenses.filter((e) => e.expenseType === selectedType)
     : expenses;
 
-  // Filter expenses by selected date range
   const dateFilteredExpenses = filteredExpenses.filter((item) => {
     const itemDate = item.selectedDate ? item.selectedDate.toDate() : null;
     return (
-      (!startDate || (itemDate && itemDate >= new Date(startDate))) &&
-      (!endDate || (itemDate && itemDate <= new Date(endDate)))
+      (!startDate || itemDate >= new Date(startDate)) &&
+      (!endDate || itemDate <= new Date(endDate))
     );
   });
 
-  // Group the filtered expenses by date
+
+
+
+
+
   const groupedExpenses = groupExpensesByDate(dateFilteredExpenses);
+  const sortedDates = Object.keys(groupedExpenses).sort(
+    (a, b) => new Date(b) - new Date(a)
+  );
 
-  const uniqueExpenseTypes = [
-    ...new Set(expenses.map((item) => item.expenseType)),
-  ];
-
-  // Sort dates from Recent to Old
-  const sortedDates = Object.keys(groupedExpenses).sort((a, b) => {
-    const dateA = new Date(a === "No Date" ? 0 : new Date(a));
-    const dateB = new Date(b === "No Date" ? 0 : new Date(b));
-    return dateB - dateA; // Descending order
-  });
-
+  // Calculate the total expense for each date
   const calculateTotalExpense = (expenses) => {
-    // Check if expenses is an empty array
-    if (!expenses?.length) {
-      return 0; // Return 0 for empty arrays to avoid errors
-    }
-
-    const total = expenses.reduce(
-      (accumulator, expense) => accumulator + expense.price,
+    if (!expenses?.length) return 0; // Handle empty arrays gracefully
+    return expenses.reduce(
+      (accumulator, expense) => accumulator + Number(expense.price),
       0
     );
-    return total;
   };
 
   // Calculate the grand total across all expenses (grouped by date)
   const calculateGrandTotal = (groupedExpenses) => {
-    // Check if groupedExpenses is an empty object
-    if (!Object.keys(groupedExpenses).length) {
-      return "No expenses found."; // Return a message for no expenses
-    }
+    if (!Object.keys(groupedExpenses).length) return 0; // Handle empty objects
 
-    // Calculate the total sum of the expenses directly
-    const totalSum = Object.values(groupedExpenses).reduce(
-      (accumulator, expensesForDate) =>
-        accumulator +
-        expensesForDate.reduce((total, expense) => total + expense.price, 0),
+    // Sum all expenses from each group
+    return Object.values(groupedExpenses).reduce(
+      (grandTotal, expensesForDate) =>
+        grandTotal +
+        expensesForDate.reduce(
+          (total, expense) => total + Number(expense.price),
+          0
+        ),
       0
     );
-
-    // Return the total sum
-    return totalSum;
   };
+ const handleDelete = async (id) => {
+   try {
+     // Optimistically update the state
+     const updatedExpenses = expenseData.filter((expense) => expense.id !== id);
+     setExpenseData(updatedExpenses);
+       alert(" Successfull");
 
-  // Handle page change
-  const handleChangePage = (event, newPage) => {
-    setPage(newPage);
-  };
+     // Delete from Firebase
+     await deleteDoc(doc(db, "expenses", id));
+   } catch (error) {
+     console.error("Failed to delete expense:", error);
+   
+   }
+ };
 
-  // Handle rows per page change
+
+  const handleChangePage = (event, newPage) => setPage(newPage);
   const handleChangeRowsPerPage = (event) => {
     setRowsPerPage(parseInt(event.target.value, 10));
-    setPage(0); // Reset to first page on change
+    setPage(0);
   };
 
   return (
     <Box>
       {loading ? (
-        <Box sx={{ display: "flex", justifyContent: "center", marginTop: 4 }}>
+        <Box sx={{ display: "flex", justifyContent: "center", mt: 4 }}>
           <CircularProgress />
         </Box>
       ) : (
         <>
-          <Box
-            sx={{ display: "flex", justifyContent: "center", marginBottom: 3 }}
-          >
-            <FormControl
-              variant="outlined"
-              sx={{ minWidth: 200, marginRight: 2 }}
-            >
+          <Box sx={{ display: "flex", justifyContent: "center", mb: 3 }}>
+            <FormControl sx={{ minWidth: 200, mr: 2 }}>
               <InputLabel>Filter by Expense Type</InputLabel>
               <Select
                 value={selectedType}
@@ -145,170 +147,153 @@ const ExpenseList = ({ expenses = [], loading = false }) => {
                 label="Filter by Expense Type"
               >
                 <MenuItem value="">All</MenuItem>
-                {uniqueExpenseTypes.map((type, index) => (
-                  <MenuItem key={index} value={type}>
-                    {type}
-                  </MenuItem>
-                ))}
+                {[...new Set(expenses.map((e) => e.expenseType))].map(
+                  (type, index) => (
+                    <MenuItem key={index} value={type}>
+                      {type}
+                    </MenuItem>
+                  )
+                )}
               </Select>
             </FormControl>
             <TextField
               type="date"
-              variant="outlined"
               value={startDate}
               onChange={(e) => setStartDate(e.target.value)}
-              sx={{ marginRight: 2 }}
+              sx={{ mr: 2 }}
             />
             <TextField
               type="date"
-              variant="outlined"
               value={endDate}
               onChange={(e) => setEndDate(e.target.value)}
             />
           </Box>
 
-          {Object.keys(groupedExpenses).length === 0 ? (
-            <Typography variant="h6" align="center" sx={{ marginTop: 4 }}>
+          {sortedDates.length === 0 ? (
+            <Typography variant="h6" align="center" sx={{ mt: 4 }}>
               No Expenses found....
             </Typography>
           ) : (
-            <>
-              <TableContainer
-                component={Paper}
-                sx={{ boxShadow: 3, maxHeight: "600px", overflowY: "auto" }}
-              >
-                <Table>
-                  <TableHead>
-                    <TableRow sx={{ bgcolor: "#0056b3" }}>
-                      <TableCell
-                        sx={{
-                          fontWeight: "bold",
-                          color: "white",
-                          border: "1px solid #e0e0e0",
-                        }}
-                      >
-                        Date
-                      </TableCell>
-                      <TableCell
-                        sx={{
-                          fontWeight: "bold",
-                          color: "white",
-                          border: "1px solid #e0e0e0",
-                        }}
-                      >
-                        Expenses
-                      </TableCell>
-                      <TableCell
-                        sx={{
-                          fontWeight: "bold",
-                          color: "white",
-                          border: "1px solid #e0e0e0",
-                        }}
-                      >
-                        Total (Rs.)
-                      </TableCell>
-                    </TableRow>
-                  </TableHead>
-                  <TableBody>
-                    {sortedDates
-                      .slice(
-                        page * rowsPerPage,
-                        page * rowsPerPage + rowsPerPage
-                      )
-                      .map((date, index) => (
-                        <TableRow key={index}>
-                          <TableCell
-                            sx={{
-                              border: "1px solid #e0e0e0",
-                              padding: "16px",
-                            }}
-                          >
-                            {date}
-                          </TableCell>
-                          <TableCell
-                            sx={{
-                              border: "1px solid #e0e0e0",
-                              padding: "16px",
-                              "&:hover": {
-                                backgroundColor: "#f5f5f5",
-                              },
-                            }}
-                          >
-                            {/* Show multiple expenses in one row */}
-                            {groupedExpenses[date].map((item, i) => (
-                              <Box
-                                key={i}
-                                sx={{
-                                  borderBottom:
-                                    i !== groupedExpenses[date].length - 1
-                                      ? "1px solid #e0e0e0"
-                                      : "none",
-                                  marginBottom:
-                                    i !== groupedExpenses[date].length - 1
-                                      ? "8px"
-                                      : "0",
-                                  paddingBottom: "8px",
-                                  backgroundColor: "#f9f9f9", // Alternate background color
-                                  borderRadius: "4px",
-                                  padding: "10px",
-                                }}
-                              >
-                                {/* Display dynamic headings */}
-                                <Typography
-                                  variant="subtitle1"
+            <TableContainer
+              component={Paper}
+              sx={{
+                maxHeight: 500,
+                maxWidth: "100%",
+                overflowX: "auto",
+                "&::-webkit-scrollbar": {
+                  width: "10px",
+                  height: "10px",
+                },
+                "&::-webkit-scrollbar-track": {
+                  backgroundColor: "#f0f0f0",
+                  borderRadius: "10px",
+                },
+                "&::-webkit-scrollbar-thumb": {
+                  backgroundColor: "#888",
+                  borderRadius: "10px",
+                  border: "1px solid #f0f0f0",
+                  "&:hover": {
+                    backgroundColor: "#555",
+                  },
+                },
+              }}
+            >
+              <Table>
+                <TableHead>
+                  <TableRow sx={{ bgcolor: "#0056b3" }}>
+                    <TableCell sx={{ fontWeight: "bold", color: "white" }}>
+                      Date
+                    </TableCell>
+                    <TableCell sx={{ fontWeight: "bold", color: "white" }}>
+                      Expenses
+                    </TableCell>
+                    <TableCell sx={{ fontWeight: "bold", color: "white" }}>
+                      Total (Rs.)
+                    </TableCell>
+                  </TableRow>
+                </TableHead>
+                <TableBody>
+                  {sortedDates
+                    .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
+                    .map((date, index) => (
+                      <TableRow key={index}>
+                        <TableCell>{date}</TableCell>
+                        <TableCell>
+                          <Accordion>
+                            <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+                              <Typography variant="subtitle1">
+                                View Expenses
+                              </Typography>
+                            </AccordionSummary>
+                            <AccordionDetails>
+                              {groupedExpenses[date].map((expense, i) => (
+                                <Box
+                                  key={i}
                                   sx={{
-                                    color: "white",
-                                    fontWeight: "bold",
-                                    backgroundColor: "#0056b3", // Light blue background
-                                    padding: "5px",
-                                    borderRadius: "4px",
-                                    display: "inline-block",
-                                    marginBottom: "4px",
+                                    mb: 1,
+                                    p: 1,
+                                    bgcolor: "#f9f9f9",
+                                    borderRadius: 2,
                                   }}
                                 >
-                                  Expense {i + 1}:
-                                </Typography>
-                                <Typography>
-                                  <strong>Type:</strong> {item.expenseType} |{" "}
-                                  <strong>Other:</strong> {item.otherExpense} |{" "}
-                                  <strong>Price:</strong> Rs. {item.price}
-                                </Typography>
-                              </Box>
-                            ))}
-                          </TableCell>
-                          <TableCell
-                            sx={{
-                              border: "1px solid #e0e0e0",
-                              padding: "16px",
-                              fontWeight: "bold",
-                            }}
-                          >
-                            Rs. {calculateTotalExpense(groupedExpenses[date])}
-                          </TableCell>
-                        </TableRow>
-                      ))}
-                  </TableBody>
-                </Table>
-              </TableContainer>
-
-              <Typography
-                variant="h6"
-                sx={{ marginTop: 2, textAlign: "right", fontWeight: "bold" }}
-              >
-                Grand Total: Rs. {calculateGrandTotal(groupedExpenses)}
-              </Typography>
-
-              <TablePagination
-                rowsPerPageOptions={[5, 10, 25]}
-                component="div"
-                count={sortedDates.length}
-                rowsPerPage={rowsPerPage}
-                page={page}
-                onPageChange={handleChangePage}
-                onRowsPerPageChange={handleChangeRowsPerPage}
-              />
-            </>
+                                  <Typography key={i}>
+                                    <strong> Expense {i + 1}</strong> <br />
+                                    <strong>Type:</strong> {expense.expenseType}{" "}
+                                    | <strong>Price:</strong> Rs.{" "}
+                                    {expense.price}
+                                  </Typography>
+                                  <Typography>
+                                    <strong>Other:</strong>{" "}
+                                    {expense.otherExpense || ""}
+                                  </Typography>
+                                  <IconButton
+                                    onClick={() =>
+                                      handleDelete(expense.id)
+                                    } 
+                                    color="error"
+                                  >
+                                    <DeleteIcon />
+                                  </IconButton>
+                                </Box>
+                              ))}
+                            </AccordionDetails>
+                          </Accordion>
+                        </TableCell>
+                        <TableCell>
+                          Rs. {calculateTotalExpense(groupedExpenses[date])}
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                </TableBody>
+              </Table>
+            </TableContainer>
           )}
+
+          <Typography
+            variant="h5" // Larger font size for prominence
+            sx={{
+              mt: 2,
+              textAlign: "right",
+              fontWeight: "bold", // Make it bold for emphasis
+              padding: "5px",
+              borderRadius: "8px",
+              color: "#fff", // White text for contrast
+              backgroundColor: "#1976d1", // Blue background to make it stand out
+              display: "inline-block", // Make it fit content size
+            }}
+          >
+            Grand Total: Rs. {calculateGrandTotal(groupedExpenses)}
+          </Typography>
+
+          <TablePagination
+            rowsPerPageOptions={[5, 10, 25]}
+            component="div"
+            count={sortedDates.length}
+            rowsPerPage={rowsPerPage}
+            page={page}
+            onPageChange={handleChangePage}
+            onRowsPerPageChange={handleChangeRowsPerPage}
+          />
         </>
       )}
     </Box>

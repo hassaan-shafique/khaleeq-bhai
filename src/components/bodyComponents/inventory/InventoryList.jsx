@@ -153,7 +153,30 @@ const InventoryList = ({ inventory = [], loading = false }) => {
               No Inventory found....
             </Typography>
           ) : (
-            <TableContainer component={Paper}>
+            <TableContainer
+              component={Paper}
+              sx={{
+                maxHeight: 500,
+                maxWidth: "100%",
+                overflowX: "auto",
+                "&::-webkit-scrollbar": {
+                  width: "10px", // Width of the vertical scrollbar
+                  height: "10px", // Height of the horizontal scrollbar
+                },
+                "&::-webkit-scrollbar-track": {
+                  backgroundColor: "#f0f0f0", // Track color
+                  borderRadius: "10px", // Rounded track
+                },
+                "&::-webkit-scrollbar-thumb": {
+                  backgroundColor: "#888", // Scrollbar thumb color
+                  borderRadius: "10px", // Rounded thumb
+                  border: "2px solid #f0f0f0", // Adds spacing around the thumb
+                  "&:hover": {
+                    backgroundColor: "#555", // Darker on hover
+                  },
+                },
+              }}
+            >
               <Table>
                 <TableHead>
                   <TableRow>

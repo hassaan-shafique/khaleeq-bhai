@@ -36,6 +36,7 @@ const GlassesForm = ({ setRefresh }) => {
     }));
   };
 
+
   // Update date state when the date changes
   const handleDateChange = (date) => {
     setValue((prev) => ({
@@ -154,15 +155,17 @@ const GlassesForm = ({ setRefresh }) => {
               fullWidth
               margin="normal"
             />
-            <TextField
-              label="Number"
-              name="number"
-              type="number"
-              value={value.number}
-              onChange={handleInputChange}
-              fullWidth
-              margin="normal"
-            />
+             <TextField
+        label="Number"
+        name="number"
+        type="text"
+        value={value.number}
+        onChange={handleInputChange}
+        fullWidth
+        margin="normal"
+     
+      />
+      
             <TextField
               label="Quantity"
               name="quantity"

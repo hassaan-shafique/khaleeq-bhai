@@ -31,15 +31,15 @@ const Inventory = () => {
 
   return (
     <>
-      <Box sx={{ width: "95%" }}>
-        <Grid container sx={{ mx: 3, p: 3, width: "95%" }}>
-          <Grid item md={12} sx={{ width: "95%" }}>
+      <Box sx={{ width: "98%" }}>
+        <Grid container sx={{ mx: 3, p: 3, width: "100%" }}>
+          <Grid item md={12} sx={{ width: "98%" }}>
             {" "}
             {/* Updated Grid width to 100% */}
             <Box
               sx={{
                 margin: 3,
-                width: "95%", // Ensure the Box takes full width
+                width: "98%", // Ensure the Box takes full width
                 bgcolor: "white",
                 borderRadius: 2,
                 padding: 3,

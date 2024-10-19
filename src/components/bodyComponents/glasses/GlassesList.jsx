@@ -18,7 +18,11 @@ import {
   DialogTitle,
   Snackbar,
   Alert,
+  IconButton,
 } from "@mui/material";
+import DeleteIcon from "@mui/icons-material/Delete";
+import EditIcon from "@mui/icons-material/Edit";
+
 import { doc, updateDoc, deleteDoc } from "firebase/firestore";
 import { db } from "../../../config/Firebase"; // Assuming you have firebase initialized
 
@@ -129,7 +133,30 @@ const GlassesList = ({ glasses = [], loading = false, onDelete, onEdit }) => {
               No Glasses found....
             </Typography>
           ) : (
-            <TableContainer component={Paper}>
+            <TableContainer
+              component={Paper}
+              sx={{
+                maxHeight: 500,
+                maxWidth: "100%",
+                overflowX: "auto",
+                "&::-webkit-scrollbar": {
+                  width: "10px", // Width of the vertical scrollbar
+                  height: "10px", // Height of the horizontal scrollbar
+                },
+                "&::-webkit-scrollbar-track": {
+                  backgroundColor: "#f0f0f0", // Track color
+                  borderRadius: "10px", // Rounded track
+                },
+                "&::-webkit-scrollbar-thumb": {
+                  backgroundColor: "#888", // Scrollbar thumb color
+                  borderRadius: "10px", // Rounded thumb
+                  border: "2px solid #f0f0f0", // Adds spacing around the thumb
+                  "&:hover": {
+                    backgroundColor: "#555", // Darker on hover
+                  },
+                },
+              }}
+            >
               <Table>
                 <TableHead>
                   <TableRow>
@@ -155,23 +182,40 @@ const GlassesList = ({ glasses = [], loading = false, onDelete, onEdit }) => {
                       <TableCell>{glass.number}</TableCell>
                       <TableCell>Rs.{glass.price}</TableCell>
                       <TableCell>{glass.barcodeNumber}</TableCell>
-                      <TableCell>{glass.quantity}</TableCell>
+                      <TableCell
+                        sx={{
+                          backgroundColor:
+                            glass.quantity > 10
+                              ? "lightgreen"
+                              : glass.quantity <= 10
+                              ? "red"
+                              : "inherit", // Use red if less than 10, otherwise inherit background
+                          fontWeight:
+                            glass.quantity > 10
+                              ? "bold"
+                              : glass.quantity < 10
+                              ? "bold"
+                              : "normal", // Bold if highlighted
+                        }}
+                      >
+                        {glass.quantity}
+                      </TableCell>
                       <TableCell>
                         {formatTimestamp(glass.selectedDate)}
                       </TableCell>
                       <TableCell>
-                        <Button
+                        <IconButton
                           onClick={() => handleEdit(glass)}
                           color="primary"
                         >
-                          Edit
-                        </Button>
-                        <Button
+                          <EditIcon />
+                        </IconButton>
+                        <IconButton
                           onClick={() => handleDelete(glass.id)}
-                          color="secondary"
+                          color="error"
                         >
-                          Delete
-                        </Button>
+                          <DeleteIcon />
+                        </IconButton>
                       </TableCell>
                     </TableRow>
                   ))}
@@ -206,10 +250,38 @@ const GlassesList = ({ glasses = [], loading = false, onDelete, onEdit }) => {
           />
           <TextField
             fullWidth
+            label="Glass Number"
+            value={editedGlass?.number || ""}
+            onChange={(e) =>
+              setEditedGlass({ ...editedGlass, number: e.target.value })
+            }
+            margin="normal"
+          />
+          <TextField
+            fullWidth
+            label="Barcode"
+            value={editedGlass?.barcodeNumber || ""}
+            onChange={(e) =>
+              setEditedGlass({ ...editedGlass, barcodeNumber: e.target.value })
+            }
+            margin="normal"
+          />
+
+          <TextField
+            fullWidth
             label="Price"
             value={editedGlass?.price || ""}
             onChange={(e) =>
               setEditedGlass({ ...editedGlass, price: e.target.value })
+            }
+            margin="normal"
+          />
+          <TextField
+            fullWidth
+            label="Quantity"
+            value={editedGlass?.quantity || ""}
+            onChange={(e) =>
+              setEditedGlass({ ...editedGlass, quantity: e.target.value })
             }
             margin="normal"
           />

@@ -211,6 +211,7 @@ const SalesForm = () => {
               />
             </div>
             <div>
+
               <TextField
                 id="source-dropdown"
                 select
@@ -223,11 +224,12 @@ const SalesForm = () => {
                 fullWidth
               >
                 {/* Dropdown options */}
-                <MenuItem value="Our Listing">Our Listing</MenuItem>
+                <MenuItem value="KBCW">KBCW</MenuItem>
+                <MenuItem value="Glasses">Glasses</MenuItem>
                 <MenuItem value="Vendor">Vendor</MenuItem>
               </TextField>
 
-              { <p>Selected Source: {value.source}</p>}
+              {<p>Selected Source: {value.source}</p>}
             </div>
 
             <TextField

@@ -33,7 +33,7 @@ const Expense = () => {
       <Box sx={{ width: "100%" }}>
         {" "}
         {/* Set Box to full width */}
-        <Grid container sx={{ mx: 4, p: 3, width: "100%" }}>
+        <Grid container sx={{ mx: 4, p: 3, width: "98%" }}>
           {" "}
           {/* Set Grid to full width */}
           <Grid item xs={12}>

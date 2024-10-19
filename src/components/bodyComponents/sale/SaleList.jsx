@@ -19,11 +19,19 @@ import {
   TextField,
   RadioGroup,
   FormControlLabel,
-  Radio,  
+  Radio,
+  IconButton,
+  
 } from "@mui/material";
+import DeleteIcon from "@mui/icons-material/Delete";
+import EditIcon from "@mui/icons-material/Edit";
+import EyeIcon from '@mui/icons-material/Visibility';
+import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 import DatePicker from "react-datepicker";
-import { doc, updateDoc, deleteDoc } from "firebase/firestore"; // Firestore functions
+import { doc, updateDoc, deleteDoc ,addDoc,collection,query,getDocs,where,} from "firebase/firestore"; // Firestore functions
 import { db } from "../../../config/Firebase"; // Ensure db is correctly imported
+import AddInstallment from "./Installments/addInstallment";
+import ViewInstallment from "./Installments/viewInstallments";
 
 // Helper function to format Firestore timestamp
 const formatTimestamp = (timestamp) => {
@@ -39,6 +47,11 @@ const SaleList = ({ sales = [], loading = false, setRefresh }) => {
   const [salesData, setSalesData] = useState(sales); // Local sales state
   const [editOpen, setEditOpen] = useState(false);
   const [editSale, setEditSale] = useState(null); // For editing
+  const [showFields, setShowFields] = useState(false);
+  const [selectedSaleId, setSelectedSaleId] = useState(null) 
+  const [installmentDialogOpen, setInstallmentDialogOpen] = useState(false)
+  const [installmentViewDialogOpen, setInstallmentViewDialogOpen] = useState(false);
+
 
   // Open dialog with sale details
   const handleOpenDialog = (sale) => {
@@ -125,6 +138,19 @@ const SaleList = ({ sales = [], loading = false, setRefresh }) => {
     }
   };
 
+  const updatePendingAmount = async (saleId, installmentAmount) => {
+    const saleDocRef = doc(db, "sales", saleId); 
+    let currentSaleData = salesData.filter((sale) => sale.id === saleId)[0];
+    const newPendingAmount = currentSaleData.pendingAmount - installmentAmount
+    currentSaleData.pendingAmount = newPendingAmount;
+    try {
+      await updateDoc(saleDocRef, currentSaleData); 
+    } catch (error) {
+      console.error("Error updating sale:", error);
+      alert(`Error updating sale: ${error.message}`);
+    }
+  }
+
   return (
     <Box>
       {loading ? (
@@ -140,9 +166,30 @@ const SaleList = ({ sales = [], loading = false, setRefresh }) => {
           ) : (
             <TableContainer
               component={Paper}
-              sx={{ maxHeight: 500, maxWidth: "100%", overflowX: "auto" }}
+              sx={{
+                maxHeight: 500,
+                maxWidth: "100%",
+                overflowX: "auto",
+                "&::-webkit-scrollbar": {
+                  width: "10px", // Width of the vertical scrollbar
+                  height: "10px", // Height of the horizontal scrollbar
+                },
+                "&::-webkit-scrollbar-track": {
+                  backgroundColor: "#f0f0f0", // Track color
+                  borderRadius: "10px", // Rounded track
+                },
+                "&::-webkit-scrollbar-thumb": {
+                  backgroundColor: "#888", // Scrollbar thumb color
+                  borderRadius: "10px", // Rounded thumb
+                  border: "2px solid #f0f0f0", // Adds spacing around the thumb
+                  "&:hover": {
+                    backgroundColor: "#555", // Darker on hover
+                  },
+                },
+              }}
             >
-              <Table>
+              {/* Listing Table */}
+              <Table stickyHeader>
                 <TableHead>
                   <TableRow>
                     <TableCell sx={{ fontWeight: "bold" }}>Sale ID</TableCell>
@@ -155,6 +202,7 @@ const SaleList = ({ sales = [], loading = false, setRefresh }) => {
                     <TableCell sx={{ fontWeight: "bold" }}>
                       Delivered Date
                     </TableCell>
+                    <TableCell sx={{ fontWeight: "bold" }}>Source</TableCell>
                     <TableCell sx={{ fontWeight: "bold" }}>Barcode</TableCell>
                     <TableCell sx={{ fontWeight: "bold" }}>
                       Customer Name
@@ -180,10 +228,13 @@ const SaleList = ({ sales = [], loading = false, setRefresh }) => {
                     <TableCell sx={{ fontWeight: "bold" }}>
                       Pending Amount
                     </TableCell>
+
                     <TableCell sx={{ fontWeight: "bold" }}>
                       Instruction
                     </TableCell>
                     <TableCell sx={{ fontWeight: "bold" }}>Status</TableCell>
+                    <TableCell sx={{ fontWeight: "bold" }}></TableCell>
+                    <TableCell sx={{ fontWeight: "bold" }}></TableCell>
                   </TableRow>
                 </TableHead>
                 <TableBody>
@@ -205,6 +256,7 @@ const SaleList = ({ sales = [], loading = false, setRefresh }) => {
                           ? formatTimestamp(sale.DeliveredDate)
                           : "No Date"}
                       </TableCell>
+                      <TableCell>{sale.source}</TableCell>
                       <TableCell>{sale.barcode}</TableCell>
                       <TableCell>{sale.customerName}</TableCell>
                       <TableCell>{sale.contactNo}</TableCell>
@@ -225,6 +277,7 @@ const SaleList = ({ sales = [], loading = false, setRefresh }) => {
                       <TableCell>{sale.advance}</TableCell>
                       <TableCell>{sale.pendingAmount}</TableCell>
                       <TableCell>{sale.instruction}</TableCell>
+
                       <TableCell>
                         <Button
                           variant="contained"
@@ -241,35 +294,67 @@ const SaleList = ({ sales = [], loading = false, setRefresh }) => {
                       <TableCell>
                         <Box sx={{ display: "flex", alignItems: "center" }}>
                           {sale.status === "Pending" && (
-                            <Button
-                              variant="contained"
+                            <IconButton
+                              color="success"
                               onClick={() =>
                                 handleMarkAsComplete(
                                   sale.id,
                                   sale.deliveredDate
                                 )
                               }
+                              sx={{ marginLeft: 1 }}
                             >
-                              Mark as Completed
-                            </Button>
+                              <CheckCircleIcon />
+                            </IconButton>
                           )}
-                          <Button
+                          <IconButton
                             variant="outlined"
                             color="primary"
                             onClick={() => handleEditSale(sale)}
                             sx={{ marginLeft: 1 }}
                           >
-                            Edit
-                          </Button>
-                          <Button
+                            <EditIcon />
+                          </IconButton>
+                          <IconButton
                             variant="outlined"
                             color="error"
                             onClick={() => handleDeleteSale(sale.id)}
                             sx={{ marginLeft: 1 }}
                           >
-                            Delete
-                          </Button>
+                            <DeleteIcon />
+                          </IconButton>
                         </Box>
+                      </TableCell>
+
+                      <TableCell
+                        sx={{
+                          display: "flex",
+                          flexDirection: "column",
+                          gap: 2,
+                        }}
+                      >
+                        <Button
+                          variant="contained"
+                          color="warning"
+                          sx={{ textTransform: "none" }}
+                          onClick={() => {
+                            setInstallmentDialogOpen(true);
+                            setSelectedSaleId(sale.id);
+                          }}
+                        >
+                          +
+                        </Button>
+                        <Button
+                          variant="contained"
+                          color="secondary"
+                          sx={{ textTransform: "none" }}
+                          onClick={() => {
+                            setInstallmentViewDialogOpen(true);
+                            setSelectedSaleId(sale.id);
+                          }}
+                        >
+                          <EyeIcon />
+                        </Button>
                       </TableCell>
                     </TableRow>
                   ))}
@@ -278,6 +363,29 @@ const SaleList = ({ sales = [], loading = false, setRefresh }) => {
             </TableContainer>
           )}
         </>
+      )}
+
+      {installmentDialogOpen && (
+        <AddInstallment
+          saleId={selectedSaleId}
+          updatePendingAmount={updatePendingAmount}
+          open={installmentDialogOpen}
+          handleClose={() => {
+            setInstallmentDialogOpen(false);
+            setSelectedSaleId(null);
+          }}
+        />
+      )}
+
+      {installmentViewDialogOpen && (
+        <ViewInstallment
+          id={selectedSaleId}
+          open={installmentViewDialogOpen}
+          handleClose={() => {
+            setInstallmentViewDialogOpen(false);
+            setSelectedSaleId(null);
+          }}
+        />
       )}
 
       {/* Dialog for displaying sale details */}
@@ -335,6 +443,7 @@ const SaleList = ({ sales = [], loading = false, setRefresh }) => {
             margin="normal"
             sx={{ mr: 6 }}
           />
+
           <TextField
             label="Customer Name"
             name="customerName"
@@ -427,6 +536,106 @@ const SaleList = ({ sales = [], loading = false, setRefresh }) => {
                     />
                   </TableCell>
                 </TableRow>
+                <TableRow>
+                  <TableCell>CYL</TableCell>
+                  <TableCell>
+                    <TextField
+                      type="number"
+                      name="reCyl"
+                      value={editSale?.reCyl || ""}
+                      onChange={(e) =>
+                        setEditSale({ ...editSale, reCyl: e.target.value })
+                      }
+                      fullWidth
+                    />
+                  </TableCell>
+                  <TableCell>
+                    <TextField
+                      type="number"
+                      name="leCyl"
+                      value={editSale?.leCyl || ""}
+                      onChange={(e) =>
+                        setEditSale({ ...editSale, leCyl: e.target.value })
+                      }
+                      fullWidth
+                    />
+                  </TableCell>
+                </TableRow>
+                <TableRow>
+                  <TableCell>AXIS</TableCell>
+                  <TableCell>
+                    <TextField
+                      type="number"
+                      name="reAxis"
+                      value={editSale?.reAxis || ""}
+                      onChange={(e) =>
+                        setEditSale({ ...editSale, reAxis: e.target.value })
+                      }
+                      fullWidth
+                    />
+                  </TableCell>
+                  <TableCell>
+                    <TextField
+                      type="number"
+                      name="leAxis"
+                      value={editSale?.leAxis || ""}
+                      onChange={(e) =>
+                        setEditSale({ ...editSale, leAxis: e.target.value })
+                      }
+                      fullWidth
+                    />
+                  </TableCell>
+                </TableRow>
+                <TableRow>
+                  <TableCell>ADD</TableCell>
+                  <TableCell>
+                    <TextField
+                      type="number"
+                      name="reAdd"
+                      value={editSale?.reAdd || ""}
+                      onChange={(e) =>
+                        setEditSale({ ...editSale, reAdd: e.target.value })
+                      }
+                      fullWidth
+                    />
+                  </TableCell>
+                  <TableCell>
+                    <TextField
+                      type="number"
+                      name="leAdd"
+                      value={editSale?.leAdd || ""}
+                      onChange={(e) =>
+                        setEditSale({ ...editSale, leAdd: e.target.value })
+                      }
+                      fullWidth
+                    />
+                  </TableCell>
+                </TableRow>
+                <TableRow>
+                  <TableCell>IPD</TableCell>
+                  <TableCell>
+                    <TextField
+                      type="number"
+                      name="reIpd"
+                      value={editSale?.reIpd || ""}
+                      onChange={(e) =>
+                        setEditSale({ ...editSale, reIpd: e.target.value })
+                      }
+                      fullWidth
+                    />
+                  </TableCell>
+                  <TableCell>
+                    <TextField
+                      type="number"
+                      name="leIpd"
+                      value={editSale?.leIpd || ""}
+                      onChange={(e) =>
+                        setEditSale({ ...editSale, leIpd: e.target.value })
+                      }
+                      fullWidth
+                    />
+                  </TableCell>
+                </TableRow>
               </TableBody>
             </Table>
           </TableContainer>
@@ -476,6 +685,7 @@ const SaleList = ({ sales = [], loading = false, setRefresh }) => {
           <RadioGroup
             row
             name="status"
+            disabled
             value={editSale?.status || ""}
             onChange={(e) =>
               setEditSale({ ...editSale, status: e.target.value })
@@ -483,11 +693,13 @@ const SaleList = ({ sales = [], loading = false, setRefresh }) => {
           >
             <FormControlLabel
               value="Pending"
+              disabled
               control={<Radio />}
               label="Pending"
             />
             <FormControlLabel
               value="Completed"
+              disabled
               control={<Radio />}
               label="Completed"
             />
