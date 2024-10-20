@@ -167,7 +167,6 @@ const SaleList = ({ sales = [], loading = false, setRefresh }) => {
             <TableContainer
               component={Paper}
               sx={{
-                maxHeight: 500,
                 maxWidth: "100%",
                 overflowX: "auto",
                 "&::-webkit-scrollbar": {
@@ -202,8 +201,8 @@ const SaleList = ({ sales = [], loading = false, setRefresh }) => {
                     <TableCell sx={{ fontWeight: "bold" }}>
                       Delivered Date
                     </TableCell>
-                    <TableCell sx={{ fontWeight: "bold" }}>Source</TableCell>
-                    <TableCell sx={{ fontWeight: "bold" }}>Barcode</TableCell>
+                    {/* <TableCell sx={{ fontWeight: "bold" }}>Source</TableCell>
+                    <TableCell sx={{ fontWeight: "bold" }}>Barcode</TableCell> */}
                     <TableCell sx={{ fontWeight: "bold" }}>
                       Customer Name
                     </TableCell>
@@ -211,7 +210,7 @@ const SaleList = ({ sales = [], loading = false, setRefresh }) => {
                     <TableCell sx={{ fontWeight: "bold" }}>Address</TableCell>
                     <TableCell sx={{ fontWeight: "bold" }}>Salesman</TableCell>
                     <TableCell sx={{ fontWeight: "bold" }}>Doctor</TableCell>
-                    <TableCell sx={{ fontWeight: "bold" }}>RSph</TableCell>
+                    {/* <TableCell sx={{ fontWeight: "bold" }}>RSph</TableCell>
                     <TableCell sx={{ fontWeight: "bold" }}>RCyl</TableCell>
                     <TableCell sx={{ fontWeight: "bold" }}>RAxis</TableCell>
                     <TableCell sx={{ fontWeight: "bold" }}>RAdd</TableCell>
@@ -220,8 +219,8 @@ const SaleList = ({ sales = [], loading = false, setRefresh }) => {
                     <TableCell sx={{ fontWeight: "bold" }}>LCyl</TableCell>
                     <TableCell sx={{ fontWeight: "bold" }}>LAxis</TableCell>
                     <TableCell sx={{ fontWeight: "bold" }}>LAdd</TableCell>
-                    <TableCell sx={{ fontWeight: "bold" }}>LIPD</TableCell>
-                    <TableCell sx={{ fontWeight: "bold" }}>
+                    <TableCell sx={{ fontWeight: "bold" }}>LIPD</TableCell> */}
+                    {/* <TableCell sx={{ fontWeight: "bold" }}>
                       Total Amount
                     </TableCell>
                     <TableCell sx={{ fontWeight: "bold" }}>Advance</TableCell>
@@ -231,7 +230,7 @@ const SaleList = ({ sales = [], loading = false, setRefresh }) => {
 
                     <TableCell sx={{ fontWeight: "bold" }}>
                       Instruction
-                    </TableCell>
+                    </TableCell> */}
                     <TableCell sx={{ fontWeight: "bold" }}>Status</TableCell>
                     <TableCell sx={{ fontWeight: "bold" }}></TableCell>
                     <TableCell sx={{ fontWeight: "bold" }}></TableCell>
@@ -256,14 +255,14 @@ const SaleList = ({ sales = [], loading = false, setRefresh }) => {
                           ? formatTimestamp(sale.DeliveredDate)
                           : "No Date"}
                       </TableCell>
-                      <TableCell>{sale.source}</TableCell>
-                      <TableCell>{sale.barcode}</TableCell>
+                      {/* <TableCell>{sale.source}</TableCell>
+                      <TableCell>{sale.barcode}</TableCell> */}
                       <TableCell>{sale.customerName}</TableCell>
                       <TableCell>{sale.contactNo}</TableCell>
                       <TableCell>{sale.address}</TableCell>
                       <TableCell>{sale.salesman}</TableCell>
                       <TableCell>{sale.doctor}</TableCell>
-                      <TableCell>{sale.reSph}</TableCell>
+                      {/* <TableCell>{sale.reSph}</TableCell>
                       <TableCell>{sale.reCyl}</TableCell>
                       <TableCell>{sale.reAxis}</TableCell>
                       <TableCell>{sale.reAdd}</TableCell>
@@ -276,7 +275,7 @@ const SaleList = ({ sales = [], loading = false, setRefresh }) => {
                       <TableCell>{sale.totalAmount}</TableCell>
                       <TableCell>{sale.advance}</TableCell>
                       <TableCell>{sale.pendingAmount}</TableCell>
-                      <TableCell>{sale.instruction}</TableCell>
+                      <TableCell>{sale.instruction}</TableCell> */}
 
                       <TableCell>
                         <Button

@@ -39,7 +39,7 @@ const Sales = () => {
 
   return (
     <Box sx={{ width: "99%" }}>
-      <Grid container sx={{ mx: 3, p: 3, width: "99%"  }}>
+      <Grid container sx={{ mx: 3, p: 3, width: "99%" }}>
         <Grid item md={12}>
          
           <Box

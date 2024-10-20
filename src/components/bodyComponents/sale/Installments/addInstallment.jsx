@@ -33,6 +33,8 @@ const AddInstallment = ({ saleId, open, handleClose, updatePendingAmount=()=>{} 
     }
   };
 
+
+
   return (
     <Dialog open={open} onClose={handleClose}>
       <DialogTitle>Add Installment</DialogTitle>

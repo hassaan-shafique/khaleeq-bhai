@@ -461,7 +461,7 @@ const SalesForm = () => {
             <DialogActions>
               <Button onClick={handleClose}>Cancel</Button>
               <Button type="submit" variant="contained">
-                Add
+                Save
               </Button>
             </DialogActions>
           </form>
