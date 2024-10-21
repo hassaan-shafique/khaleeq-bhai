@@ -68,7 +68,6 @@ const Sales = () => {
               <>
                 <SalesForm setRefresh={setRefresh} />
                 <SaleList sales={sales} />
-               
               </>
             )}
           </Box>

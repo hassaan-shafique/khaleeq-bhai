@@ -21,7 +21,7 @@ import {
   FormControlLabel,
   Radio,
   IconButton,
-  
+
 } from "@mui/material";
 import DeleteIcon from "@mui/icons-material/Delete";
 import EditIcon from "@mui/icons-material/Edit";
@@ -33,7 +33,6 @@ import { db } from "../../../config/Firebase"; // Ensure db is correctly importe
 import AddInstallment from "./Installments/addInstallment";
 import ViewInstallment from "./Installments/viewInstallments";
 import { useNavigate } from "react-router-dom";
-
 
 // Helper function to format Firestore timestamp
 const formatTimestamp = (timestamp) => {
@@ -50,7 +49,7 @@ const SaleList = ({ sales = [], loading = false, setRefresh }) => {
   const [editOpen, setEditOpen] = useState(false);
   const [editSale, setEditSale] = useState(null); // For editing
   const [showFields, setShowFields] = useState(false);
-  const [selectedSaleId, setSelectedSaleId] = useState(null) 
+  const [selectedSaleId, setSelectedSaleId] = useState(null)
   const [installmentDialogOpen, setInstallmentDialogOpen] = useState(false)
   const [installmentViewDialogOpen, setInstallmentViewDialogOpen] = useState(false);
 
@@ -143,12 +142,12 @@ const SaleList = ({ sales = [], loading = false, setRefresh }) => {
   };
 
   const updatePendingAmount = async (saleId, installmentAmount) => {
-    const saleDocRef = doc(db, "sales", saleId); 
+    const saleDocRef = doc(db, "sales", saleId);
     let currentSaleData = salesData.filter((sale) => sale.id === saleId)[0];
     const newPendingAmount = currentSaleData.pendingAmount - installmentAmount
     currentSaleData.pendingAmount = newPendingAmount;
     try {
-      await updateDoc(saleDocRef, currentSaleData); 
+      await updateDoc(saleDocRef, currentSaleData);
     } catch (error) {
       console.error("Error updating sale:", error);
       alert(`Error updating sale: ${error.message}`);

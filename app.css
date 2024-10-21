@@ -37,10 +37,14 @@ label {
     color: #555;
 }
 
+.react-datepicker-wrapper {
+    width: 100% !important
+}
+
 input {
-    width: calc(100% - 20px);
+    width: 100% !important;
     padding: 10px;
-    margin-bottom: 20px;
+    margin-bottom: 10px;
     border: 1px solid #ddd;
     border-radius: 4px;
     font-size: 14px;
@@ -89,7 +93,7 @@ button.login-button:hover {
 
 
 .signup {
-   
+
     display: flex;
     justify-content: center;
     flex-direction: column;
