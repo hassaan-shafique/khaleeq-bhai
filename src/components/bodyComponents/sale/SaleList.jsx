@@ -21,7 +21,7 @@ import {
   FormControlLabel,
   Radio,
   IconButton,
-  
+
 } from "@mui/material";
 import DeleteIcon from "@mui/icons-material/Delete";
 import EditIcon from "@mui/icons-material/Edit";
@@ -32,6 +32,7 @@ import { doc, updateDoc, deleteDoc ,addDoc,collection,query,getDocs,where,} from
 import { db } from "../../../config/Firebase"; // Ensure db is correctly imported
 import AddInstallment from "./Installments/addInstallment";
 import ViewInstallment from "./Installments/viewInstallments";
+import { useNavigate } from "react-router-dom";
 
 // Helper function to format Firestore timestamp
 const formatTimestamp = (timestamp) => {
@@ -48,9 +49,11 @@ const SaleList = ({ sales = [], loading = false, setRefresh }) => {
   const [editOpen, setEditOpen] = useState(false);
   const [editSale, setEditSale] = useState(null); // For editing
   const [showFields, setShowFields] = useState(false);
-  const [selectedSaleId, setSelectedSaleId] = useState(null) 
+  const [selectedSaleId, setSelectedSaleId] = useState(null)
   const [installmentDialogOpen, setInstallmentDialogOpen] = useState(false)
   const [installmentViewDialogOpen, setInstallmentViewDialogOpen] = useState(false);
+
+  const navigate = useNavigate()
 
 
   // Open dialog with sale details
@@ -139,12 +142,12 @@ const SaleList = ({ sales = [], loading = false, setRefresh }) => {
   };
 
   const updatePendingAmount = async (saleId, installmentAmount) => {
-    const saleDocRef = doc(db, "sales", saleId); 
+    const saleDocRef = doc(db, "sales", saleId);
     let currentSaleData = salesData.filter((sale) => sale.id === saleId)[0];
     const newPendingAmount = currentSaleData.pendingAmount - installmentAmount
     currentSaleData.pendingAmount = newPendingAmount;
     try {
-      await updateDoc(saleDocRef, currentSaleData); 
+      await updateDoc(saleDocRef, currentSaleData);
     } catch (error) {
       console.error("Error updating sale:", error);
       alert(`Error updating sale: ${error.message}`);
@@ -223,12 +226,12 @@ const SaleList = ({ sales = [], loading = false, setRefresh }) => {
                     {/* <TableCell sx={{ fontWeight: "bold" }}>
                       Total Amount
                     </TableCell>
-                    <TableCell sx={{ fontWeight: "bold" }}>Advance</TableCell>
+                    <TableCell sx={{ fontWeight: "bold" }}>Advance</TableCell> */}
                     <TableCell sx={{ fontWeight: "bold" }}>
                       Pending Amount
                     </TableCell>
 
-                    <TableCell sx={{ fontWeight: "bold" }}>
+                    {/* <TableCell sx={{ fontWeight: "bold" }}>
                       Instruction
                     </TableCell> */}
                     <TableCell sx={{ fontWeight: "bold" }}>Status</TableCell>
@@ -273,9 +276,9 @@ const SaleList = ({ sales = [], loading = false, setRefresh }) => {
                       <TableCell>{sale.leAdd}</TableCell>
                       <TableCell>{sale.leIpd}</TableCell>
                       <TableCell>{sale.totalAmount}</TableCell>
-                      <TableCell>{sale.advance}</TableCell>
+                      <TableCell>{sale.advance}</TableCell> */}
                       <TableCell>{sale.pendingAmount}</TableCell>
-                      <TableCell>{sale.instruction}</TableCell> */}
+                      {/* <TableCell>{sale.instruction}</TableCell> */}
 
                       <TableCell>
                         <Button
@@ -334,6 +337,16 @@ const SaleList = ({ sales = [], loading = false, setRefresh }) => {
                       >
                         <Button
                           variant="contained"
+                          color="success"
+                          sx={{ textTransform: "none" }}
+                          onClick={() => {
+                            navigate(`${sale.id}/products`)
+                          }}
+                        >
+                          <span>View Products</span>
+                        </Button>
+                        <Button
+                          variant="contained"
                           color="warning"
                           sx={{ textTransform: "none" }}
                           onClick={() => {
@@ -341,7 +354,7 @@ const SaleList = ({ sales = [], loading = false, setRefresh }) => {
                             setSelectedSaleId(sale.id);
                           }}
                         >
-                          +
+                          Add Installment
                         </Button>
                         <Button
                           variant="contained"
@@ -352,7 +365,7 @@ const SaleList = ({ sales = [], loading = false, setRefresh }) => {
                             setSelectedSaleId(sale.id);
                           }}
                         >
-                          <EyeIcon />
+                          <EyeIcon /> <span>Installments</span>
                         </Button>
                       </TableCell>
                     </TableRow>
