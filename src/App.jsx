@@ -25,6 +25,7 @@ import Login from './components/Login'
 import Signup from "./components/Signup";
 import { app } from "./config/Firebase";
 import { getAuth } from "firebase/auth";
+import ViewProducts from "./components/bodyComponents/sale/Products/ViewProducts";
 
 
 
@@ -66,11 +67,12 @@ function App() {
         <Route path="/register" element={<Signup />} />
         <Route path="/inventory" element={<Inventory />} />
         <Route path="/sales" element={<Sales />} />
+        <Route path="/sales/:id/products" element={<ViewProducts />} />
         <Route path="/glasses" element={<Glasses />} />
         <Route path="/expense" element={<Expense />} />
         <Route path="/reports" element={<Report />} />
-        <Route path="/reports/expense" element= { <reportExpense/>} />
-        <Route path="/reports/sale" element= {<reportSale/>} />
+        <Route path="/reports/expense" element={<reportExpense />} />
+        <Route path="/reports/sale" element={<reportSale />} />
         <Route path="/vendors" element={<Vendors />} />
       </Route>
     )
