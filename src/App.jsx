@@ -1,49 +1,64 @@
-import Inter from "../public/static/fonts/Inter.ttf";
-import { ThemeProvider, CssBaseline, createTheme, Box } from "@mui/material";
-import RootComponent from "./components/RootComponent";
-
-import DataTable from "./test/DataTable";
-import Hello from "./test/Hello";
-// import "../app.css";
+import React, { useEffect, useState } from "react";
+import { Route, Routes, Navigate, BrowserRouter } from "react-router-dom";
 import {
-  Route,
-  createBrowserRouter,
-  createRoutesFromElements,
-  RouterProvider,
-} from "react-router-dom";
+  ThemeProvider,
+  CssBaseline,
+  createTheme,
+  CircularProgress,
+  Box,
+} from "@mui/material";
+import { getAuth, onAuthStateChanged } from "firebase/auth";
+import Inter from "../public/static/fonts/Inter.ttf";
 
+// Component Imports
+import RootComponent from "./components/RootComponent";
+import Login from "./components/Login";
+import Signup from "./components/Signup";
 import Inventory from "./components/bodyComponents/inventory/Inventory";
-// import Customer from "./components/bodyComponents/customer/Customer";
 import Glasses from "./components/bodyComponents/glasses/Glasses";
 import Expense from "./components/bodyComponents/expense/Expense";
 import Report from "./components/bodyComponents/report/Report";
 import reportExpense from "./components/bodyComponents/report/reportExpense";
 import Vendors from "./components/bodyComponents/Vendors/Vendors";
 import Sales from "./components/bodyComponents/sale/Sales";
-import OrderModal from "./components/bodyComponents/sale/OrderModal";
-import Login from './components/Login'
-import Signup from "./components/Signup";
-import { app } from "./config/Firebase";
-import { getAuth } from "firebase/auth";
 import ViewProducts from "./components/bodyComponents/sale/Products/ViewProducts";
+import { app } from "./config/Firebase";
 
-
+// Custom Protected Route Component
+const ProtectedRoute = ({ isAuthenticated, children }) => {
+  return isAuthenticated ? children : <Navigate to="/login" replace />;
+};
 
 function App() {
-
   const auth = getAuth(app);
-  const authToken  = localStorage.getItem("authToken") ?? "";
-  console.log({authToken});
- 
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [loading, setLoading] = useState(true);
 
+  // Check authentication state on app load
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+      setIsAuthenticated(!!user);
+      setLoading(false);
+      if (user) {
+        localStorage.setItem("authToken", user.accessToken);
+      } else {
+        localStorage.removeItem("authToken");
+      }
+    });
+
+    return () => unsubscribe(); // Cleanup subscription
+  }, [auth]);
+
+  // Theme configuration
   const theme = createTheme({
     spacing: 4,
     palette: {
       mode: "light",
+      primary: { main: "#1976d2" },
+      secondary: { main: "#dc004e" },
     },
-
     typography: {
-      fontFamily: "Inter",
+      fontFamily: "Inter, Arial, sans-serif",
     },
     components: {
       MuiCssBaseline: {
@@ -51,37 +66,71 @@ function App() {
           @font-face {
             font-family: 'Inter';
             font-style: normal;
-            font-display: swap;
             font-weight: 400;
-            src: local('Raleway'), local('Raleway-Regular'), url(${Inter}) format('woff2');
-            unicodeRange: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+2000-206F, U+2074, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF;
+            src: url(${Inter}) format('truetype');
           }
         `,
       },
     },
   });
-  const router = createBrowserRouter(
-    createRoutesFromElements(
-      <Route path="/" element={<RootComponent />}>
-        <Route path="/login" element={<Login />} />
-        <Route path="/register" element={<Signup />} />
-        <Route path="/inventory" element={<Inventory />} />
-        <Route path="/sales" element={<Sales />} />
-        <Route path="/sales/:id/products" element={<ViewProducts />} />
-        <Route path="/glasses" element={<Glasses />} />
-        <Route path="/expense" element={<Expense />} />
-        <Route path="/reports" element={<Report />} />
-        <Route path="/reports/expense" element={<reportExpense />} />
-        <Route path="/reports/sale" element={<reportSale />} />
-        <Route path="/vendors" element={<Vendors />} />
-      </Route>
-    )
-  );
+
+  if (loading) {
+    return (
+      <Box
+        sx={{
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          height: "100vh",
+        }}
+      >
+        <CircularProgress />
+      </Box>
+    );
+  }
 
   return (
     <ThemeProvider theme={theme}>
-      <RouterProvider router={router} />
       <CssBaseline />
+      <BrowserRouter>
+        <Routes>
+          
+          <Route
+            path="/"
+            element={
+              isAuthenticated ? (
+                <Navigate to="/sales" replace />
+              ) : (
+                <Navigate to="/login" replace />
+              )
+            }
+          />
+
+          {/* Public Routes */}
+          <Route path="/login" element={<Login />} />
+          <Route path="/register" element={<Signup />} />
+
+          {/* Protected Routes */}
+          <Route
+            path="/"
+            element={
+              <ProtectedRoute isAuthenticated={isAuthenticated}>
+                <RootComponent />
+              </ProtectedRoute>
+            }
+          >
+            <Route path="sales" element={<Sales />} />
+            <Route path="inventory" element={<Inventory />} />
+            <Route path="sales/:id/products" element={<ViewProducts />} />
+            <Route path="glasses" element={<Glasses />} />
+            <Route path="expense" element={<Expense />} />
+            <Route path="reports" element={<Report />} />
+            <Route path="reports/expense" element={<reportExpense />} />
+            <Route path="reports/sale" element={<Sales />} />
+            <Route path="vendors" element={<Vendors />} />
+          </Route>
+        </Routes>
+      </BrowserRouter>
     </ThemeProvider>
   );
 }

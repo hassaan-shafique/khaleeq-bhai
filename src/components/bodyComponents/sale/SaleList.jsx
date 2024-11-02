@@ -1,3 +1,4 @@
+
 import React, { useState } from "react";
 import {
   Table,
@@ -121,6 +122,7 @@ const SaleList = ({ sales = [], loading = false, setRefresh }) => {
     setEditSale(null);
   };
 
+
   // Save edited sale
   const handleSaveEdit = async () => {
     if (!editSale) return;
@@ -157,7 +159,15 @@ const SaleList = ({ sales = [], loading = false, setRefresh }) => {
   return (
     <Box>
       {loading ? (
-        <Box sx={{ display: "flex", justifyContent: "center", marginTop: 4 }}>
+        <Box
+          sx={{
+            display: "flex",
+            flexDirection: "column",
+            justifyContent: "center",
+            height: "100vh", // Full viewport height
+            overflowY: "auto",
+          }}
+        >
           <CircularProgress />
         </Box>
       ) : (
@@ -171,7 +181,9 @@ const SaleList = ({ sales = [], loading = false, setRefresh }) => {
               component={Paper}
               sx={{
                 maxWidth: "100%",
-                overflowX: "auto",
+                height: "76vh", // Set a fixed height or adjust as necessary
+                overflowY: "auto", // Enables vertical scrolling
+                overflowX: "auto", // Prevents horizontal scrolling
                 "&::-webkit-scrollbar": {
                   width: "10px", // Width of the vertical scrollbar
                   height: "10px", // Height of the horizontal scrollbar
@@ -210,19 +222,10 @@ const SaleList = ({ sales = [], loading = false, setRefresh }) => {
                       Customer Name
                     </TableCell>
                     <TableCell sx={{ fontWeight: "bold" }}>Contact</TableCell>
-                    <TableCell sx={{ fontWeight: "bold" }}>Address</TableCell>
+                   
                     <TableCell sx={{ fontWeight: "bold" }}>Salesman</TableCell>
                     <TableCell sx={{ fontWeight: "bold" }}>Doctor</TableCell>
-                    {/* <TableCell sx={{ fontWeight: "bold" }}>RSph</TableCell>
-                    <TableCell sx={{ fontWeight: "bold" }}>RCyl</TableCell>
-                    <TableCell sx={{ fontWeight: "bold" }}>RAxis</TableCell>
-                    <TableCell sx={{ fontWeight: "bold" }}>RAdd</TableCell>
-                    <TableCell sx={{ fontWeight: "bold" }}>RIPD</TableCell>
-                    <TableCell sx={{ fontWeight: "bold" }}>LSph</TableCell>
-                    <TableCell sx={{ fontWeight: "bold" }}>LCyl</TableCell>
-                    <TableCell sx={{ fontWeight: "bold" }}>LAxis</TableCell>
-                    <TableCell sx={{ fontWeight: "bold" }}>LAdd</TableCell>
-                    <TableCell sx={{ fontWeight: "bold" }}>LIPD</TableCell> */}
+                    
                     {/* <TableCell sx={{ fontWeight: "bold" }}>
                       Total Amount
                     </TableCell>
@@ -262,20 +265,11 @@ const SaleList = ({ sales = [], loading = false, setRefresh }) => {
                       <TableCell>{sale.barcode}</TableCell> */}
                       <TableCell>{sale.customerName}</TableCell>
                       <TableCell>{sale.contactNo}</TableCell>
-                      <TableCell>{sale.address}</TableCell>
+                      
                       <TableCell>{sale.salesman}</TableCell>
                       <TableCell>{sale.doctor}</TableCell>
-                      {/* <TableCell>{sale.reSph}</TableCell>
-                      <TableCell>{sale.reCyl}</TableCell>
-                      <TableCell>{sale.reAxis}</TableCell>
-                      <TableCell>{sale.reAdd}</TableCell>
-                      <TableCell>{sale.reIpd}</TableCell>
-                      <TableCell>{sale.leSph}</TableCell>
-                      <TableCell>{sale.leCyl}</TableCell>
-                      <TableCell>{sale.leAxis}</TableCell>
-                      <TableCell>{sale.leAdd}</TableCell>
-                      <TableCell>{sale.leIpd}</TableCell>
-                      <TableCell>{sale.totalAmount}</TableCell>
+                      
+                      {/* <TableCell>{sale.totalAmount}</TableCell>
                       <TableCell>{sale.advance}</TableCell> */}
                       <TableCell>{sale.pendingAmount}</TableCell>
                       {/* <TableCell>{sale.instruction}</TableCell> */}
@@ -340,7 +334,7 @@ const SaleList = ({ sales = [], loading = false, setRefresh }) => {
                           color="success"
                           sx={{ textTransform: "none" }}
                           onClick={() => {
-                            navigate(`${sale.id}/products`)
+                            navigate(`${sale.id}/products`);
                           }}
                         >
                           <span>View Products</span>
@@ -433,9 +427,9 @@ const SaleList = ({ sales = [], loading = false, setRefresh }) => {
             selected={editSale?.endDate}
             onChange={(date) => setEditSale({ ...editSale, endDate: date })}
             fullWidth
-          />
+          /> */}
 
-          <Typography variant="h7">Delivered Date</Typography>
+          {/* <Typography variant="h7">Delivered Date</Typography>
           <DatePicker
             selected={editSale?.DeliveredDate}
             onChange={(date) =>

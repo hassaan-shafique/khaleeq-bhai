@@ -191,7 +191,7 @@ const InventoryForm = ({ setRefresh }) => {
                 capture="camera" // Open the camera directly
                 style={{ display: "none" }}
                 onChange={handleImageChange}
-                required
+                
               />
             </Box>
             {errors.image && (

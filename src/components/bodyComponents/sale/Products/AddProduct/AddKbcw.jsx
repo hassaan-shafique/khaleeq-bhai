@@ -1,62 +1,84 @@
-import {
-  TextField,
-  Box,
-  Grid,
-  Button,
-} from "@mui/material";
+import { TextField, Box, Grid, Button,FormControl,InputLabel,Select, MenuItem} from "@mui/material";
 import DeleteIcon from "@mui/icons-material/Delete";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 
-const AddVendor = ({ vendorProducts, setVendorProducts }) => {
+const AddKbcw = ({ kbcwProducts, setKbcwProducts }) => {
 
-  const handlevendorProductChange = (index, field, value) => {
-    const newProducts = [...vendorProducts];
+  const handleKbcwProductChange = (index, field, value) => {
+    const newProducts = [...kbcwProducts];
     newProducts[index][field] = value;
-    setVendorProducts(newProducts);
+    setKbcwProducts(newProducts);
   };
 
   const handleRemove = (index) => {
-    const newProducts = vendorProducts.filter((_, i) => i !== index);
-    setVendorProducts(newProducts);
+    const newProducts = kbcwProducts.filter((_, i) => i !== index);
+    setKbcwProducts(newProducts);
   };
 
    const handleDateChange = (date, key, index) => {
-     const updatedProducts = [...vendorProducts]; // Create a copy of the products array
+     const updatedProducts = [...kbcwProducts]; // Create a copy of the products array
      updatedProducts[index] = {
        ...updatedProducts[index],
        [key]: date, // Update the specific date field
      };
-     setVendorProducts(updatedProducts); // Update the state with new values
+     setKbcwProducts(updatedProducts); // Update the state with new values
    };
 
 
   return (
     <Box sx={{ marginTop: "20px" }}>
-      {vendorProducts.map((vendorProducts, index) => (
+      {kbcwProducts.map((kbcwProducts, index) => (
         <div key={index}>
-          <h3>VendorProduct #{index + 1}</h3>
+          <h3>KBCW Product #{index + 1}</h3>
           <Grid container spacing={2} sx={{ marginBottom: "10px" }}>
             <Grid item xs={4}>
+              <FormControl fullWidth>
+                <InputLabel>KBCW Inventory Type</InputLabel>
+                <Select
+                  value={kbcwProducts.kbcwInventoryType}
+                  onChange={(e) =>
+                    handleKbcwProductChange(
+                      index,
+                      "kbcwInventoryType",
+                      e.target.value
+                    )
+                  }
+                >
+                  <MenuItem value="Cleaners">Cleaners</MenuItem>
+                  <MenuItem value="Solutions">Solutions</MenuItem>
+                  <MenuItem value="Frames">Frames</MenuItem>
+                  <MenuItem value="contact Lense">Contact Lenses</MenuItem>
+                  <MenuItem value="Covers">Covers</MenuItem>
+                </Select>
+              </FormControl>
+            </Grid>
+            <Grid item xs={4}>
               <TextField
-                label="Order Number"
-                value={vendorProducts.orderNumber}
+                label="KBCW Barcode"
+                value={kbcwProducts.kbcwBarcode}
                 onChange={(e) =>
-                  handlevendorProductChange(
-                    index,
-                    "orderNumber",
-                    e.target.value
-                  )
+                  handleKbcwProductChange(index, "kbcwBarcode", e.target.value)
                 }
                 fullWidth
               />
             </Grid>
             <Grid item xs={4}>
               <TextField
-                label="Vendor Name"
-                value={vendorProducts.vendorName}
+                label="Name"
+                value={kbcwProducts.kbcwName}
                 onChange={(e) =>
-                  handlevendorProductChange(index, "vendorName", e.target.value)
+                  handleKbcwProductChange(index, "kbcwName", e.target.value)
+                }
+                fullWidth
+              />
+            </Grid>
+            <Grid item xs={4}>
+              <TextField
+                label="Size"
+                value={kbcwProducts.kbcwSize}
+                onChange={(e) =>
+                  handleKbcwProductChange(index, "kbcwSize", e.target.value)
                 }
                 fullWidth
               />
@@ -64,52 +86,9 @@ const AddVendor = ({ vendorProducts, setVendorProducts }) => {
             <Grid item xs={4}>
               <TextField
                 label="Quantity"
-                value={vendorProducts.quantity}
+                value={kbcwProducts.kbcwQuantity}
                 onChange={(e) =>
-                  handlevendorProductChange(index, "quantity", e.target.value)
-                }
-                fullWidth
-              />
-            </Grid>
-            <Grid item xs={4}>
-              <TextField
-                label="Borrowed Branch"
-                value={vendorProducts.borrowedBranch}
-                onChange={(e) =>
-                  handlevendorProductChange(
-                    index,
-                    "borrowedBranch",
-                    e.target.value
-                  )
-                }
-                fullWidth
-              />
-            </Grid>
-            <Grid item xs={4}>
-              <TextField
-                label="Item Number"
-                value={vendorProducts.vendorGlassNumber}
-                onChange={(e) =>
-                  handlevendorProductChange(
-                    index,
-                    "vendorGlassNumber",
-                    e.target.value
-                  )
-                }
-                fullWidth
-              />
-            </Grid>
-
-            <Grid item xs={4}>
-              <TextField
-                label="Item Type"
-                value={vendorProducts.vendorItemType}
-                onChange={(e) =>
-                  handlevendorProductChange(
-                    index,
-                    "vendorItemType",
-                    e.target.value
-                  )
+                  handleKbcwProductChange(index, "kbcwQuantity", e.target.value)
                 }
                 fullWidth
               />
@@ -117,22 +96,18 @@ const AddVendor = ({ vendorProducts, setVendorProducts }) => {
             <Grid item xs={4}>
               <TextField
                 label="Price"
-                value={vendorProducts.vendorPrice}
+                value={kbcwProducts.kbcwPrice}
                 onChange={(e) =>
-                  handlevendorProductChange(
-                    index,
-                    "vendorPrice",
-                    e.target.value
-                  )
+                  handleKbcwProductChange(index, "kbcwPrice", e.target.value)
                 }
                 fullWidth
               />
             </Grid>
             <Grid item xs={4}>
               <DatePicker
-                selected={vendorProducts.vendorDeliveredDate}
+                selected={kbcwProducts.kbcwDeliveredDate}
                 onChange={(date) =>
-                  handleDateChange(date, "vendorDeliveredDate", index)
+                  handleDateChange(date, "kbcwDeliveredDate", index)
                 }
                 customInput={
                   <TextField
@@ -175,6 +150,6 @@ const AddVendor = ({ vendorProducts, setVendorProducts }) => {
       ))}
     </Box>
   );
-}
+};
 
-export default AddVendor;
+export default AddKbcw;
