@@ -75,7 +75,9 @@ const ExpenseList = ({ expenses = [], loading = false }) => {
   });
 
 
-
+ const grandTotal = () => {
+  
+ }
 
 
 

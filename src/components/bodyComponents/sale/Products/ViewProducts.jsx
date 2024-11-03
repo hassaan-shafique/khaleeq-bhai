@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
-import { collection, doc, getDoc } from "firebase/firestore";
+import { collection, doc, getDoc, updateDoc } from "firebase/firestore";
 import { db } from "../../../../config/Firebase";
 import {
   Table,
@@ -18,6 +18,13 @@ import {
   DialogTitle,
   TextField,
 } from "@mui/material";
+import AddGlasses from "./AddProduct/AddGlasses";
+import EditGlassDialog from "./EditProduct/EditGlass";
+import EditKbcwDialog from "./EditProduct/EditKbcw";
+import AddKbcw from "./AddProduct/AddKbcw";
+import EditVendorDialog from "./EditProduct/EditVendor";
+
+// -----------------------------------------
 
 const ViewProducts = () => {
   const { id } = useParams();
@@ -25,8 +32,15 @@ const ViewProducts = () => {
   const [loading, setLoading] = useState(true);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState(null);
-  
-  
+
+  const [glassesProducts, setGlassesProducts] = useState([]);
+  const [editGlassProduct, setEditGlassProduct] = useState({});
+  const [kbcwProducts, setKbcwProducts] =useState([]);
+  const [editKbcwProduct, setEditKbcwProduct] =useState ({});
+   const[vendorProducts, setVendorProducts] = useState([]);
+   const [editVendorProduct, setEditVendorProduct] = useState({});
+  const [selectedGlassesProductId, setSelectedGlassesProductId] = useState();
+  const [editOpen, setEditOpen] = useState(false);
 
   useEffect(() => {
     const fetchSalesData = async () => {
@@ -35,6 +49,10 @@ const ViewProducts = () => {
         const docSnap = await getDoc(docRef);
         if (docSnap.exists()) {
           setSalesData(docSnap.data());
+          setGlassesProducts(docSnap.data().glassesProducts);
+           setKbcwProducts(docSnap.data().kbcwProducts);
+            setVendorProducts(docSnap.data().vendorProducts);
+
         } else {
           console.error("No such document!");
         }
@@ -93,50 +111,100 @@ const ViewProducts = () => {
   const totalSalesAmount =
     totalGlassesAmount + totalKBCWAmount + totalVendorAmount;
 
-     const handleEditClick = (product, productType) => {
-       setSelectedProduct({ product, productType });
-       setEditDialogOpen(true);
-     };
+  const handleEditClick = (product, productType) => {
+    setEditGlassProduct(product);
+    setEditKbcwProduct(product);
+    setEditVendorProduct(product);
+    setEditDialogOpen(true);
+  };
 
-       const handleDeleteClick = async (product, productType) => {
-         try {
-           const updatedSalesData = { ...salesData };
-           updatedSalesData[productType] = updatedSalesData[productType].filter(
-             (item) => item !== product
-           );
+  const handleDeleteClick = async (product, productType) => {
+    try {
+      const updatedSalesData = { ...salesData };
+      updatedSalesData[productType] = updatedSalesData[productType].filter(
+        (item) => item !== product
+      );
 
-           // Update the sales data in Firestore
-           const saleDocRef = doc(db, "sales", id);
-           await updateDoc(saleDocRef, updatedSalesData);
+      // Update the sales data in Firestore
+      const saleDocRef = doc(db, "sales", id);
+      await updateDoc(saleDocRef, updatedSalesData);
 
-           setSalesData(updatedSalesData);
-         } catch (error) {
-           console.error("Error deleting product:", error);
-           // Handle error, e.g., show an error message to the user
-         }
-       };
+      setSalesData(updatedSalesData);
+    } catch (error) {
+      console.error("Error deleting product:", error);
+      // Handle error, e.g., show an error message to the user
+    }
+  };
 
-         const handleSaveProduct = async () => {
-           try {
-             const updatedSalesData = { ...salesData };
-             updatedSalesData[selectedProduct.productType] = updatedSalesData[
-               selectedProduct.productType
-             ].map((item) =>
-               item === selectedProduct.product ? selectedProduct.product : item
-             );
+  const handleSaveProduct = async () => {
+    try {
+      const updatedSalesData = { ...salesData };
+      updatedSalesData[selectedProduct.productType] = updatedSalesData[
+        selectedProduct.productType
+      ].map((item) =>
+        item === selectedProduct.product ? selectedProduct.product : item
+      );
 
-             // Update the sales data in Firestore
-             const saleDocRef = doc(db, "sales", id);
-             await updateDoc(saleDocRef, updatedSalesData);
+      // Update the sales data in Firestore
+      const saleDocRef = doc(db, "sales", id);
+      await updateDoc(saleDocRef, updatedSalesData);
 
-             setSalesData(updatedSalesData);
-             setEditDialogOpen(false);
-           } catch (error) {
-             console.error("Error updating product:", error);
-             // Handle error, e.g., show an error message to the user
-           }
-         };
- 
+      setSalesData(updatedSalesData);
+      setEditDialogOpen(false);
+    } catch (error) {
+      console.error("Error updating product:", error);
+      // Handle error, e.g., show an error message to the user
+    }
+  };
+
+  const handleEditGlassesSubmit = async () => {
+    let newGlassesProducts = glassesProducts.filter(
+      (g) => g.id !== editGlassProduct.id
+    );
+    newGlassesProducts.push(editGlassProduct);
+    try {
+      const docRef = doc(db, "sales", id);
+      await updateDoc(docRef, {
+        ...salesData,
+        glassesProducts: newGlassesProducts,
+      });
+      setEditDialogOpen(false);
+    } catch (error) {
+      console.error("Error adding document: ", error);
+    }
+  };
+  const handleEditKbcwSubmit = async () => {
+    let newKbcwProducts = kbcwProducts.filter(
+      (g) => g.id !== editKbcwProduct.id
+    );
+    newKbcwProducts.push(editKbcwProduct);
+    try {
+      const docRef = doc(db, "sales", id);
+      await updateDoc(docRef, {
+        ...salesData,
+        kbcwProducts: newKbcwProducts,
+      });
+      setEditDialogOpen(false);
+    } catch (error) {
+      console.error("Error adding document: ", error);
+    }
+  };
+  const handleEditVendorSubmit = async () => {
+    let newVendorProducts = vendorProducts.filter(
+      (g) => g.id !== editVendorProduct.id
+    );
+    newVendorProducts.push(editVendorProduct);
+    try {
+      const docRef = doc(db, "sales", id);
+      await updateDoc(docRef, {
+        ...salesData,
+        vendorProducts: newVendorProducts,
+      });
+      setEditDialogOpen(false);
+    } catch (error) {
+      console.error("Error adding document: ", error);
+    }
+  };
 
   return (
     <div style={{ padding: "2rem" }}>
@@ -392,113 +460,30 @@ const ViewProducts = () => {
       </TableContainer>
 
       <Typography> Total Sales Amount: Rs {totalSalesAmount} </Typography>
-      <Dialog open={editDialogOpen} onClose={() => setEditDialogOpen(false)}>
-        <DialogTitle>Edit Product</DialogTitle>
-        <DialogContent>
-          {/* Display fields based on product type */}
-          {selectedProduct?.type === "kbcwProducts" && (
-            <>
-              <TextField
-                label="KBCW Name"
-                value={selectedProduct.product.kbcwName}
-                onChange={(e) => {
-                  setSelectedProduct({
-                    ...selectedProduct,
-                    product: {
-                      ...selectedProduct.product,
-                      kbcwName: e.target.value,
-                    },
-                  });
-                }}
-              />
-              <TextField
-                label="KBCW Price"
-                type="number"
-                value={selectedProduct.product.kbcwPrice}
-                onChange={(e) => {
-                  setSelectedProduct({
-                    ...selectedProduct,
-                    product: {
-                      ...selectedProduct.product,
-                      kbcwPrice: e.target.value,
-                    },
-                  });
-                }}
-              />
-            </>
-          )}
-          {selectedProduct?.type === "glassesProducts" && (
-            <>
-              <TextField
-                label="Glasses Type"
-                value={selectedProduct.product.glassesType}
-                onChange={(e) => {
-                  setSelectedProduct({
-                    ...selectedProduct,
-                    product: {
-                      ...selectedProduct.product,
-                      glassesType: e.target.value,
-                    },
-                  });
-                }}
-              />
-              <TextField
-                label="Glasses Price"
-                type="number"
-                value={selectedProduct.product.glassesPrice}
-                onChange={(e) => {
-                  setSelectedProduct({
-                    ...selectedProduct,
-                    product: {
-                      ...selectedProduct.product,
-                      glassesPrice: e.target.value,
-                    },
-                  });
-                }}
-              />
-            </>
-          )}
-          {selectedProduct?.type === "vendorProducts" && (
-            <>
-              <TextField
-                label="Vendor Name"
-                value={selectedProduct.product.vendorName}
-                onChange={(e) => {
-                  setSelectedProduct({
-                    ...selectedProduct,
-                    product: {
-                      ...selectedProduct.product,
-                      vendorName: e.target.value,
-                    },
-                  });
-                }}
-              />
-              <TextField
-                label="Vendor Quantity"
-                type="number"
-                value={selectedProduct.product.quantity}
-                onChange={(e) => {
-                  setSelectedProduct({
-                    ...selectedProduct,
-                    product: {
-                      ...selectedProduct.product,
-                      quantity: e.target.value,
-                    },
-                  });
-                }}
-              />
-            </>
-          )}
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setEditDialogOpen(false)}>Cancel</Button>
-          <Button onClick={handleSaveProduct}> Save </Button>
-        </DialogActions>
-      </Dialog>
+
+      <EditGlassDialog
+        editGlassProduct={editGlassProduct}
+        setEditGlassProduct={setEditGlassProduct}
+        open={editDialogOpen}
+        onClose={() => setEditDialogOpen(false)}
+        onSubmit={handleEditGlassesSubmit}
+      />
+      <EditKbcwDialog
+        editKbcwProduct={editKbcwProduct}
+        setEditKbcwProduct={setEditKbcwProduct}
+        open={editDialogOpen}
+        onClose={() => setEditDialogOpen(false)}
+        onSubmit={handleEditKbcwSubmit}
+      />
+      <EditVendorDialog
+        editVendorProduct={editVendorProduct}
+        setEditVendorProduct={setEditVendorProduct}
+        open={editDialogOpen}
+        onClose={() => setEditDialogOpen(false)}
+        onSubmit={handleEditVendorSubmit}
+      />
     </div>
   );
 };
 
 export default ViewProducts;
-
-

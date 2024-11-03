@@ -23,6 +23,8 @@ import Vendors from "./components/bodyComponents/Vendors/Vendors";
 import Sales from "./components/bodyComponents/sale/Sales";
 import ViewProducts from "./components/bodyComponents/sale/Products/ViewProducts";
 import { app } from "./config/Firebase";
+import { db } from "./config/Firebase";
+import { collection, getDocs } from "firebase/firestore";
 
 // Custom Protected Route Component
 const ProtectedRoute = ({ isAuthenticated, children }) => {
@@ -33,6 +35,28 @@ function App() {
   const auth = getAuth(app);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [loading, setLoading] = useState(true);
+
+  const [expenses, setExpenses] = useState([]);
+  const [refresh, setRefresh] = useState(false);
+
+  const fetchExpenses = async () => {
+    try {
+      const querySnapshot = await getDocs(collection(db, "expenses"));
+      const expenseData = [];
+      querySnapshot.forEach((doc) => {
+        expenseData.push({ id: doc.id, ...doc.data() });
+      });
+      setExpenses(expenseData);
+      setLoading(false);
+    } catch (error) {
+      console.error("Error fetching expenses: ", error);
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchExpenses();
+  }, [refresh]);
 
   // Check authentication state on app load
   useEffect(() => {
@@ -94,7 +118,6 @@ function App() {
       <CssBaseline />
       <BrowserRouter>
         <Routes>
-          
           <Route
             path="/"
             element={
@@ -123,8 +146,17 @@ function App() {
             <Route path="inventory" element={<Inventory />} />
             <Route path="sales/:id/products" element={<ViewProducts />} />
             <Route path="glasses" element={<Glasses />} />
-            <Route path="expense" element={<Expense />} />
-            <Route path="reports" element={<Report />} />
+            <Route
+              path="expense"
+              element={
+                <Expense
+                  expenses={expenses}
+                  loading={loading}
+                  setRefresh={setRefresh}
+                />
+              }
+            />
+            <Route path="reports" element={<Report expenses={expenses} />} />
             <Route path="reports/expense" element={<reportExpense />} />
             <Route path="reports/sale" element={<Sales />} />
             <Route path="vendors" element={<Vendors />} />

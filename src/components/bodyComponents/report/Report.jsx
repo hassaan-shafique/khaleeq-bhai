@@ -5,7 +5,7 @@ import Sales from "../sale/Sales";
 import Inventory from "../inventory/Inventory"
 import ExpenseReportCard from "./reportExpense";
 
-const ReportCards = () => {
+const ReportCards = ({expenses=[]}) => {
   // Example data for each card
  
 
