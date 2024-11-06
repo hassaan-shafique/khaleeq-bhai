@@ -24,6 +24,8 @@ import {
   IconButton,
 
 } from "@mui/material";
+import { Timestamp } from "firebase/firestore";
+
 import DeleteIcon from "@mui/icons-material/Delete";
 import EditIcon from "@mui/icons-material/Edit";
 import EyeIcon from '@mui/icons-material/Visibility';
@@ -37,18 +39,23 @@ import { useNavigate } from "react-router-dom";
 
 // Helper function to format Firestore timestamp
 const formatTimestamp = (timestamp) => {
-  if (!timestamp) return "";
-  const date = timestamp.toDate();
-  const options = { day: "2-digit", month: "long", year: "numeric" };
-  return date.toLocaleDateString("en-GB", options);
+  if (timestamp instanceof Timestamp) {
+    return timestamp.toDate().toLocaleDateString(); // Format the date as a string
+  } else if (timestamp instanceof Date) {
+    return timestamp.toLocaleDateString(); // Format the date as a string
+  } else {
+    return "Invalid Date"; // Handle invalid or null dates
+  }
 };
+
 
 const SaleList = ({ sales = [], loading = false, setRefresh }) => {
   const [open, setOpen] = useState(false);
   const [DSale, setDSale] = useState(null);
   const [salesData, setSalesData] = useState(sales); // Local sales state
   const [editOpen, setEditOpen] = useState(false);
-  const [editSale, setEditSale] = useState(null); // For editing
+  const [editSale, setEditSale] = useState(new Date()); 
+  
   const [showFields, setShowFields] = useState(false);
   const [selectedSaleId, setSelectedSaleId] = useState(null)
   const [installmentDialogOpen, setInstallmentDialogOpen] = useState(false)
@@ -89,6 +96,15 @@ const SaleList = ({ sales = [], loading = false, setRefresh }) => {
       alert(`Error updating sale status: ${error.message}`); // Show alert with error message
     }
   };
+  const handleDateChange = (e) => {
+    const { name, value } = e.target; // Get name and value from the input
+
+    // Update the respective date field (startDate, endDate, deliveredDate) based on input's name
+    setEditSale((prevSale) => ({
+      ...prevSale,
+      [name]: value, // Dynamically set the field (startDate, endDate, deliveredDate) based on input's name
+    }));
+  };
 
   // Delete sale
   const handleDeleteSale = async (saleId) => {
@@ -127,15 +143,27 @@ const SaleList = ({ sales = [], loading = false, setRefresh }) => {
   const handleSaveEdit = async () => {
     if (!editSale) return;
 
+    // Ensure the Delivered Date is properly formatted as a Date object
+    if (editSale.deliveredDate) {
+      editSale.deliveredDate = new Date(editSale.deliveredDate);
+    }
+
     const saleDocRef = doc(db, "sales", editSale.id); // Ensure the saleId is valid
     try {
-      await updateDoc(saleDocRef, editSale); // Update the Firestore document
+      // Update the Firestore document
+      await updateDoc(saleDocRef, {
+        ...editSale,
+        deliveredDate: editSale.deliveredDate, // Explicitly update deliveredDate as a Date
+      });
 
-      // Update local sales data
+      // Update local sales data to reflect the changes immediately
       const updatedSales = salesData.map((sale) =>
-        sale.id === editSale.id ? editSale : sale
+        sale.id === editSale.id
+          ? { ...sale, deliveredDate: editSale.deliveredDate }
+          : sale
       );
-      setSalesData(updatedSales);
+
+      setSalesData(updatedSales); // This ensures the UI reflects the changes
       handleCloseEditDialog(); // Close the edit dialog
     } catch (error) {
       console.error("Error updating sale:", error);
@@ -222,10 +250,10 @@ const SaleList = ({ sales = [], loading = false, setRefresh }) => {
                       Customer Name
                     </TableCell>
                     <TableCell sx={{ fontWeight: "bold" }}>Contact</TableCell>
-                   
+
                     <TableCell sx={{ fontWeight: "bold" }}>Salesman</TableCell>
                     <TableCell sx={{ fontWeight: "bold" }}>Doctor</TableCell>
-                    
+
                     {/* <TableCell sx={{ fontWeight: "bold" }}>
                       Total Amount
                     </TableCell>
@@ -238,8 +266,8 @@ const SaleList = ({ sales = [], loading = false, setRefresh }) => {
                       Instruction
                     </TableCell> */}
                     <TableCell sx={{ fontWeight: "bold" }}>Status</TableCell>
-                    <TableCell sx={{ fontWeight: "bold" }}></TableCell>
-                    <TableCell sx={{ fontWeight: "bold" }}></TableCell>
+                    <TableCell sx={{ fontWeight: "bold" }}>Actions</TableCell>
+                    <TableCell sx={{ fontWeight: "bold" }}>view Details</TableCell>
                   </TableRow>
                 </TableHead>
                 <TableBody>
@@ -265,10 +293,10 @@ const SaleList = ({ sales = [], loading = false, setRefresh }) => {
                       <TableCell>{sale.barcode}</TableCell> */}
                       <TableCell>{sale.customerName}</TableCell>
                       <TableCell>{sale.contactNo}</TableCell>
-                      
+
                       <TableCell>{sale.salesman}</TableCell>
                       <TableCell>{sale.doctor}</TableCell>
-                      
+
                       {/* <TableCell>{sale.totalAmount}</TableCell>
                       <TableCell>{sale.advance}</TableCell> */}
                       <TableCell>{sale.pendingAmount}</TableCell>
@@ -415,28 +443,46 @@ const SaleList = ({ sales = [], loading = false, setRefresh }) => {
       <Dialog open={editOpen} onClose={handleCloseEditDialog}>
         <DialogTitle>Edit Sale</DialogTitle>
         <DialogContent>
-          {/* <Typography variant="h7">Date of Order</Typography>
-          <DatePicker
-            selected={editSale?.startDate}
-            onChange={(date) => setEditSale({ ...editSale, startDate: date })}
-            fullWidth
+          <Typography variant="h7">Order Date</Typography>
+          <TextField
+            label="Order Date"
+            type="date"
+            name="startDate"
+            value={editSale?.startDate || ""}
+            onChange={handleDateChange}
+            margin="normal"
+            sx={{ mr: 6 }}
+            InputLabelProps={{
+              shrink: true,
+            }}
+          />
+          <Typography variant="h7">Delivery Date</Typography>
+          <TextField
+            label="Delivery Date"
+            type="date"
+            name="endDate"
+            value={editSale?.endDate || ""}
+            onChange={handleDateChange}
+            margin="normal"
+            sx={{ mr: 6 }}
+            InputLabelProps={{
+              shrink: true,
+            }}
           />
 
-          <Typography variant="h7">Date of Delivery</Typography>
-          <DatePicker
-            selected={editSale?.endDate}
-            onChange={(date) => setEditSale({ ...editSale, endDate: date })}
-            fullWidth
-          /> */}
-
-          {/* <Typography variant="h7">Delivered Date</Typography>
-          <DatePicker
-            selected={editSale?.DeliveredDate}
-            onChange={(date) =>
-              setEditSale({ ...editSale, DeliveredDate: date })
-            }
-            fullWidth
-          /> */}
+          <Typography variant="h7">Delivered Date</Typography>
+          <TextField
+            label="Delivered Date"
+            type="date"
+            name="deliveredDate"
+            value={editSale?.deliveredDate || ""}
+            onChange={handleDateChange}
+            margin="normal"
+            sx={{ mr: 6 }}
+            InputLabelProps={{
+              shrink: true,
+            }}
+          />
 
           <TextField
             label="Order No"

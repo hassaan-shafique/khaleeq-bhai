@@ -2,8 +2,66 @@ import { TextField, Box, Grid, Button,FormControl,InputLabel,Select, MenuItem} f
 import DeleteIcon from "@mui/icons-material/Delete";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
+import { useEffect,useState } from "react";
+import { db } from "../../../../../config/Firebase";
+import { collection, query, where, getDocs } from "firebase/firestore";
 
-const AddKbcw = ({ kbcwProducts, setKbcwProducts }) => {
+const AddKbcw = ({ kbcwProducts, setKbcwProducts,onKbcwPriceChange}) => {
+
+
+  const [totalKbcwPrice, setTotalKbcwPrice] =useState ();
+
+const [barcode, setBarcode] = useState(""); // Holds the entered barcode
+const [productImageUrl, setProductImageUrl] = useState(null); // Holds the image URL for display
+
+// Function to fetch inventory details by barcode
+ const fetchInventoryByBarcode = async (barcode) => {
+  try {
+    console.log("Fetching product with barcode:", barcode); // Debug log
+    const q = query(
+      collection(db, "inventory"),
+      where("barcode", "==", barcode)
+    );
+    const querySnapshot = await getDocs(q);
+
+    if (!querySnapshot.empty) {
+      console.log("Product found."); // Debug log
+      querySnapshot.forEach((doc) => {
+        const productData = doc.data();
+        console.log("Fetched product data:", productData); // Debug log
+        setKbcwProducts((prevProducts) => [
+          ...prevProducts,
+          {
+            kbcwInventoryType: productData.kbcwInventoryType,
+            kbcwBarcode: productData.kbcwBarcode,
+            kbcwName: productData.kbcwName,
+            kbcwSize: productData.kbcwSize,
+            kbcwQuantity: productData.kbcwQuantity,
+            kbcwPrice: productData.kbcwPrice,
+            kbcwDeliveredDate: productData.deliveryDate?.toDate() || new Date(),
+          },
+        ]);
+        // Set the image URL state to display the image
+        setProductImageUrl(productData.kbcwImageUrl || null);
+      });
+    } else {
+      console.log("No matching product found.");
+    }
+  } catch (error) {
+    console.error("Error fetching inventory:", error);
+  }
+};
+
+// Handler for barcode input change
+const handleBarcodeChange = (e) => {
+  const enteredBarcode = e.target.value;
+  setBarcode(enteredBarcode);
+
+  if (enteredBarcode.length === 6) {
+    fetchInventoryByBarcode(enteredBarcode);
+  }
+    };
+  
 
   const handleKbcwProductChange = (index, field, value) => {
     const newProducts = [...kbcwProducts];
@@ -16,17 +74,24 @@ const AddKbcw = ({ kbcwProducts, setKbcwProducts }) => {
     setKbcwProducts(newProducts);
   };
 
-   const handleDateChange = (date, key, index) => {
-     const updatedProducts = [...kbcwProducts]; // Create a copy of the products array
-     updatedProducts[index] = {
-       ...updatedProducts[index],
-       [key]: date, // Update the specific date field
-     };
-     setKbcwProducts(updatedProducts); // Update the state with new values
-   };
-
+  const handleDateChange = (date, key, index) => {
+    const updatedProducts = [...kbcwProducts]; // Create a copy of the products array
+    updatedProducts[index] = {
+      ...updatedProducts[index],
+      [key]: date, // Update the specific date field
+    };
+    setKbcwProducts(updatedProducts); // Update the state with new values
+  };
+  useEffect(() => {
+    const totalKbcwPrice = kbcwProducts.reduce((total, product) => {
+      const price = parseFloat(product.kbcwPrice) || 0;
+      return total + price;
+    }, 0);
+    onKbcwPriceChange(totalKbcwPrice); // Pass total up
+  }, [kbcwProducts,onKbcwPriceChange]);
 
   return (
+    
     <Box sx={{ marginTop: "20px" }}>
       {kbcwProducts.map((kbcwProducts, index) => (
         <div key={index}>
@@ -137,6 +202,9 @@ const AddKbcw = ({ kbcwProducts, setKbcwProducts }) => {
               />
             </Grid>
           </Grid>
+          {/* <Box sx={{ marginTop: "20px" }}>
+            <h3>Total Price For KBCW Products: Rs {totalKbcwPrice}</h3>
+          </Box> */}
           <Box sx={{ display: "flex", justifyContent: "flex-end" }}>
             <Button
               variant="contained"

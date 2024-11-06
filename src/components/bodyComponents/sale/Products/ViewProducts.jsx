@@ -458,8 +458,72 @@ const ViewProducts = () => {
           </span>
         </Typography>
       </TableContainer>
+      <TableContainer component={Paper} sx={{ marginTop: "20px" }}>
+        <Table>
+          <TableHead>
+            <TableRow sx={{ backgroundColor: "#e3f2fd" }}>
+              {" "}
+              {/* Light Blue Background */}
+              <TableCell
+                align="center"
+                sx={{ fontWeight: "bold", color: "#000", fontSize: "16px" }}
+              >
+                Total Sales Amount
+              </TableCell>
+              <TableCell
+                align="center"
+                sx={{ fontWeight: "bold", color: "#000", fontSize: "16px" }}
+              >
+                Discount
+              </TableCell>
+              <TableCell
+                align="center"
+                sx={{ fontWeight: "bold", color: "#000", fontSize: "16px" }}
+              >
+                Advance
+              </TableCell>
+              <TableCell
+                align="center"
+                sx={{ fontWeight: "bold", color: "#000", fontSize: "16px" }}
+              >
+                Pending Amount
+              </TableCell>
+            </TableRow>
+          </TableHead>
+          <TableBody>
+            <TableRow
+              sx={{ "&:nth-of-type(odd)": { backgroundColor: "#f9f9f9" } }}
+            >
+              <TableCell
+                align="center"
+                sx={{ padding: "10px", fontSize: "15px" }}
+              >
+                Rs: {totalSalesAmount}
+              </TableCell>
+              <TableCell
+                align="center"
+                sx={{ padding: "10px", fontSize: "15px" }}
+              >
+                Rs: {salesData.discount}
+              </TableCell>
+              <TableCell
+                align="center"
+                sx={{ padding: "10px", fontSize: "15px" }}
+              >
+               Rs: {salesData.advance}
+              </TableCell>
+              <TableCell
+                align="center"
+                sx={{ padding: "10px", fontSize: "15px" }}
+              >
+               Rs: {salesData.pendingAmount}
+              </TableCell>
+            </TableRow>
+          </TableBody>
+        </Table>
+      </TableContainer>
 
-      <Typography> Total Sales Amount: Rs {totalSalesAmount} </Typography>
+      
 
       <EditGlassDialog
         editGlassProduct={editGlassProduct}

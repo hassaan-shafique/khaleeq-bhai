@@ -27,7 +27,7 @@ const EditKbcwDialog = ({
   const handleKbcwProductChange = (field, value) => {
     const newProduct = { ...editKbcwProduct };
     newProduct[field] = value;
-    setEditGlassProduct(newProduct);
+    setEditKbcwProduct(newProduct);
   };
 
   const handleDateChange = (date, key) => {
@@ -38,7 +38,7 @@ const EditKbcwDialog = ({
 
   return (
     <Dialog open={open} onClose={onClose} maxWidth="md" fullWidth>
-      <DialogTitle>Edit Glass Product</DialogTitle>
+      <DialogTitle>Edit Kbcw Product</DialogTitle>
       <DialogContent>
         <Box sx={{ marginTop: "20px" }}>
           <Grid container spacing={2} sx={{ marginBottom: "10px" }}>

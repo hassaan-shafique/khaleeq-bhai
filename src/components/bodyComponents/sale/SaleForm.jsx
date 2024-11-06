@@ -19,6 +19,7 @@ TableRow,
 TableCell,
 TableBody,
 } from "@mui/material";
+import { useMemo } from "react";
 
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
@@ -67,8 +68,26 @@ const SalesForm = () => {
   const [glassesProducts, setGlassesProducts] = useState([]);
   const [refresh ,setRefresh] = useState (false);
 
+     const [totalVendorPrice, setTotalVendorPrice] = useState(0);
+     const [totalKbcwPrice, setTotalKbcwPrice] = useState(0);
+     const [totalGlassesPrice, setTotalGlassesPrice] = useState(0);
 
-  
+    const handleVendorPriceChange = (total) => {
+    setTotalVendorPrice(total);
+  };
+
+  const handleKbcwPriceChange = (total) => {
+    setTotalKbcwPrice(total);
+  };
+
+  const handleGlassesPriceChange = (total) => {
+    setTotalGlassesPrice(total);
+  };
+
+  // Calculate the grand total
+  const grandTotal = totalVendorPrice + totalKbcwPrice + totalGlassesPrice;
+
+
 
   const handleClickOpen = () => {
     setOpen(true);
@@ -94,16 +113,16 @@ const SalesForm = () => {
   };
 
  useEffect(() => {
-   const total = parseFloat(value.totalAmount) || 0;
+   const total = parseFloat(grandTotal) || 0;
    const advance = parseFloat(value.advance) || 0;
-   const discount = parseFloat(value.discount) || 0; // New discount field
+   const discount = parseFloat(value.discount) || 0; 
    const pending = total - advance - discount;
 
    setValue((prev) => ({
      ...prev,
      pendingAmount: pending >= 0 ? pending : 0, // Ensure no negative value
    }));
- }, [value.totalAmount, value.advance, value.discount]);
+ }, [grandTotal, value.advance, value.discount]);
 
 const handleSubmit = async (e) => {
   e.preventDefault();
@@ -549,24 +568,35 @@ const handleSubmit = async (e) => {
               <AddVendor
                 vendorProducts={vendorProducts}
                 setVendorProducts={setVendorProducts}
-              />
+                onVendorPriceChange={handleVendorPriceChange}
+               
+
+
+               />
               <AddGlasses
                 glassesProducts={glassesProducts}
                 setGlassesProducts={setGlassesProducts}
+                onGlassesPriceChange={handleGlassesPriceChange}
+             
               />
               <AddKbcw
                 kbcwProducts={kbcwProducts}
                 setKbcwProducts={setKbcwProducts}
+                onKbcwPriceChange={handleKbcwPriceChange}
+              
               />
+             
+
               <Grid item xs={8}>
                 <TextField
                   label="Total Amount"
                   name="totalAmount"
-                  value={value.totalAmount}
+                  value={grandTotal}
                   onChange={handleChange}
                   placeholder="Total Amount"
                   margin="normal"
                   fullWidth
+                  disabled
                 />
               </Grid>
               <Grid item xs={8}>
@@ -600,6 +630,7 @@ const handleSubmit = async (e) => {
                   placeholder="Pending Amount"
                   margin="normal"
                   fullWidth
+                  disabled
                 />
               </Grid>
 

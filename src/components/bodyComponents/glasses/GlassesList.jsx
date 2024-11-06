@@ -24,7 +24,7 @@ import DeleteIcon from "@mui/icons-material/Delete";
 import EditIcon from "@mui/icons-material/Edit";
 
 import { doc, updateDoc, deleteDoc } from "firebase/firestore";
-import { db } from "../../../config/Firebase"; // Assuming you have firebase initialized
+import { db } from "../../../config/Firebase"; // 
 
 const GlassesList = ({ glasses = [], loading = false, onDelete, onEdit }) => {
   const [editDialogOpen, setEditDialogOpen] = useState(false);
@@ -138,7 +138,10 @@ const GlassesList = ({ glasses = [], loading = false, onDelete, onEdit }) => {
               sx={{
                 maxHeight: 500,
                 maxWidth: "100%",
+                width: "98%", // Increased width to 98%
                 overflowX: "auto",
+                borderRadius: "8px", // Rounded corners for the table container
+                boxShadow: "0px 4px 6px rgba(0, 0, 0, 0.7)", // Soft shadow for depth
                 "&::-webkit-scrollbar": {
                   width: "10px", // Width of the vertical scrollbar
                   height: "10px", // Height of the horizontal scrollbar
@@ -159,30 +162,50 @@ const GlassesList = ({ glasses = [], loading = false, onDelete, onEdit }) => {
             >
               <Table>
                 <TableHead>
-                  <TableRow>
-                    <TableCell sx={{ fontWeight: "bold" }}>ID</TableCell>
-                    <TableCell sx={{ fontWeight: "bold" }}>
-                      Glass Name
-                    </TableCell>
-                    <TableCell sx={{ fontWeight: "bold" }}>Type</TableCell>
-                    <TableCell sx={{ fontWeight: "bold" }}>Number</TableCell>
-                    <TableCell sx={{ fontWeight: "bold" }}>Price</TableCell>
-                    <TableCell sx={{ fontWeight: "bold" }}>Barcode</TableCell>
-                    <TableCell sx={{ fontWeight: "bold" }}>Quantity</TableCell>
-                    <TableCell sx={{ fontWeight: "bold" }}>Date</TableCell>
-                    <TableCell sx={{ fontWeight: "bold" }}>Actions</TableCell>
+                  <TableRow
+                    sx={{
+                      backgroundColor: "#E0F7FA", // Light blue background for header
+                      "& th": {
+                        fontWeight: "bold",
+                        color: "#black", // Darker color for text
+                        padding: "12px 16px", // Padding for header cells
+                        textAlign: "center", // Center align header text
+                        borderBottom: "2px solid #black", // Bottom border for header cells
+                      },
+                    }}
+                  >
+                    <TableCell>ID</TableCell>
+                    <TableCell>Glass Name</TableCell>
+                    <TableCell>Type</TableCell>
+                    <TableCell>Number</TableCell>
+                    <TableCell>Price</TableCell>
+                    <TableCell>Barcode</TableCell>
+                    <TableCell>Quantity</TableCell>
+                    <TableCell>Date</TableCell>
+                    <TableCell>Actions</TableCell>
                   </TableRow>
                 </TableHead>
                 <TableBody>
                   {glasses.map((glass, i) => (
-                    <TableRow key={glass.id}>
-                      <TableCell>{i + 1}</TableCell>
-                      <TableCell>{glass.glass}</TableCell>
-                      <TableCell>{glass.type}</TableCell>
-                      <TableCell>{glass.number}</TableCell>
-                      <TableCell>Rs.{glass.price}</TableCell>
-                      <TableCell>{glass.barcodeNumber}</TableCell>
+                    <TableRow
+                      key={glass.id}
+                      sx={{
+                        "&:hover": {
+                          backgroundColor: "#f1f1f1", // Subtle hover effect for rows
+                        },
+                        transition: "background-color 0.3s", // Smooth transition on hover
+                      }}
+                    >
+                      <TableCell align="center">{i + 1}</TableCell>
+                      <TableCell align="center">{glass.glass}</TableCell>
+                      <TableCell align="center">{glass.type}</TableCell>
+                      <TableCell align="center">{glass.number}</TableCell>
+                      <TableCell align="center">Rs.{glass.price}</TableCell>
+                      <TableCell align="center">
+                        {glass.barcodeNumber}
+                      </TableCell>
                       <TableCell
+                        align="center"
                         sx={{
                           backgroundColor:
                             glass.quantity > 10
@@ -196,23 +219,35 @@ const GlassesList = ({ glasses = [], loading = false, onDelete, onEdit }) => {
                               : glass.quantity < 10
                               ? "bold"
                               : "normal", // Bold if highlighted
+                          color: glass.quantity < 10 ? "#fff" : "inherit", // White text for low stock
                         }}
                       >
                         {glass.quantity}
                       </TableCell>
-                      <TableCell>
+                      <TableCell align="center">
                         {formatTimestamp(glass.selectedDate)}
                       </TableCell>
-                      <TableCell>
+                      <TableCell align="center">
                         <IconButton
                           onClick={() => handleEdit(glass)}
                           color="primary"
+                          sx={{
+                            marginRight: "8px",
+                            "&:hover": {
+                              backgroundColor: "#e0f7fa", // Light hover effect for edit icon
+                            },
+                          }}
                         >
                           <EditIcon />
                         </IconButton>
                         <IconButton
                           onClick={() => handleDelete(glass.id)}
                           color="error"
+                          sx={{
+                            "&:hover": {
+                              backgroundColor: "#ffebee", // Light hover effect for delete icon
+                            },
+                          }}
                         >
                           <DeleteIcon />
                         </IconButton>

@@ -31,7 +31,7 @@ const Revenue = () => {
     <>
       <Box>
         <Grid container sx={{ mx: 3, p: 3 }}>
-          <Grid item md={9}>
+          <Grid item md={12}>
             <Box
               sx={{
                 margin: 3,
@@ -39,6 +39,7 @@ const Revenue = () => {
                 borderRadius: 2,
                 padding: 3,
                 height: "100%",
+                width: "98%", // Increased width to 98%
               }}
             >
               <GlassesForm setRefresh={setRefresh} />

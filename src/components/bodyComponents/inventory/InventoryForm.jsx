@@ -288,3 +288,4 @@ const InventoryForm = ({ setRefresh }) => {
 };
 
 export default InventoryForm;
+
