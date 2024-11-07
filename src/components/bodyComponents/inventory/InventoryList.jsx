@@ -19,51 +19,59 @@ import {
   DialogContent,
   DialogActions,
   Button,
+  TextField,
 } from "@mui/material";
-
-// Function to format Firestore timestamp
-const formatTimestamp = (timestamp) => {
-  if (!timestamp) return "";
-  const date = timestamp.toDate(); // Convert Firestore timestamp to JavaScript Date object
-  const options = {
-    day: "2-digit",
-    month: "long",
-    year: "numeric",
-  };
-  return date.toLocaleDateString("en-GB", options);
-};
+import { db } from "../../../config/Firebase"; // Adjust to your Firebase setup
+import { doc, updateDoc, deleteDoc } from "firebase/firestore"; // Firestore functions
 
 const InventoryList = ({ inventory = [], loading = false }) => {
-  // State to hold the selected inventory type and price filter
   const [selectedType, setSelectedType] = useState("");
   const [selectedPriceRange, setSelectedPriceRange] = useState("");
-  // State to manage dialog visibility and selected image
   const [openDialog, setOpenDialog] = useState(false);
   const [selectedImage, setSelectedImage] = useState("");
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
+  const [editableItem, setEditableItem] = useState(null);
 
-  // Handle inventory type change
-  const handleTypeChange = (event) => {
-    setSelectedType(event.target.value);
-  };
-
-  // Handle price range change
-  const handlePriceRangeChange = (event) => {
+  const handleTypeChange = (event) => setSelectedType(event.target.value);
+  const handlePriceRangeChange = (event) =>
     setSelectedPriceRange(event.target.value);
-  };
 
-  // Open dialog with selected image
   const handleImageClick = (image) => {
     setSelectedImage(image);
     setOpenDialog(true);
   };
 
-  // Close dialog
-  const handleCloseDialog = () => {
-    setOpenDialog(false);
-    setSelectedImage("");
+  const handleCloseDialog = () => setOpenDialog(false);
+
+  const openEditDialog = (item) => {
+    setEditableItem({ ...item }); // Clone the item to avoid mutating the original object
+    setEditDialogOpen(true);
   };
 
-  // Filter the inventory based on the selected type and price range
+  const handleEditInputChange = (e) => {
+    const { name, value } = e.target;
+    setEditableItem((prev) => ({ ...prev, [name]: value }));
+  };
+
+  const handleSaveEdit = async () => {
+    if (editableItem) {
+      const itemRef = doc(db, "inventory", editableItem.id); // Replace 'inventory' with your collection name
+      await updateDoc(itemRef, {
+        name: editableItem.name,
+        price: Number(editableItem.price),
+        quantity: Number(editableItem.quantity),
+        type: editableItem.type,
+        size: editableItem.size,
+      });
+      setEditDialogOpen(false);
+    }
+  };
+
+  const handleDeleteItem = async (id) => {
+    const itemRef = doc(db, "inventory", id);
+    await deleteDoc(itemRef);
+  };
+
   const filteredInventory = inventory.filter((item) => {
     const matchesType = selectedType === "" || item.type === selectedType;
     const matchesPriceRange = () => {
@@ -90,14 +98,14 @@ const InventoryList = ({ inventory = [], loading = false }) => {
           return item.price >= 10001 && item.price <= 30000;
         case "11":
           return item.price >= 30001 && item.price <= 50000;
+        
         default:
-          return true; // Show all if no price range is selected
+          return true;
       }
     };
     return matchesType && matchesPriceRange();
   });
 
-  // Extract unique inventory types from the inventory array
   const inventoryTypes = [...new Set(inventory.map((item) => item.type))];
 
   return (
@@ -108,14 +116,9 @@ const InventoryList = ({ inventory = [], loading = false }) => {
         </Box>
       ) : (
         <>
-          {/* Inventory Type Filter Dropdown */}
           <FormControl fullWidth sx={{ marginBottom: 2 }}>
             <InputLabel>Filter by Inventory Type</InputLabel>
-            <Select
-              value={selectedType}
-              onChange={handleTypeChange}
-              label="Filter by Inventory Type"
-            >
+            <Select value={selectedType} onChange={handleTypeChange}>
               <MenuItem value="">All</MenuItem>
               {inventoryTypes.map((type, index) => (
                 <MenuItem key={index} value={type}>
@@ -125,13 +128,11 @@ const InventoryList = ({ inventory = [], loading = false }) => {
             </Select>
           </FormControl>
 
-          {/* Price Range Filter Dropdown */}
           <FormControl fullWidth sx={{ marginBottom: 2 }}>
             <InputLabel>Filter by Price Range</InputLabel>
             <Select
               value={selectedPriceRange}
               onChange={handlePriceRangeChange}
-              label="Filter by Price Range"
             >
               <MenuItem value="">All</MenuItem>
               <MenuItem value="1">Rs. 350 to 600</MenuItem>
@@ -145,6 +146,7 @@ const InventoryList = ({ inventory = [], loading = false }) => {
               <MenuItem value="9">Rs. 6001 to 10000</MenuItem>
               <MenuItem value="10">Rs. 10001 to 30000</MenuItem>
               <MenuItem value="11">Rs. 30001 to 50000</MenuItem>
+              {/* Add other price ranges */}
             </Select>
           </FormControl>
 
@@ -155,47 +157,21 @@ const InventoryList = ({ inventory = [], loading = false }) => {
           ) : (
             <TableContainer
               component={Paper}
-              sx={{
-                maxHeight: 500,
-                maxWidth: "100%",
-                overflowX: "auto",
-                "&::-webkit-scrollbar": {
-                  width: "10px", // Width of the vertical scrollbar
-                  height: "10px", // Height of the horizontal scrollbar
-                },
-                "&::-webkit-scrollbar-track": {
-                  backgroundColor: "#f0f0f0", // Track color
-                  borderRadius: "10px", // Rounded track
-                },
-                "&::-webkit-scrollbar-thumb": {
-                  backgroundColor: "#888", // Scrollbar thumb color
-                  borderRadius: "10px", // Rounded thumb
-                  border: "2px solid #f0f0f0", // Adds spacing around the thumb
-                  "&:hover": {
-                    backgroundColor: "#555", // Darker on hover
-                  },
-                },
-              }}
+              sx={{ maxHeight: 500, maxWidth: "100%", overflowX: "auto" }}
             >
               <Table>
                 <TableHead>
                   <TableRow>
-                    <TableCell sx={{ fontWeight: "bold" }}>
-                      Inventory ID
-                    </TableCell>
-                    <TableCell sx={{ fontWeight: "bold" }}>Image</TableCell>
-                    <TableCell sx={{ fontWeight: "bold" }}>Barcode</TableCell>
-                    <TableCell sx={{ fontWeight: "bold" }}>
-                      Inventory Type
-                    </TableCell>
-                    <TableCell sx={{ fontWeight: "bold" }}>Name</TableCell>
-                    <TableCell sx={{ fontWeight: "bold" }}>Price</TableCell>
-                    <TableCell sx={{ fontWeight: "bold" }}>Quantity</TableCell>
-                    <TableCell sx={{ fontWeight: "bold" }}>Size</TableCell>
-                    <TableCell sx={{ fontWeight: "bold" }}>Date</TableCell>
+                    <TableCell>Inventory ID</TableCell>
+                    <TableCell>Image</TableCell>
+                    <TableCell>Barcode</TableCell>
+                    <TableCell>Type</TableCell>
+                    <TableCell>Name</TableCell>
+                    <TableCell>Price</TableCell>
+                    <TableCell>Quantity</TableCell>
+                    <TableCell>Actions</TableCell>
                   </TableRow>
                 </TableHead>
-
                 <TableBody>
                   {filteredInventory.map((item, i) => (
                     <TableRow key={item.id}>
@@ -210,7 +186,7 @@ const InventoryList = ({ inventory = [], loading = false }) => {
                               height: "100px",
                               cursor: "pointer",
                             }}
-                            onClick={() => handleImageClick(item.image)} // Open dialog on click
+                            onClick={() => handleImageClick(item.image)}
                           />
                         ) : (
                           "No Image"
@@ -220,21 +196,17 @@ const InventoryList = ({ inventory = [], loading = false }) => {
                       <TableCell>{item.type}</TableCell>
                       <TableCell>{item.name}</TableCell>
                       <TableCell>Rs.{item.price}</TableCell>
-                      <TableCell
-                        sx={{
-                          backgroundColor:
-                            item.quantity <= 10 ? "red" : "lightgreen",
-                          color: "white",
-                          fontWeight: "bold",
-                        }}
-                      >
-                        {item.quantity}
-                      </TableCell>
-                      <TableCell>{item.size}</TableCell>
+                      <TableCell>{item.quantity}</TableCell>
                       <TableCell>
-                        {item.selectedDate
-                          ? formatTimestamp(item.selectedDate)
-                          : "No Date"}
+                        <Button onClick={() => openEditDialog(item)}>
+                          Edit
+                        </Button>
+                        <Button
+                          color="error"
+                          onClick={() => handleDeleteItem(item.id)}
+                        >
+                          Delete
+                        </Button>
                       </TableCell>
                     </TableRow>
                   ))}
@@ -243,7 +215,7 @@ const InventoryList = ({ inventory = [], loading = false }) => {
             </TableContainer>
           )}
 
-          {/* Image Dialog */}
+          {/* Image Preview Dialog */}
           <Dialog open={openDialog} onClose={handleCloseDialog} maxWidth="md">
             <DialogTitle>Image Preview</DialogTitle>
             <DialogContent>
@@ -256,6 +228,70 @@ const InventoryList = ({ inventory = [], loading = false }) => {
             <DialogActions>
               <Button onClick={handleCloseDialog} color="primary">
                 Close
+              </Button>
+            </DialogActions>
+          </Dialog>
+
+          {/* Edit Item Dialog */}
+          <Dialog
+            open={editDialogOpen}
+            onClose={() => setEditDialogOpen(false)}
+            maxWidth="sm"
+          >
+            <DialogTitle>Edit Inventory Item</DialogTitle>
+            <DialogContent>
+              <TextField
+                label="Name"
+                name="name"
+                value={editableItem?.name || ""}
+                onChange={handleEditInputChange}
+                fullWidth
+                margin="dense"
+              />
+              <TextField
+                label="Price"
+                name="price"
+                type="number"
+                value={editableItem?.price || ""}
+                onChange={handleEditInputChange}
+                fullWidth
+                margin="dense"
+              />
+              <TextField
+                label="Quantity"
+                name="quantity"
+                type="number"
+                value={editableItem?.quantity || ""}
+                onChange={handleEditInputChange}
+                fullWidth
+                margin="dense"
+              />
+              <TextField
+                label="Type"
+                name="type"
+                value={editableItem?.type || ""}
+                onChange={handleEditInputChange}
+                fullWidth
+                margin="dense"
+              />
+              <TextField
+                label="Size"
+                name="size"
+                value={editableItem?.size || ""}
+                onChange={handleEditInputChange}
+                fullWidth
+                margin="dense"
+              />
+            </DialogContent>
+            <DialogActions>
+              <Button
+                onClick={() => setEditDialogOpen(false)}
+                color="secondary"
+              >
+                Cancel
+              </Button>
+              <Button onClick={handleSaveEdit} color="primary">
+                Save
               </Button>
             </DialogActions>
           </Dialog>

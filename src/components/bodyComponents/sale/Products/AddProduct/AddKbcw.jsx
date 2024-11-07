@@ -1,86 +1,105 @@
-import { TextField, Box, Grid, Button,FormControl,InputLabel,Select, MenuItem} from "@mui/material";
-import DeleteIcon from "@mui/icons-material/Delete";
+import React, { useState,useEffect} from "react";
+import {
+  Box,
+  Grid,
+  FormControl,
+  InputLabel,
+  Select,
+  MenuItem,
+  TextField,
+  Button,
+  Paper,
+} from "@mui/material";
 import DatePicker from "react-datepicker";
-import "react-datepicker/dist/react-datepicker.css";
-import { useEffect,useState } from "react";
+import DeleteIcon from "@mui/icons-material/Delete";
 import { db } from "../../../../../config/Firebase";
-import { collection, query, where, getDocs } from "firebase/firestore";
+import {
+  collection,
+  query,
+  where,
+  getDocs,
+  doc,
+  updateDoc,
+} from "firebase/firestore";
 
-const AddKbcw = ({ kbcwProducts, setKbcwProducts,onKbcwPriceChange}) => {
-
-
-  const [totalKbcwPrice, setTotalKbcwPrice] =useState ();
-
-const [barcode, setBarcode] = useState(""); // Holds the entered barcode
-const [productImageUrl, setProductImageUrl] = useState(null); // Holds the image URL for display
-
-// Function to fetch inventory details by barcode
- const fetchInventoryByBarcode = async (barcode) => {
-  try {
-    console.log("Fetching product with barcode:", barcode); // Debug log
-    const q = query(
-      collection(db, "inventory"),
-      where("barcode", "==", barcode)
-    );
-    const querySnapshot = await getDocs(q);
-
-    if (!querySnapshot.empty) {
-      console.log("Product found."); // Debug log
-      querySnapshot.forEach((doc) => {
-        const productData = doc.data();
-        console.log("Fetched product data:", productData); // Debug log
-        setKbcwProducts((prevProducts) => [
-          ...prevProducts,
-          {
-            kbcwInventoryType: productData.kbcwInventoryType,
-            kbcwBarcode: productData.kbcwBarcode,
-            kbcwName: productData.kbcwName,
-            kbcwSize: productData.kbcwSize,
-            kbcwQuantity: productData.kbcwQuantity,
-            kbcwPrice: productData.kbcwPrice,
-            kbcwDeliveredDate: productData.deliveryDate?.toDate() || new Date(),
-          },
-        ]);
-        // Set the image URL state to display the image
-        setProductImageUrl(productData.kbcwImageUrl || null);
-      });
-    } else {
-      console.log("No matching product found.");
-    }
-  } catch (error) {
-    console.error("Error fetching inventory:", error);
-  }
-};
-
-// Handler for barcode input change
-const handleBarcodeChange = (e) => {
-  const enteredBarcode = e.target.value;
-  setBarcode(enteredBarcode);
-
-  if (enteredBarcode.length === 6) {
-    fetchInventoryByBarcode(enteredBarcode);
-  }
-    };
-  
+function AddKbcw({ kbcwProducts, setKbcwProducts, onKbcwPriceChange }) {
 
   const handleKbcwProductChange = (index, field, value) => {
-    const newProducts = [...kbcwProducts];
-    newProducts[index][field] = value;
-    setKbcwProducts(newProducts);
+    const updatedProducts = [...kbcwProducts];
+    updatedProducts[index][field] = value;
+    setKbcwProducts(updatedProducts);
+
+    if (field === "kbcwBarcode") {
+      fetchProductData(value, index);
+    }
+
+    if (field === "kbcwQuantity") {
+      handleQuantityChange(index, value);
+    }
   };
 
+  const fetchProductData = async (barcode, index) => {
+    if (!barcode) return;
+
+    try {
+      const q = query(
+        collection(db, "inventory"),
+        where("barcode", "==", barcode)
+      );
+      const querySnapshot = await getDocs(q);
+
+      if (!querySnapshot.empty) {
+        const productDoc = querySnapshot.docs[0];
+        const productData = productDoc.data();
+
+        const updatedProducts = [...kbcwProducts];
+        updatedProducts[index] = {
+          ...updatedProducts[index],
+          kbcwName: productData.name,
+          kbcwPrice: productData.price,
+          kbcwSize: productData.size,
+          kbcwImage: productData.image,
+          inventoryQuantity: productData.quantity, // Initial inventory quantity
+        };
+        setKbcwProducts(updatedProducts);
+      }
+    } catch (error) {
+      console.error("Error fetching product:", error);
+    }
+  };
+
+  const handleQuantityChange = async (index, enteredQuantity) => {
+    const product = kbcwProducts[index];
+    const remainingQuantity = product.inventoryQuantity - enteredQuantity;
+
+    if (remainingQuantity <= 0) {
+      alert("Insufficient stock in inventory");
+      return;
+    }
+
+    const updatedProducts = [...kbcwProducts];
+    updatedProducts[index].inventoryQuantity = remainingQuantity;
+    setKbcwProducts(updatedProducts);
+
+    // Update inventory quantity in Firestore
+    try {
+      const q = query(
+        collection(db, "inventory"),
+        where("barcode", "==", product.kbcwBarcode)
+      );
+      const querySnapshot = await getDocs(q);
+
+      if (!querySnapshot.empty) {
+        const productDocRef = doc(db, "inventory", querySnapshot.docs[0].id);
+        await updateDoc(productDocRef, { quantity: remainingQuantity });
+      }
+    } catch (error) {
+      console.error("Error updating inventory quantity:", error);
+    }
+  };
   const handleRemove = (index) => {
     const newProducts = kbcwProducts.filter((_, i) => i !== index);
     setKbcwProducts(newProducts);
-  };
-
-  const handleDateChange = (date, key, index) => {
-    const updatedProducts = [...kbcwProducts]; // Create a copy of the products array
-    updatedProducts[index] = {
-      ...updatedProducts[index],
-      [key]: date, // Update the specific date field
-    };
-    setKbcwProducts(updatedProducts); // Update the state with new values
   };
   useEffect(() => {
     const totalKbcwPrice = kbcwProducts.reduce((total, product) => {
@@ -88,20 +107,54 @@ const handleBarcodeChange = (e) => {
       return total + price;
     }, 0);
     onKbcwPriceChange(totalKbcwPrice); // Pass total up
-  }, [kbcwProducts,onKbcwPriceChange]);
+  }, [kbcwProducts, onKbcwPriceChange]);
 
   return (
-    
     <Box sx={{ marginTop: "20px" }}>
-      {kbcwProducts.map((kbcwProducts, index) => (
+      {kbcwProducts.map((product, index) => (
         <div key={index}>
           <h3>KBCW Product #{index + 1}</h3>
+          {product.kbcwImage && (
+            <Grid item xs={4}>
+              <Paper
+                elevation={3}
+                sx={{
+                  padding: "10px",
+                  display: "flex",
+                  flexDirection: "column",
+                  alignItems: "center",
+                  borderRadius: "8px",
+                  overflow: "hidden",
+                  backgroundColor: "#f9f9f9",
+                  boxShadow: "0px 4px 10px rgba(0, 0, 0, 0.1)",
+                }}
+              >
+                <img
+                  src={product.kbcwImage}
+                  alt="Product"
+                  style={{
+                    width: "100%",
+                    height: "auto",
+                    maxHeight: "150px",
+                    objectFit: "cover",
+                    borderRadius: "12px",
+                    backgroundColor: "#808080",
+                  }}
+                />
+                <Box sx={{ marginTop: "8px", fontSize: "14px", color: "#333" }}>
+                  Product Image
+                </Box>
+              </Paper>
+            </Grid>
+          )}
           <Grid container spacing={2} sx={{ marginBottom: "10px" }}>
+            {/* Other fields */}
+
             <Grid item xs={4}>
               <FormControl fullWidth>
                 <InputLabel>KBCW Inventory Type</InputLabel>
                 <Select
-                  value={kbcwProducts.kbcwInventoryType}
+                  value={product.kbcwInventoryType}
                   onChange={(e) =>
                     handleKbcwProductChange(
                       index,
@@ -121,7 +174,7 @@ const handleBarcodeChange = (e) => {
             <Grid item xs={4}>
               <TextField
                 label="KBCW Barcode"
-                value={kbcwProducts.kbcwBarcode}
+                value={product.kbcwBarcode}
                 onChange={(e) =>
                   handleKbcwProductChange(index, "kbcwBarcode", e.target.value)
                 }
@@ -131,7 +184,7 @@ const handleBarcodeChange = (e) => {
             <Grid item xs={4}>
               <TextField
                 label="Name"
-                value={kbcwProducts.kbcwName}
+                value={product.kbcwName || ""}
                 onChange={(e) =>
                   handleKbcwProductChange(index, "kbcwName", e.target.value)
                 }
@@ -141,7 +194,7 @@ const handleBarcodeChange = (e) => {
             <Grid item xs={4}>
               <TextField
                 label="Size"
-                value={kbcwProducts.kbcwSize}
+                value={product.kbcwSize || ""}
                 onChange={(e) =>
                   handleKbcwProductChange(index, "kbcwSize", e.target.value)
                 }
@@ -151,9 +204,13 @@ const handleBarcodeChange = (e) => {
             <Grid item xs={4}>
               <TextField
                 label="Quantity"
-                value={kbcwProducts.kbcwQuantity}
+                value={product.kbcwQuantity || ""}
                 onChange={(e) =>
-                  handleKbcwProductChange(index, "kbcwQuantity", e.target.value)
+                  handleKbcwProductChange(
+                    index,
+                    "kbcwQuantity",
+                    parseInt(e.target.value, 10)
+                  )
                 }
                 fullWidth
               />
@@ -161,7 +218,7 @@ const handleBarcodeChange = (e) => {
             <Grid item xs={4}>
               <TextField
                 label="Price"
-                value={kbcwProducts.kbcwPrice}
+                value={product.kbcwPrice || ""}
                 onChange={(e) =>
                   handleKbcwProductChange(index, "kbcwPrice", e.target.value)
                 }
@@ -170,9 +227,9 @@ const handleBarcodeChange = (e) => {
             </Grid>
             <Grid item xs={4}>
               <DatePicker
-                selected={kbcwProducts.kbcwDeliveredDate}
+                selected={product.kbcwDeliveredDate}
                 onChange={(date) =>
-                  handleDateChange(date, "kbcwDeliveredDate", index)
+                  handleKbcwProductChange(index, "kbcwDeliveredDate", date)
                 }
                 customInput={
                   <TextField
@@ -185,13 +242,13 @@ const handleBarcodeChange = (e) => {
                         backgroundColor: "#f9f9f9",
                       },
                       "& .MuiOutlinedInput-notchedOutline": {
-                        borderColor: "#black",
+                        borderColor: "black",
                       },
                       "&:hover .MuiOutlinedInput-notchedOutline": {
-                        borderColor: "#black",
+                        borderColor: "black",
                       },
                       "& .Mui-focused .MuiOutlinedInput-notchedOutline": {
-                        borderColor: "#black",
+                        borderColor: "black",
                       },
                     }}
                   />
@@ -201,11 +258,16 @@ const handleBarcodeChange = (e) => {
                 style={{ width: "100%" }}
               />
             </Grid>
+            {/* Display Product Image */}
           </Grid>
-          {/* <Box sx={{ marginTop: "20px" }}>
-            <h3>Total Price For KBCW Products: Rs {totalKbcwPrice}</h3>
-          </Box> */}
           <Box sx={{ display: "flex", justifyContent: "flex-end" }}>
+            <Button
+              variant="contained"
+              color="primary"
+              onClick={() => handleQuantityChange(index)}
+            >
+              Sell
+            </Button>
             <Button
               variant="contained"
               color="error"
@@ -218,6 +280,6 @@ const handleBarcodeChange = (e) => {
       ))}
     </Box>
   );
-};
+}
 
 export default AddKbcw;
