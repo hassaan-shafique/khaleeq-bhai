@@ -29,6 +29,8 @@ function AddKbcw({ kbcwProducts, setKbcwProducts, onKbcwPriceChange }) {
     updatedProducts[index][field] = value;
     setKbcwProducts(updatedProducts);
 
+
+
     if (field === "kbcwBarcode") {
       fetchProductData(value, index);
     }
@@ -97,6 +99,10 @@ function AddKbcw({ kbcwProducts, setKbcwProducts, onKbcwPriceChange }) {
       console.error("Error updating inventory quantity:", error);
     }
   };
+
+
+
+  
   const handleRemove = (index) => {
     const newProducts = kbcwProducts.filter((_, i) => i !== index);
     setKbcwProducts(newProducts);
@@ -201,18 +207,21 @@ function AddKbcw({ kbcwProducts, setKbcwProducts, onKbcwPriceChange }) {
                 fullWidth
               />
             </Grid>
+
             <Grid item xs={4}>
               <TextField
+                type="number"
                 label="Quantity"
-                value={product.kbcwQuantity || ""}
-                onChange={(e) =>
-                  handleKbcwProductChange(
-                    index,
-                    "kbcwQuantity",
-                    parseInt(e.target.value, 10)
-                  )
-                }
+                variant="outlined"
                 fullWidth
+                value={product.enteredQuantity || ""}
+                onChange={(e) =>
+                  setKbcwProducts((prev) => {
+                    const updatedProducts = [...prev];
+                    updatedProducts[index].enteredQuantity = e.target.value;
+                    return updatedProducts;
+                  })
+                }
               />
             </Grid>
             <Grid item xs={4}>
@@ -261,13 +270,17 @@ function AddKbcw({ kbcwProducts, setKbcwProducts, onKbcwPriceChange }) {
             {/* Display Product Image */}
           </Grid>
           <Box sx={{ display: "flex", justifyContent: "flex-end" }}>
-            <Button
-              variant="contained"
-              color="primary"
-              onClick={() => handleQuantityChange(index)}
-            >
-              Sell
-            </Button>
+           
+              <Button
+                variant="contained"
+                color="primary"
+                onClick={() =>
+                  handleQuantityChange(index, product.enteredQuantity)
+                }
+              >
+                Save
+              </Button>
+         
             <Button
               variant="contained"
               color="error"

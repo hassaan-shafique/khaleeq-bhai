@@ -21,6 +21,8 @@ import {
   Button,
   TextField,
 } from "@mui/material";
+import DeleteIcon from "@mui/icons-material/Delete";
+import EditIcon from "@mui/icons-material/Edit";
 import { db } from "../../../config/Firebase"; // Adjust to your Firebase setup
 import { doc, updateDoc, deleteDoc } from "firebase/firestore"; // Firestore functions
 
@@ -47,6 +49,15 @@ const InventoryList = ({ inventory = [], loading = false }) => {
     setEditableItem({ ...item }); // Clone the item to avoid mutating the original object
     setEditDialogOpen(true);
   };
+  const handleColorChange = (event) => {
+    const { name, value } = event.target;
+
+    // Update the editableItem state with the new color value
+    setEditableItem((prevState) => ({
+      ...prevState,
+      [name]: value, // This will set the color based on input (name is "color")
+    }));
+  };
 
   const handleEditInputChange = (e) => {
     const { name, value } = e.target;
@@ -55,13 +66,15 @@ const InventoryList = ({ inventory = [], loading = false }) => {
 
   const handleSaveEdit = async () => {
     if (editableItem) {
-      const itemRef = doc(db, "inventory", editableItem.id); // Replace 'inventory' with your collection name
+      const itemRef = doc(db, "inventory", editableItem.id); 
       await updateDoc(itemRef, {
         name: editableItem.name,
+        barcode:Number(editableItem.barcode),
         price: Number(editableItem.price),
         quantity: Number(editableItem.quantity),
         type: editableItem.type,
         size: editableItem.size,
+        color: editableItem.color,
       });
       setEditDialogOpen(false);
     }
@@ -159,32 +172,133 @@ const InventoryList = ({ inventory = [], loading = false }) => {
               component={Paper}
               sx={{ maxHeight: 500, maxWidth: "100%", overflowX: "auto" }}
             >
-              <Table>
+              <Table stickyHeader>
                 <TableHead>
                   <TableRow>
-                    <TableCell>Inventory ID</TableCell>
-                    <TableCell>Image</TableCell>
-                    <TableCell>Barcode</TableCell>
-                    <TableCell>Type</TableCell>
-                    <TableCell>Name</TableCell>
-                    <TableCell>Price</TableCell>
-                    <TableCell>Quantity</TableCell>
-                    <TableCell>Actions</TableCell>
+                    <TableCell
+                      sx={{
+                        backgroundColor: "#1976d2", // Primary color
+                        color: "white",
+                        fontWeight: "bold",
+                        fontSize: "16px",
+                      }}
+                    >
+                      Sr.No
+                    </TableCell>
+                    <TableCell
+                      sx={{
+                        backgroundColor: "#1976d2",
+                        color: "white",
+                        fontWeight: "bold",
+                        fontSize: "16px",
+                      }}
+                    >
+                      Image
+                    </TableCell>
+
+                    <TableCell
+                      sx={{
+                        backgroundColor: "#1976d2",
+                        color: "white",
+                        fontWeight: "bold",
+                        fontSize: "16px",
+                      }}
+                    >
+                      Barcode
+                    </TableCell>
+                    <TableCell
+                      sx={{
+                        backgroundColor: "#1976d2",
+                        color: "white",
+                        fontWeight: "bold",
+                        fontSize: "16px",
+                      }}
+                    >
+                      Type
+                    </TableCell>
+                    <TableCell
+                      sx={{
+                        backgroundColor: "#1976d2",
+                        color: "white",
+                        fontWeight: "bold",
+                        fontSize: "16px",
+                      }}
+                    >
+                      Name
+                    </TableCell>
+                    <TableCell
+                      sx={{
+                        backgroundColor: "#1976d2",
+                        color: "white",
+                        fontWeight: "bold",
+                        fontSize: "16px",
+                      }}
+                    >
+                      Price
+                    </TableCell>
+                    <TableCell
+                      sx={{
+                        backgroundColor: "#1976d2",
+                        color: "white",
+                        fontWeight: "bold",
+                        fontSize: "16px",
+                      }}
+                    >
+                      Quantity
+                    </TableCell>
+                    <TableCell
+                      sx={{
+                        backgroundColor: "#1976d2",
+                        color: "white",
+                        fontWeight: "bold",
+                        fontSize: "16px",
+                      }}
+                    >
+                      Color
+                    </TableCell>
+                    <TableCell
+                      sx={{
+                        backgroundColor: "#1976d2",
+                        color: "white",
+                        fontWeight: "bold",
+                        fontSize: "16px",
+                      }}
+                    >
+                      Actions
+                    </TableCell>
                   </TableRow>
                 </TableHead>
                 <TableBody>
                   {filteredInventory.map((item, i) => (
                     <TableRow key={item.id}>
-                      <TableCell>{i + 1}</TableCell>
-                      <TableCell>
+                      <TableCell
+                        sx={{
+                          backgroundColor: "#1976d2",
+                          fontWeight: "bold",
+                          textAlign: "center",
+                          color: "#333",
+
+                          borderRight: "1px solid #ccc", // Separate columns with border
+                        }}
+                      >
+                        {i + 1}
+                      </TableCell>
+
+                      <TableCell
+                        sx={{
+                          borderRight: "1px solid #ccc",
+                          backgroundColor: "#deeff5",
+                        }}
+                      >
                         {item.image ? (
                           <img
                             src={item.image}
                             alt={`Image ${i + 1}`}
                             style={{
-                              width: "100px",
+                              width: "150px",
                               height: "100px",
                               cursor: "pointer",
+                              border: "2px #1976d2 solid",
                             }}
                             onClick={() => handleImageClick(item.image)}
                           />
@@ -192,20 +306,82 @@ const InventoryList = ({ inventory = [], loading = false }) => {
                           "No Image"
                         )}
                       </TableCell>
-                      <TableCell>{item.barcode}</TableCell>
-                      <TableCell>{item.type}</TableCell>
-                      <TableCell>{item.name}</TableCell>
-                      <TableCell>Rs.{item.price}</TableCell>
-                      <TableCell>{item.quantity}</TableCell>
-                      <TableCell>
+
+                      <TableCell
+                        sx={{
+                          borderRight: "1px solid #ccc",
+                          backgroundColor: "#deeff5",
+                        }}
+                      >
+                        {item.barcode}
+                      </TableCell>
+                      <TableCell
+                        sx={{
+                          borderRight: "1px solid #ccc",
+                          backgroundColor: "#deeff5",
+                        }}
+                      >
+                        {item.type}
+                      </TableCell>
+                      <TableCell
+                        sx={{
+                          borderRight: "1px solid #ccc",
+                          backgroundColor: "#deeff5",
+                        }}
+                      >
+                        {item.name}
+                      </TableCell>
+                      <TableCell
+                        sx={{
+                          borderRight: "1px solid #ccc",
+                          backgroundColor: "#deeff5",
+                        }}
+                      >
+                        Rs.{item.price}
+                      </TableCell>
+                      <TableCell
+                        sx={{
+                          borderRight: "1px solid #ccc",
+                          backgroundColor: "#deeff5",
+                        }}
+                      >
+                        {item.quantity}
+                      </TableCell>
+
+                      <TableCell
+                        sx={{
+                          borderRight: "1px solid #ccc",
+                          backgroundColor: "#deeff5",
+                          display: "flex", // Flexbox to center content
+                          justifyContent: "center", // Horizontally center
+                          alignItems: "center", // Vertically center
+                          
+                        }}
+                      >
+                        <div
+                          style={{
+                            width: "98px",
+                            height: "100px",
+                            backgroundColor: item.color,
+                            
+                          }}
+                          title={item.color}
+                        ></div>
+                      </TableCell>
+
+                      <TableCell
+                        sx={{
+                          backgroundColor: "#deeff5",
+                        }}
+                      >
                         <Button onClick={() => openEditDialog(item)}>
-                          Edit
+                          <EditIcon />
                         </Button>
                         <Button
                           color="error"
                           onClick={() => handleDeleteItem(item.id)}
                         >
-                          Delete
+                          <DeleteIcon />
                         </Button>
                       </TableCell>
                     </TableRow>
@@ -240,6 +416,14 @@ const InventoryList = ({ inventory = [], loading = false }) => {
           >
             <DialogTitle>Edit Inventory Item</DialogTitle>
             <DialogContent>
+              <TextField
+                label="Barcode"
+                name="barcode"
+                value={editableItem?.barcode || ""}
+                onChange={handleEditInputChange}
+                fullWidth
+                margin="dense"
+              />
               <TextField
                 label="Name"
                 name="name"
@@ -279,6 +463,24 @@ const InventoryList = ({ inventory = [], loading = false }) => {
                 name="size"
                 value={editableItem?.size || ""}
                 onChange={handleEditInputChange}
+                fullWidth
+                margin="dense"
+              />
+              <TextField
+                label="Pick Color"
+                name="color"
+                type="color"
+                value={editableItem?.color || "#000000"}
+                onChange={handleColorChange}
+                fullWidth
+                margin="dense"
+              />
+
+              <TextField
+                label="Color Name"
+                name="color"
+                value={editableItem?.color || ""}
+                onChange={handleColorChange}
                 fullWidth
                 margin="dense"
               />

@@ -13,101 +13,122 @@ import "react-datepicker/dist/react-datepicker.css";
 import {useEffect,useState} from  'react';
 import { getDocs,doc } from "firebase/firestore";
 import { db } from "../../../../../config/Firebase";
+import {
+  
+ 
+  updateDoc,
+  query,
+  where,
+  collection,
+} from "firebase/firestore";
 
 const AddGlasses = ({
   glassesProducts,
   setGlassesProducts,
   onGlassesPriceChange,
-
 }) => {
-  const [totalGlassesPrice, setTotalGlassesPrice] = useState();
+  const [totalGlassesPrice, setTotalGlassesPrice] = useState(0);
 
-  // const handleGlassesProductChange = (index, field, value) => {
-  //   const newProducts = [...glassesProducts];
-  //   newProducts[index][field] = value;
-  //   setGlassesProducts(newProducts);
-  // };
- const handleGlassesProductChange = (index, field, value) => {
-   const updatedProducts = [...glassesProducts];
-   updatedProducts[index][field] = value;
-   setGlassesProducts(updatedProducts);
 
-   // If either glassesNumber or glassesType changes, fetch product data
-   if (field === "glassesNumber" || field === "glassesType") {
-     const glassesNumber = updatedProducts[index].glassesNumber;
-     const glassesType = updatedProducts[index].glassesType;
-     if (glassesNumber && glassesType) {
-       fetchGlassesData(glassesNumber, glassesType, index);
+   const handleGlassesProductChange = (index, field, value) => {
+     const updatedProducts = [...glassesProducts];
+     updatedProducts[index][field] = value;
+     setGlassesProducts(updatedProducts);
+
+     if (field === "glassesNumber") {
+       fetchProductData(value, index);
      }
-   }
 
-   // Optionally, handle quantity changes similarly
-   if (field === "glassesQuantity") {
-     handleQuantityChange(index, value); // Define this function if needed
-   }
- };
-
- const fetchGlassesData = async (glassesNumber, glassesType, index) => {
-   try {
-     // Query Firestore with both glassesNumber and glassesType
-     const q = query(
-       collection(db, "glasses"),
-       where("glassesNumber", "==", glassesNumber),
-       where("glassesType", "==", glassesType)
-     );
-     const querySnapshot = await getDocs(q);
-
-     if (!querySnapshot.empty) {
-       const productDoc = querySnapshot.docs[0];
-       const productData = productDoc.data();
-
-       // Update product fields in the form
-       const updatedProducts = [...glassesProducts];
-       updatedProducts[index] = {
-         ...updatedProducts[index],
-         glassesName: productData.name,
-         glassesPrice: productData.price,
-         glassesSize: productData.size,
-         inventoryQuantity: productData.quantity, // Initial inventory quantity
-       };
-       setGlassesProducts(updatedProducts);
-
-       // Decrease inventory quantity in Firestore
-       decrementInventoryQuantity(productDoc.id, productData.quantity);
+     if (field === "glassesQuantity") {
+       handleQuantityChange(index, value);
      }
-   } catch (error) {
-     console.error("Error fetching product data:", error);
-   }
- };
+   };
 
- const decrementInventoryQuantity = async (productId, currentQuantity) => {
-   try {
-     const newQuantity = currentQuantity - 1; // Adjust quantity as needed
-     const productRef = doc(db, "inventory", productId);
-     await updateDoc(productRef, { quantity: newQuantity });
-   } catch (error) {
-     console.error("Error updating inventory quantity:", error);
-   }
- };
+    const fetchProductData = async (number, index) => {
+      if (!number) return;
+
+      try {
+        const q = query(
+          collection(db, "glasses"),
+          where("number", "==", number)
+        );
+        const querySnapshot = await getDocs(q);
+
+        if (!querySnapshot.empty) {
+          const productDoc = querySnapshot.docs[0];
+          const productData = productDoc.data();
+
+          const updatedProducts = [...glassesProducts];
+          updatedProducts[index] = {
+            ...updatedProducts[index],
+            glassesName: productData.name,
+            glassesPrice: productData.price,
+            glassesSize: productData.size,
+            glassesNumber: productData.number,
+            glassesType: productData.type,
+            inventoryQuantity: productData.quantity, // Initial inventory quantity
+          };
+          setGlassesProducts(updatedProducts);
+        }
+      } catch (error) {
+        console.error("Error fetching product:", error);
+      }
+    };
+
+  const handleQuantityChange = async (index, enteredQuantity) => {
+    const product = glassesProducts[index];
+    const remainingQuantity = product.inventoryQuantity - enteredQuantity;
+
+    if (remainingQuantity <= 0) {
+      alert("Insufficient stock in inventory");
+      return;
+    }
+
+    const updatedProducts = [...glassesProducts];
+    updatedProducts[index].inventoryQuantity = remainingQuantity;
+    setGlassesProducts(updatedProducts);
+
+    // Update inventory quantity in Firestore
+    try {
+      const q = query(
+        collection(db, "glasses"),
+        where("number", "==", product.glassesNumber)
+      );
+      const querySnapshot = await getDocs(q);
+
+      if (!querySnapshot.empty) {
+        const productDocRef = doc(db, "glasses", querySnapshot.docs[0].id);
+        await updateDoc(productDocRef, { quantity: remainingQuantity });
+      }
+    } catch (error) {
+      console.error("Error updating inventory quantity:", error);
+    }
+  };
+
+
+
 
   const handleRemove = (index) => {
     const newProducts = glassesProducts.filter((_, i) => i !== index);
     setGlassesProducts(newProducts);
   };
+
   const handleDateChange = (date, key, index) => {
-    const updatedProducts = [...glassesProducts]; // Create a copy of the products array
+    const updatedProducts = [...glassesProducts];
     updatedProducts[index] = {
       ...updatedProducts[index],
-      [key]: date, // Update the specific date field
+      [key]: date,
     };
-    setGlassesProducts(updatedProducts); // Update the state with new values
+    setGlassesProducts(updatedProducts);
   };
+
   useEffect(() => {
     const totalGlassesPrice = glassesProducts.reduce((total, product) => {
       const price = parseFloat(product.glassesPrice) || 0;
       return total + price;
     }, 0);
-    onGlassesPriceChange(totalGlassesPrice); // Pass total up
+    setTotalGlassesPrice(totalGlassesPrice);
+    onGlassesPriceChange(totalGlassesPrice);
   }, [glassesProducts, onGlassesPriceChange]);
 
   return (
@@ -188,16 +209,18 @@ const AddGlasses = ({
             </Grid>
             <Grid item xs={4}>
               <TextField
+                type="number"
                 label="Quantity"
-                value={glassesProducts.glassesQuantity || ""}
-                onChange={(e) =>
-                  handleGlassesProductChange(
-                    index,
-                    "glassesQuantity",
-                    e.target.value
-                  )
-                }
+                variant="outlined"
                 fullWidth
+                value={glassesProducts.enteredQuantity || ""}
+                onChange={(e) =>
+                  setGlassesProducts((prev) => {
+                    const updatedProducts = [...prev];
+                    updatedProducts[index].enteredQuantity = e.target.value;
+                    return updatedProducts;
+                  })
+                }
               />
             </Grid>
             <Grid item xs={4}>
@@ -263,9 +286,11 @@ const AddGlasses = ({
             <Button
               variant="contained"
               color="primary"
-              onClick={() => decrementInventoryQuantity(index)}
+              onClick={() =>
+                handleQuantityChange(index, glassesProducts.enteredQuantity)
+              }
             >
-              Sell
+              Save
             </Button>
             <Button
               variant="contained"

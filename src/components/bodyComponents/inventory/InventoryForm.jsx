@@ -39,6 +39,7 @@ const InventoryForm = ({ setRefresh }) => {
     size: "",
     type: "",
     name: "",
+    color:"",
     selectedDate: new Date(),
   });
   const [image, setImage] = useState(null);
@@ -191,7 +192,6 @@ const InventoryForm = ({ setRefresh }) => {
                 capture="camera" // Open the camera directly
                 style={{ display: "none" }}
                 onChange={handleImageChange}
-                
               />
             </Box>
             {errors.image && (
@@ -260,6 +260,14 @@ const InventoryForm = ({ setRefresh }) => {
               required
               error={Boolean(errors.quantity)}
               helperText={errors.quantity}
+            />
+            <TextField
+              label="Color"
+              name="color"
+              value={value.color}
+              onChange={handleInputChange}
+              fullWidth
+              margin="normal"
             />
             <TextField
               label="Size"
