@@ -109,7 +109,14 @@ const EditGlassDialog = ({
             </Grid>
             <Grid item xs={4}>
               <DatePicker
-                selected={editGlassProduct.glassesDeliveredDate}
+                selected={
+                  editGlassProduct.glassesDeliveredDate &&
+                  !isNaN(
+                    new Date(editGlassProduct.glassesDeliveredDate).getTime()
+                  )
+                    ? new Date(editGlassProduct.glassesDeliveredDate)
+                    : null
+                }
                 onChange={(date) =>
                   handleDateChange(date, "glassesDeliveredDate")
                 }
@@ -124,13 +131,13 @@ const EditGlassDialog = ({
                         backgroundColor: "#f9f9f9",
                       },
                       "& .MuiOutlinedInput-notchedOutline": {
-                        borderColor: "#black",
+                        borderColor: "#000",
                       },
                       "&:hover .MuiOutlinedInput-notchedOutline": {
-                        borderColor: "#black",
+                        borderColor: "#000",
                       },
                       "& .Mui-focused .MuiOutlinedInput-notchedOutline": {
-                        borderColor: "#black",
+                        borderColor: "#000",
                       },
                     }}
                   />

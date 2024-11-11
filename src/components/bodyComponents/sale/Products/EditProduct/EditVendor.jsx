@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React from "react";
 import {
   TextField,
   Box,
@@ -8,7 +8,6 @@ import {
   DialogTitle,
   DialogContent,
   DialogActions,
-  
 } from "@mui/material";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
@@ -21,15 +20,11 @@ const EditVendorDialog = ({
   onSubmit = () => {},
 }) => {
   const handleVendorProductChange = (field, value) => {
-    const newProduct = { ...editVendorProduct };
-    newProduct[field] = value;
-    setEditVendorProduct(newProduct);
+    setEditVendorProduct((prev) => ({ ...prev, [field]: value }));
   };
 
   const handleDateChange = (date, key) => {
-    const newProduct = { ...editVendorProduct };
-    newProduct[key] = date;
-    setEditVendorProduct(newProduct);
+    setEditVendorProduct((prev) => ({ ...prev, [key]: date }));
   };
 
   return (
@@ -41,13 +36,9 @@ const EditVendorDialog = ({
             <Grid item xs={4}>
               <TextField
                 label="Order Number"
-                value={editVendorProduct.orderNumber}
+                value={editVendorProduct.orderNumber || ""}
                 onChange={(e) =>
-                  handleVendorProductChange(
-                    index,
-                    "orderNumber",
-                    e.target.value
-                  )
+                  handleVendorProductChange("orderNumber", e.target.value)
                 }
                 fullWidth
               />
@@ -55,9 +46,9 @@ const EditVendorDialog = ({
             <Grid item xs={4}>
               <TextField
                 label="Vendor Name"
-                value={editVendorProduct.vendorName}
+                value={editVendorProduct.vendorName || ""}
                 onChange={(e) =>
-                  handleVendorProductChange(index, "vendorName", e.target.value)
+                  handleVendorProductChange("vendorName", e.target.value)
                 }
                 fullWidth
               />
@@ -65,9 +56,9 @@ const EditVendorDialog = ({
             <Grid item xs={4}>
               <TextField
                 label="Quantity"
-                value={editVendorProduct.quantity}
+                value={editVendorProduct.quantity || ""}
                 onChange={(e) =>
-                  handleVendorProductChange(index, "quantity", e.target.value)
+                  handleVendorProductChange("quantity", e.target.value)
                 }
                 fullWidth
               />
@@ -75,13 +66,9 @@ const EditVendorDialog = ({
             <Grid item xs={4}>
               <TextField
                 label="Borrowed Branch"
-                value={editVendorProduct.borrowedBranch}
+                value={editVendorProduct.borrowedBranch || ""}
                 onChange={(e) =>
-                  handleVendorProductChange(
-                    index,
-                    "borrowedBranch",
-                    e.target.value
-                  )
+                  handleVendorProductChange("borrowedBranch", e.target.value)
                 }
                 fullWidth
               />
@@ -89,28 +76,19 @@ const EditVendorDialog = ({
             <Grid item xs={4}>
               <TextField
                 label="Item Number"
-                value={editVendorProduct.vendorGlassNumber}
+                value={editVendorProduct.vendorGlassNumber || ""}
                 onChange={(e) =>
-                  handleVendorProductChange(
-                    index,
-                    "vendorGlassNumber",
-                    e.target.value
-                  )
+                  handleVendorProductChange("vendorGlassNumber", e.target.value)
                 }
                 fullWidth
               />
             </Grid>
-
             <Grid item xs={4}>
               <TextField
                 label="Item Type"
-                value={editVendorProduct.vendorItemType}
+                value={editVendorProduct.vendorItemType || ""}
                 onChange={(e) =>
-                  handleVendorProductChange(
-                    index,
-                    "vendorItemType",
-                    e.target.value
-                  )
+                  handleVendorProductChange("vendorItemType", e.target.value)
                 }
                 fullWidth
               />
@@ -118,22 +96,23 @@ const EditVendorDialog = ({
             <Grid item xs={4}>
               <TextField
                 label="Price"
-                value={editVendorProduct.vendorPrice}
+                value={editVendorProduct.vendorPrice || ""}
                 onChange={(e) =>
-                  handleVendorProductChange(
-                    index,
-                    "vendorPrice",
-                    e.target.value
-                  )
+                  handleVendorProductChange("vendorPrice", e.target.value)
                 }
                 fullWidth
               />
             </Grid>
             <Grid item xs={4}>
               <DatePicker
-                selected={editVendorProduct.vendorDeliveredDate}
+                selected={
+                  editVendorProduct.vendorDeliveredDate &&
+                  !isNaN(Date.parse(editVendorProduct.vendorDeliveredDate))
+                    ? new Date(editVendorProduct.vendorDeliveredDate)
+                    : null
+                }
                 onChange={(date) =>
-                  handleDateChange(date, "vendorDeliveredDate", index)
+                  handleDateChange(date, "vendorDeliveredDate")
                 }
                 customInput={
                   <TextField
@@ -146,22 +125,22 @@ const EditVendorDialog = ({
                         backgroundColor: "#f9f9f9",
                       },
                       "& .MuiOutlinedInput-notchedOutline": {
-                        borderColor: "#black",
+                        borderColor: "#000",
                       },
                       "&:hover .MuiOutlinedInput-notchedOutline": {
-                        borderColor: "#black",
+                        borderColor: "#000",
                       },
                       "& .Mui-focused .MuiOutlinedInput-notchedOutline": {
-                        borderColor: "#black",
+                        borderColor: "#000",
                       },
                     }}
                   />
                 }
                 placeholderText="Select Delivered Date"
-                className="datepicker"
-                style={{ width: "100%" }}
               />
             </Grid>
+
+          
           </Grid>
         </Box>
       </DialogContent>

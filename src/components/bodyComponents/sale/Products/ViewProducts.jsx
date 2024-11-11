@@ -31,6 +31,9 @@ const ViewProducts = () => {
   const [salesData, setSalesData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
+  const [editGlassDialogOpen, setEditGlassDialogOpen] = useState(false);
+  const [editKbcwDialogOpen, setEditKbcwDialogOpen] = useState(false);
+  const [editVendorDialogOpen, setEditVendorDialogOpen] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState(null);
 
   const [glassesProducts, setGlassesProducts] = useState([]);
@@ -111,30 +114,73 @@ const ViewProducts = () => {
   const totalSalesAmount =
     totalGlassesAmount + totalKBCWAmount + totalVendorAmount;
 
-  const handleEditClick = (product, productType) => {
+  const handleKbcwEditClick = (product, productType) => {
     setEditGlassProduct(product);
     setEditKbcwProduct(product);
     setEditVendorProduct(product);
-    setEditDialogOpen(true);
-  };
+  
+    
+    setEditKbcwDialogOpen(true);
+   
 
-  const handleDeleteClick = async (product, productType) => {
-    try {
-      const updatedSalesData = { ...salesData };
-      updatedSalesData[productType] = updatedSalesData[productType].filter(
-        (item) => item !== product
+  };
+   const handleGlassEditClick = (product, productType) => {
+     setEditGlassProduct(product);
+     setEditKbcwProduct(product);
+     setEditVendorProduct(product);
+
+     setEditGlassDialogOpen(true);
+     
+   };
+    const handleVendorEditClick = (product, productType) => {
+      setEditGlassProduct(product);
+      setEditKbcwProduct(product);
+      setEditVendorProduct(product);
+
+      
+      setEditVendorDialogOpen(true);
+    };
+
+const handleDeleteClick = async (product, productType) => {
+  try {
+    console.log("Current sales data:", salesData); // Log the sales data to check its structure
+    console.log("Trying to delete product type:", productType); // Log the product type being passed
+
+    // Check if the productType exists in the sales data
+    if (!salesData[productType]) {
+      console.error(
+        `Product type "${productType}" does not exist in sales data.`
       );
-
-      // Update the sales data in Firestore
-      const saleDocRef = doc(db, "sales", id);
-      await updateDoc(saleDocRef, updatedSalesData);
-
-      setSalesData(updatedSalesData);
-    } catch (error) {
-      console.error("Error deleting product:", error);
-      // Handle error, e.g., show an error message to the user
+      return;
     }
-  };
+
+    // Filter out the specific product using its unique identifier (e.g., product.id)
+    const updatedProducts = salesData[productType].filter(
+      (item) => item.id !== product.id
+    );
+
+    // Update the sales data with the filtered list of products
+    const updatedSalesData = {
+      ...salesData,
+      [productType]: updatedProducts,
+    };
+
+    // Update the Firestore document with the new sales data
+    const saleDocRef = doc(db, "sales", id);
+    await updateDoc(saleDocRef, { [productType]: updatedProducts });
+
+    // Update the state with the new sales data
+    setSalesData(updatedSalesData);
+  } catch (error) {
+    console.error("Error deleting product:", error);
+  }
+};
+
+
+
+
+
+
 
   const handleSaveProduct = async () => {
     try {
@@ -320,11 +366,12 @@ const ViewProducts = () => {
                 <TableCell>{product.kbcwName}</TableCell>
                 <TableCell>{product.kbcwQuantity}</TableCell>
                 <TableCell>{product.kbcwPrice}</TableCell>
-                <TableCell>{formatDate(product.vendorDeliveredDate)}</TableCell>
+
+                <TableCell>{formatDate(product.kbcwDeliveredDate)}</TableCell>
                 <TableCell>
-                  <Button onClick={() => handleEditClick(product)}>Edit</Button>
+                  <Button onClick={() => handleKbcwEditClick(product)}>Edit</Button>
                   <Button
-                    onClick={() => handleDeleteClick(product)}
+                    onClick={() => handleDeleteClick(product ,"kbcwProducts" )}
                     color="error"
                   >
                     Delete
@@ -338,7 +385,7 @@ const ViewProducts = () => {
           variant="h6"
           style={{ fontWeight: "bold", color: "#3f51b5", marginBottom: "1rem" }}
         >
-          Total Amount:
+          Total Amount For KBCW Products:
           <span
             style={{ fontWeight: "bold", color: "black", marginLeft: "8px" }}
           >
@@ -376,7 +423,7 @@ const ViewProducts = () => {
                 </TableCell>
                 <TableCell>
                   <Button
-                    onClick={() => handleEditClick(product, "kbcwProducts")}
+                    onClick={() => handleGlassEditClick(product )}
                   >
                     Edit
                   </Button>
@@ -395,7 +442,7 @@ const ViewProducts = () => {
           variant="h6"
           style={{ fontWeight: "bold", color: "#3f51b5", marginBottom: "1rem" }}
         >
-          Total Amount:
+          Total Amount For Glasses Products:
           <span
             style={{ fontWeight: "bold", color: "black", marginLeft: "8px" }}
           >
@@ -434,9 +481,9 @@ const ViewProducts = () => {
                 <TableCell>{product.VendorItemName}</TableCell>
                 <TableCell>{formatDate(product.vendorDeliveredDate)}</TableCell>
                 <TableCell>
-                  <Button onClick={() => handleEditClick(product)}>Edit</Button>
+                  <Button onClick={() => handleVendorEditClick(product)}>Edit</Button>
                   <Button
-                    onClick={() => handleDeleteClick(product)}
+                    onClick={() => handleDeleteClick(product )}
                     color="error"
                   >
                     Delete
@@ -450,7 +497,7 @@ const ViewProducts = () => {
           variant="h6"
           style={{ fontWeight: "bold", color: "#3f51b5", marginBottom: "1rem" }}
         >
-          Total Amount:
+          Total Amount For Vendor Amount:
           <span
             style={{ fontWeight: "bold", color: "black", marginLeft: "8px" }}
           >
@@ -510,40 +557,38 @@ const ViewProducts = () => {
                 align="center"
                 sx={{ padding: "10px", fontSize: "15px" }}
               >
-               Rs: {salesData.advance}
+                Rs: {salesData.advance}
               </TableCell>
               <TableCell
                 align="center"
                 sx={{ padding: "10px", fontSize: "15px" }}
               >
-               Rs: {salesData.pendingAmount}
+                Rs: {salesData.pendingAmount}
               </TableCell>
             </TableRow>
           </TableBody>
         </Table>
       </TableContainer>
 
-      
-
       <EditGlassDialog
         editGlassProduct={editGlassProduct}
         setEditGlassProduct={setEditGlassProduct}
-        open={editDialogOpen}
-        onClose={() => setEditDialogOpen(false)}
+        open={editGlassDialogOpen}
+        onClose={() => setEditGlassDialogOpen(false)}
         onSubmit={handleEditGlassesSubmit}
       />
       <EditKbcwDialog
         editKbcwProduct={editKbcwProduct}
         setEditKbcwProduct={setEditKbcwProduct}
-        open={editDialogOpen}
-        onClose={() => setEditDialogOpen(false)}
+        open={editKbcwDialogOpen}
+        onClose={() => setEditKbcwDialogOpen(false)}
         onSubmit={handleEditKbcwSubmit}
       />
       <EditVendorDialog
         editVendorProduct={editVendorProduct}
         setEditVendorProduct={setEditVendorProduct}
-        open={editDialogOpen}
-        onClose={() => setEditDialogOpen(false)}
+        open={editVendorDialogOpen}
+        onClose={() => setEditVendorDialogOpen(false)}
         onSubmit={handleEditVendorSubmit}
       />
     </div>

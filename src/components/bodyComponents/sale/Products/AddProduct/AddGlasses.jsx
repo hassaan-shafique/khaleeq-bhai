@@ -93,6 +93,7 @@ const AddGlasses = ({
       const q = query(
         collection(db, "glasses"),
         where("number", "==", product.glassesNumber)
+      
       );
       const querySnapshot = await getDocs(q);
 

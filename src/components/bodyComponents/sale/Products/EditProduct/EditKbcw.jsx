@@ -115,7 +115,12 @@ const EditKbcwDialog = ({
             </Grid>
             <Grid item xs={4}>
               <DatePicker
-                selected={editKbcwProduct.kbcwDeliveredDate}
+                selected={
+                  editKbcwProduct.kbcwDeliveredDate &&
+                  !isNaN(new Date(editKbcwProduct.kbcwDeliveredDate).getTime())
+                    ? new Date(editKbcwProduct.kbcwDeliveredDate)
+                    : null
+                }
                 onChange={(date) =>
                   handleDateChange(date, "kbcwDeliveredDate", index)
                 }
@@ -130,13 +135,13 @@ const EditKbcwDialog = ({
                         backgroundColor: "#f9f9f9",
                       },
                       "& .MuiOutlinedInput-notchedOutline": {
-                        borderColor: "#black",
+                        borderColor: "#000",
                       },
                       "&:hover .MuiOutlinedInput-notchedOutline": {
-                        borderColor: "#black",
+                        borderColor: "#000",
                       },
                       "& .Mui-focused .MuiOutlinedInput-notchedOutline": {
-                        borderColor: "#black",
+                        borderColor: "#000",
                       },
                     }}
                   />
