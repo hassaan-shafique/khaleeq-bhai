@@ -129,18 +129,48 @@ const handleSubmit = async (e) => {
   try {
     const expensesCollectionRef = collection(db, "sales");
 
-    value.kbcwProducts = kbcwProducts;
-    value.glassesProducts = glassesProducts;
-    value.vendorProducts = vendorProducts;
+    // Ensure product arrays are defined
+    value.kbcwProducts = Array.isArray(value.kbcwProducts)
+      ? value.kbcwProducts
+      : [];
+    value.glassesProducts = Array.isArray(value.glassesProducts)
+      ? value.glassesProducts
+      : [];
+    value.vendorProducts = Array.isArray(value.vendorProducts)
+      ? value.vendorProducts
+      : [];
 
-    // Ensure discount is captured in the submitted data
+    // Convert dates to Firebase timestamps within each product array
+    const convertDatesToTimestamps = (productsArray) => {
+      return productsArray.map((product) => ({
+        ...product,
+        deliveredDate: product.deliveredDate
+          ? Timestamp.fromDate(new Date(product.deliveredDate))
+          : null,
+      }));
+    };
+
+    // Update `value` with cleaned data
+    value.kbcwProducts = convertDatesToTimestamps(value.kbcwProducts);
+    value.glassesProducts = convertDatesToTimestamps(value.glassesProducts);
+    value.vendorProducts = convertDatesToTimestamps(value.vendorProducts);
+
+    // Log to check the final structure of `value`
+    console.log(
+      "Value being added to Firestore:",
+      JSON.stringify(value, null, 2)
+    );
+
+    // Add the document to Firestore
     await addDoc(expensesCollectionRef, value);
-
     setOpen(false);
   } catch (error) {
-    console.error("Error adding document: ", error);
+    console.error("Error adding document:", error);
   }
 };
+
+
+
 
   const handleToggleFields = () => {
     setShowFields((prev) => !prev);

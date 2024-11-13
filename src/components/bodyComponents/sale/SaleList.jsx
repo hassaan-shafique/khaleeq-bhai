@@ -247,6 +247,9 @@ const SaleList = ({ sales = [], loading = false, setRefresh }) => {
                     {/* <TableCell sx={{ fontWeight: "bold" }}>Source</TableCell>
                     <TableCell sx={{ fontWeight: "bold" }}>Barcode</TableCell> */}
                     <TableCell sx={{ fontWeight: "bold" }}>
+                     Order No
+                    </TableCell>
+                    <TableCell sx={{ fontWeight: "bold" }}>
                       Customer Name
                     </TableCell>
                     <TableCell sx={{ fontWeight: "bold" }}>Contact</TableCell>
@@ -267,7 +270,9 @@ const SaleList = ({ sales = [], loading = false, setRefresh }) => {
                     </TableCell> */}
                     <TableCell sx={{ fontWeight: "bold" }}>Status</TableCell>
                     <TableCell sx={{ fontWeight: "bold" }}>Actions</TableCell>
-                    <TableCell sx={{ fontWeight: "bold" }}>view Details</TableCell>
+                    <TableCell sx={{ fontWeight: "bold" }}>
+                      view Details
+                    </TableCell>
                   </TableRow>
                 </TableHead>
                 <TableBody>
@@ -291,6 +296,7 @@ const SaleList = ({ sales = [], loading = false, setRefresh }) => {
                       </TableCell>
                       {/* <TableCell>{sale.source}</TableCell>
                       <TableCell>{sale.barcode}</TableCell> */}
+                      <TableCell>{sale.orderNo}</TableCell>
                       <TableCell>{sale.customerName}</TableCell>
                       <TableCell>{sale.contactNo}</TableCell>
 
