@@ -9,8 +9,14 @@ import {
   Button,
   Typography,
   Avatar,
+  FormControl,
+  MenuItem,
+  InputLabel,
+  Select,
 } from "@mui/material";
 import Logo from "../../public/khurshid-Bhai-logo-png.png"; // Ensure this path is correct
+import { setDoc ,doc} from "firebase/firestore";
+import { db } from "../config/Firebase";
 
 const auth = getAuth(app);
 
@@ -19,17 +25,35 @@ const Signup = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [message, setMessage] = useState(null);
+  const [role, setRole] =useState("");
   const navigate = useNavigate();
+
+  const handleRoleChange = (event) => {
+    setRole(event.target.value);
+    console.log("Selected Role:", event.target.value);
+  };
 
   const signupUser = async (e) => {
     e.preventDefault();
 
+     if (!email.endsWith("@kbcwoptics.com")) {
+       alert("Only @kbcwoptics.com emails are allowed.");
+       return;
+     }
+
     try {
       const userCredential = await createUserWithEmailAndPassword(
         auth,
+       
         email,
         password
       );
+      const user =userCredential.user;
+      await setDoc(doc(db,"users" ,user.uid),{
+        name,
+        email,
+        role,
+      })
       console.log("User signed up successfully:", userCredential.user);
       setMessage("Registered Successfully!");
       setName("");
@@ -101,6 +125,21 @@ const Signup = () => {
               {message}
             </Typography>
           )}
+
+          <FormControl sx={{ width: "40%", mt: 1 , ml: 60 }}>
+            <InputLabel id="role-select-label">Role</InputLabel>
+            <Select
+              labelId="role-select-label"
+              id="role-select"
+              value={role}
+              name="role"
+              onChange={handleRoleChange}
+              label="Role"
+            >
+              <MenuItem value="admin">Admin</MenuItem>
+              <MenuItem value="employee">Employee</MenuItem>
+            </Select>
+          </FormControl>
           <Button
             type="submit"
             fullWidth

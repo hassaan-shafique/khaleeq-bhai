@@ -18,6 +18,10 @@ TableHead,
 TableRow,
 TableCell,
 TableBody,
+FormControl,
+InputLabel,
+Select,
+MenuItem,
 } from "@mui/material";
 import { useMemo } from "react";
 
@@ -41,31 +45,32 @@ const SalesForm = () => {
     endDate: "",
     DeliveredDate: "",
     instruction: "",
-    leSph:"",
-    leCyl:"",
-    leAxis:"",
-    leAdd:"",
-    leIpd:"",
-    reSph:"",
-    reCyl:"",
-    reAxis:"",
-    reAdd:"",
-    reIpd:"",
+    leSph: "",
+    leCyl: "",
+    leAxis: "",
+    leAdd: "",
+    leIpd: "",
+    reSph: "",
+    reCyl: "",
+    reAxis: "",
+    reAdd: "",
+    reIpd: "",
     status: "Pending",
     totalAmount: "",
+    payment: "Cash",
     pendingAmount: "",
     advance: "",
-    discount: "" ,
+    discount: "",
+  
   });
 
   const [open, setOpen] = useState(false);
     const [showFields, setShowFields] = useState(false);
 
  const [vendorProducts, setVendorProducts] = useState([]);
-
   const [kbcwProducts, setKbcwProducts] = useState([]);
-
   const [glassesProducts, setGlassesProducts] = useState([]);
+
   const [refresh ,setRefresh] = useState (false);
 
      const [totalVendorPrice, setTotalVendorPrice] = useState(0);
@@ -126,48 +131,91 @@ const SalesForm = () => {
 
 const handleSubmit = async (e) => {
   e.preventDefault();
+  console.log({
+    kbcwProducts ,glassesProducts, vendorProducts
+  })
   try {
-    const expensesCollectionRef = collection(db, "sales");
+    // Log the initial value to see if products are present
+    console.log("Initial value before any processing:", value);
 
-    // Ensure product arrays are defined
-    value.kbcwProducts = Array.isArray(value.kbcwProducts)
-      ? value.kbcwProducts
-      : [];
-    value.glassesProducts = Array.isArray(value.glassesProducts)
-      ? value.glassesProducts
-      : [];
-    value.vendorProducts = Array.isArray(value.vendorProducts)
-      ? value.vendorProducts
-      : [];
+    // Reference to the sales collection
+    const salesCollectionRef = collection(db, "sales");
 
-    // Convert dates to Firebase timestamps within each product array
-    const convertDatesToTimestamps = (productsArray) => {
-      return productsArray.map((product) => ({
-        ...product,
-        deliveredDate: product.deliveredDate
-          ? Timestamp.fromDate(new Date(product.deliveredDate))
-          : null,
-      }));
-    };
+    // Ensure product arrays are defined and empty arrays if not provided
+    value.kbcwProducts = kbcwProducts
+    value.glassesProducts = glassesProducts
+    value.vendorProducts = vendorProducts
+     
 
-    // Update `value` with cleaned data
-    value.kbcwProducts = convertDatesToTimestamps(value.kbcwProducts);
-    value.glassesProducts = convertDatesToTimestamps(value.glassesProducts);
-    value.vendorProducts = convertDatesToTimestamps(value.vendorProducts);
+    // // Convert dates to Firebase timestamps within each product array
+    // const convertDatesToTimestamps = (productsArray) => {
+    //   return productsArray.map((product) => ({
+    //     ...product,
+    //     deliveredDate:
+    //       product.deliveredDate && !isNaN(new Date(product.deliveredDate))
+    //         ? Timestamp.fromDate(new Date(product.deliveredDate))
+    //         : null,
+    //   }));
+    // };
 
-    // Log to check the final structure of `value`
-    console.log(
-      "Value being added to Firestore:",
-      JSON.stringify(value, null, 2)
-    );
+    // Update product arrays with cleaned data
+    // value.kbcwProducts = convertDatesToTimestamps(value.kbcwProducts);
+    // value.glassesProducts = convertDatesToTimestamps(value.glassesProducts);
+    // value.vendorProducts = convertDatesToTimestamps(value.vendorProducts);
 
-    // Add the document to Firestore
-    await addDoc(expensesCollectionRef, value);
+    // Log the cleaned data for debugging
+    // console.log(
+    //   "Value after converting dates to timestamps:",
+    //   JSON.stringify(value, null, 2)
+    // );
+
+    // Add the sale to Firestore
+    const saleDocRef = await addDoc(salesCollectionRef, value);
+    console.log("Sale successfully added with ID:", saleDocRef.id);
+
+    // Function to submit products to their respective collections
+    // const submitProducts = async (productsArray, collectionName) => {
+    //   if (productsArray.length > 0) {
+    //     console.log(`Submitting ${collectionName} products:`, productsArray); // Log products before submission
+    //     const productsCollectionRef = collection(db, collectionName);
+    //     const promises = productsArray.map(async (product) => {
+    //       const productData = {
+    //         ...product,
+    //         saleId: saleDocRef.id, // Link the product to the sale
+    //       };
+    //       await addDoc(productsCollectionRef, productData);
+    //     });
+
+    //     await Promise.all(promises); // Wait for all product additions to finish
+    //     console.log(`${collectionName} products added successfully.`);
+    //   } else {
+    //     console.log(`No products to add in ${collectionName}`);
+    //   }
+    // };
+
+    // Submit all product arrays and log data before submission
+    // console.log("KBCW Products before submission:", value.kbcwProducts);
+    // await submitProducts(kbcwProducts, "kbcwProducts");
+
+    // console.log("Glasses Products before submission:", value.glassesProducts);
+    // await submitProducts(glassesProducts, "glassesProducts");
+
+    // console.log("Vendor Products before submission:", value.vendorProducts);
+    // await submitProducts(vendorProducts, "vendorProducts");
+
+    // Reset or close modal after success
     setOpen(false);
   } catch (error) {
-    console.error("Error adding document:", error);
+    console.error("Error submitting sale or products:", error.message);
   }
 };
+
+
+
+
+
+
+
 
 
 
@@ -177,7 +225,9 @@ const handleSubmit = async (e) => {
   };
 
   const handleAddVendorProducts = () => {
-    setVendorProducts([...vendorProducts,  {
+    setVendorProducts((prev) => [
+      ...prev,
+      {
         orderNumber: "",
         vendorName: "",
         quantity: "",
@@ -185,32 +235,40 @@ const handleSubmit = async (e) => {
         vendorPrice: "",
         vendorItemType: "",
         vendorGlassNumber: "",
-        vendorDeliveredDate:"",
-    }])
-  }
-  const handleAddGlassesProducts= () => {
-    setGlassesProducts([...glassesProducts,{
-       glassesBarcode: "", 
-       glassesType: "", 
-       glassesName: "",
-        glassesSize: "",
-         glassesNumber: "",
-          glassesQuantity: "", 
-          glassesDeliveredDate: "",
-           glassesPrice: "",
+        vendorDeliveredDate: "",
+      },
+    ]);
+  };
 
-    }])
-  }
+  const handleAddGlassesProducts = () => {
+    setGlassesProducts((prev) => [
+      ...prev,
+      {
+        glassesBarcode: "",
+        glassesType: "",
+        glassesName: "",
+        glassesSize: "",
+        glassesNumber: "",
+        glassesQuantity: "",
+        glassesDeliveredDate: "",
+        glassesPrice: "",
+      },
+    ]);
+  };
+
   const handleAddKbcwProducts = () => {
-    setKbcwProducts([...kbcwProducts, {
-       kbcwInventoryType: "",
-         kbcwBarcode: "", 
-         kbcwName: "", 
-         kbcwQuantity: "",
-          kbcwSize: "", 
-          kbcwPrice: "",
-          kbcwDeliveredDate:"",
-        }]);
+    setKbcwProducts((prev) => [
+      ...prev,
+      {
+        kbcwInventoryType: "",
+        kbcwBarcode: "",
+        kbcwName: "",
+        kbcwQuantity: "",
+        kbcwSize: "",
+        kbcwPrice: "",
+        kbcwDeliveredDate: "",
+      },
+    ]);
   };
 
   return (
@@ -429,7 +487,7 @@ const handleSubmit = async (e) => {
                         <TableCell>LE</TableCell>
                         <TableCell>
                           <TextField
-                            type="number"
+                            type="text"
                             name="leSph"
                             value={value.leSph}
                             onChange={handleChange}
@@ -438,7 +496,7 @@ const handleSubmit = async (e) => {
                         </TableCell>
                         <TableCell>
                           <TextField
-                            type="number"
+                            type="text"
                             name="leCyl"
                             value={value.leCyl}
                             onChange={handleChange}
@@ -447,7 +505,7 @@ const handleSubmit = async (e) => {
                         </TableCell>
                         <TableCell>
                           <TextField
-                            type="number"
+                            type="text"
                             name="leAxis"
                             value={value.leAxis}
                             onChange={handleChange}
@@ -456,7 +514,7 @@ const handleSubmit = async (e) => {
                         </TableCell>
                         <TableCell>
                           <TextField
-                            type="number"
+                            type="text"
                             name="leAdd"
                             value={value.leAdd}
                             onChange={handleChange}
@@ -465,7 +523,7 @@ const handleSubmit = async (e) => {
                         </TableCell>
                         <TableCell>
                           <TextField
-                            type="number"
+                            type="text"
                             name="leIpd"
                             value={value.leIpd}
                             onChange={handleChange}
@@ -479,7 +537,7 @@ const handleSubmit = async (e) => {
                         <TableCell>RE</TableCell>
                         <TableCell>
                           <TextField
-                            type="number"
+                            type="text"
                             name="reSph"
                             value={value.reSph}
                             onChange={handleChange}
@@ -488,7 +546,7 @@ const handleSubmit = async (e) => {
                         </TableCell>
                         <TableCell>
                           <TextField
-                            type="number"
+                            type="text"
                             name="reCyl"
                             value={value.reCyl}
                             onChange={handleChange}
@@ -497,7 +555,7 @@ const handleSubmit = async (e) => {
                         </TableCell>
                         <TableCell>
                           <TextField
-                            type="number"
+                            type="text"
                             name="reAxis"
                             value={value.reAxis}
                             onChange={handleChange}
@@ -506,7 +564,7 @@ const handleSubmit = async (e) => {
                         </TableCell>
                         <TableCell>
                           <TextField
-                            type="number"
+                            type="text"
                             name="reAdd"
                             value={value.reAdd}
                             onChange={handleChange}
@@ -515,7 +573,7 @@ const handleSubmit = async (e) => {
                         </TableCell>
                         <TableCell>
                           <TextField
-                            type="number"
+                            type="text"
                             name="reIpd"
                             value={value.reIpd}
                             onChange={handleChange}
@@ -599,23 +657,17 @@ const handleSubmit = async (e) => {
                 vendorProducts={vendorProducts}
                 setVendorProducts={setVendorProducts}
                 onVendorPriceChange={handleVendorPriceChange}
-               
-
-
-               />
+              />
               <AddGlasses
                 glassesProducts={glassesProducts}
                 setGlassesProducts={setGlassesProducts}
                 onGlassesPriceChange={handleGlassesPriceChange}
-             
               />
               <AddKbcw
                 kbcwProducts={kbcwProducts}
                 setKbcwProducts={setKbcwProducts}
                 onKbcwPriceChange={handleKbcwPriceChange}
-              
               />
-             
 
               <Grid item xs={8}>
                 <TextField
@@ -663,6 +715,28 @@ const handleSubmit = async (e) => {
                   disabled
                 />
               </Grid>
+              <Box sx={{ maxWidth: 300, margin: "20px auto" }}>
+                <Typography variant="h6" mb={2}>
+                  Select Payment Method
+                </Typography>
+                <FormControl fullWidth>
+                  <InputLabel >
+                    Payment Method
+                  </InputLabel>
+                  <Select
+                    value={value.payment}
+                    name="payment"
+                    onChange={handleChange}
+                    label="Payment Method"
+                  >
+                    <MenuItem value="Cash">Cash</MenuItem>
+                    <MenuItem value="Bank">Bank</MenuItem>
+                    <MenuItem value="EasyPaisa">EasyPaisa</MenuItem>
+                    <MenuItem value="JazzCash">JazzCash</MenuItem>
+                  </Select>
+                </FormControl>
+              </Box>
+              
 
               <DialogActions sx={{ marginTop: "50px" }}>
                 <Button onClick={handleClose} color="secondary">

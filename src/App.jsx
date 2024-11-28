@@ -20,6 +20,7 @@ import Expense from "./components/bodyComponents/expense/Expense";
 import Report from "./components/bodyComponents/report/Report";
 import reportExpense from "./components/bodyComponents/report/reportExpense";
 import Vendors from "./components/bodyComponents/Vendors/Vendors";
+import Activity from "./components/bodyComponents/activity/Activity";
 import Sales from "./components/bodyComponents/sale/Sales";
 import ViewProducts from "./components/bodyComponents/sale/Products/ViewProducts";
 import { app } from "./config/Firebase";
@@ -35,7 +36,7 @@ function App() {
   const auth = getAuth(app);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [loading, setLoading] = useState(true);
-
+  const [role, setRole] = useState(""); // Role state to manage user role
   const [expenses, setExpenses] = useState([]);
   const [refresh, setRefresh] = useState(false);
 
@@ -58,15 +59,24 @@ function App() {
     fetchExpenses();
   }, [refresh]);
 
-  // Check authentication state on app load
+  // Check authentication state and user role on app load
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
+    const unsubscribe = onAuthStateChanged(auth, async (user) => {
       setIsAuthenticated(!!user);
       setLoading(false);
+
       if (user) {
         localStorage.setItem("authToken", user.accessToken);
+
+        // Fetch user role from Firestore (or your backend)
+        const userRef = db.collection("users").doc(user.uid); // Assuming you store role in Firestore
+        const userDoc = await userRef.get();
+        if (userDoc.exists) {
+          setRole(userDoc.data().role); // Set role (e.g., 'Admin' or 'Employee')
+        }
       } else {
         localStorage.removeItem("authToken");
+        setRole(""); // Clear role when logged out
       }
     });
 
@@ -156,9 +166,21 @@ function App() {
                 />
               }
             />
-            <Route path="reports" element={<Report expenses={expenses} />} />
-            <Route path="reports/expense" element={<reportExpense />} />
-            <Route path="reports/sale" element={<Sales />} />
+
+            {/* Admin-Only Routes */}
+            {role === "Admin" && (
+              <>
+                <Route
+                  path="reports"
+                  element={<Report expenses={expenses} />}
+                />
+                <Route path="vendors" element={<Vendors />} />
+              </>
+            )}
+
+            {/* Routes accessible by all authenticated users */}
+            <Route path="daily-activity" element={<Activity />} />
+            <Route path="reports" element={<Report />} />
             <Route path="vendors" element={<Vendors />} />
           </Route>
         </Routes>

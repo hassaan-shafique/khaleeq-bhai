@@ -2,6 +2,8 @@ import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { getAuth, signInWithEmailAndPassword } from "firebase/auth";
 import { app } from "../config/Firebase";
+import { getDoc, doc } from "firebase/firestore"; // To fetch role from Firestore
+import { db } from "../config/Firebase";
 import {
   Container,
   Box,
@@ -21,27 +23,49 @@ const Login = () => {
 
   const navigate = useNavigate();
 
-  const handleLogin = async (e) => {
-    e.preventDefault();
-    setError(""); // Clear any previous error
+ const handleLogin = async (e) => {
+   e.preventDefault();
+   setError(""); // Clear any previous error
 
-    try {
-      const userCredential = await signInWithEmailAndPassword(
-        auth,
-        email,
-        password
-      );
-      console.log("Successfully logged in:", userCredential.user);
-      const token = await userCredential.user.getIdToken();
-      localStorage.setItem("authToken", token);
-      setEmail("");
-      setPassword("");
-      navigate("/inventory");
-    } catch (error) {
-      console.error("Error logging in:", error);
-      setError("Incorrect Email or Password");
-    }
-  };
+   try {
+     // Authenticate user
+     const userCredential = await signInWithEmailAndPassword(
+       auth,
+       email,
+       password
+     );
+     console.log("Successfully logged in:", userCredential.user);
+
+     // Get user role from Firestore
+     const userId = userCredential.user.uid; // Logged-in user's UID
+     const userDocRef = doc(db, "users", userId); // Reference to Firestore document
+     const userDoc = await getDoc(userDocRef); // Fetch document
+
+     if (userDoc.exists()) {
+       const userData = userDoc.data();
+       const userRole = userData.role; // Assuming 'role' is stored in Firestore
+
+       console.log("User role:", userRole);
+
+       // Store user role in localStorage or context for use in the app
+       localStorage.setItem("userRole", userRole);
+
+       // Navigate to the common dashboard or home page
+       navigate("/sales");
+     } else {
+       setError("User role not found. Please contact the administrator.");
+       console.error("No user document found in Firestore.");
+     }
+
+     // Clear input fields
+     setEmail("");
+     setPassword("");
+   } catch (error) {
+     console.error("Error logging in:", error);
+     setError("Incorrect Email or Password");
+   }
+ };
+
 
   return (
     <Container

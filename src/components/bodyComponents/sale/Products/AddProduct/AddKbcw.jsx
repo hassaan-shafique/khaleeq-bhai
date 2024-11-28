@@ -210,6 +210,7 @@ function AddKbcw({ kbcwProducts, setKbcwProducts, onKbcwPriceChange }) {
 
             <Grid item xs={4}>
               <TextField
+              required
                 type="number"
                 label="Quantity"
                 variant="outlined"

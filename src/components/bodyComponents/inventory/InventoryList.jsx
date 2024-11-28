@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState ,useRef } from "react";
 import {
   Table,
   TableBody,
@@ -22,9 +22,11 @@ import {
   TextField,
 } from "@mui/material";
 import DeleteIcon from "@mui/icons-material/Delete";
+
 import EditIcon from "@mui/icons-material/Edit";
 import { db } from "../../../config/Firebase"; // Adjust to your Firebase setup
 import { doc, updateDoc, deleteDoc } from "firebase/firestore"; // Firestore functions
+import UpdateQuantity from "./updateQuantity";
 
 const InventoryList = ({ inventory = [], loading = false }) => {
   const [selectedType, setSelectedType] = useState("");
@@ -33,6 +35,13 @@ const InventoryList = ({ inventory = [], loading = false }) => {
   const [selectedImage, setSelectedImage] = useState("");
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [editableItem, setEditableItem] = useState(null);
+   const [refresh, setRefresh] = useState(false);
+ 
+  const printRef = useRef(null);
+ 
+ 
+
+    
 
   const handleTypeChange = (event) => setSelectedType(event.target.value);
   const handlePriceRangeChange = (event) =>
@@ -120,6 +129,72 @@ const InventoryList = ({ inventory = [], loading = false }) => {
   });
 
   const inventoryTypes = [...new Set(inventory.map((item) => item.type))];
+const handlePrint = () => {
+  // Clone the printRef content to a new window for printing
+  const printContents = printRef.current.innerHTML;
+  const newWindow = window.open("", "_blank");
+
+  // Write the content to the new window
+  newWindow.document.open();
+  newWindow.document.write(`
+    <!DOCTYPE html>
+    <html>
+      <head>
+        <title>Print</title>
+        <style>
+          /* Ensure the table fits on the page */
+          table {
+            width: 100%;
+            border-collapse: collapse;
+          }
+          th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+          }
+          th {
+            background-color: #f2f2f2;
+          }
+          /* Add styling for large tables */
+          .print-container {
+            overflow: visible !important; /* Ensure all content is visible */
+          }
+          /* Ensure images are visible */
+          img {
+            max-width: 100%;
+            height: auto;
+          }
+        </style>
+      </head>
+      <body>
+        <div class="print-container">
+          ${printContents}
+        </div>
+        <script>
+          // Ensure images are fully loaded before printing
+          const images = document.querySelectorAll('img');
+          const loadPromises = Array.from(images).map(img => {
+            if (!img.complete) {
+              return new Promise(resolve => {
+                img.onload = resolve;
+                img.onerror = resolve;
+              });
+            }
+            return Promise.resolve();
+          });
+
+          Promise.all(loadPromises).then(() => {
+            window.print();
+            window.close();
+          });
+        </script>
+      </body>
+    </html>
+  `);
+  newWindow.document.close();
+};
+
+   
 
   return (
     <Box>
@@ -140,7 +215,6 @@ const InventoryList = ({ inventory = [], loading = false }) => {
               ))}
             </Select>
           </FormControl>
-
           <FormControl fullWidth sx={{ marginBottom: 2 }}>
             <InputLabel>Filter by Price Range</InputLabel>
             <Select
@@ -162,235 +236,256 @@ const InventoryList = ({ inventory = [], loading = false }) => {
               {/* Add other price ranges */}
             </Select>
           </FormControl>
+          <div
+            style={{
+              display: "flex",
+              justifyContent: "flex-start",
+              marginBottom: "1rem",
+              gap: "40rem"
+            }}
+          >
+            <Button variant="contained" color="primary" onClick={handlePrint}>
+              Print Kbcw Inventory
+            </Button>
+
+            <div
+              style={{
+                display: "flex",
+                justifyContent: "flex-end",
+               
+              }}
+            >
+              <UpdateQuantity setRefresh={setRefresh} />
+            </div>
+          </div>
 
           {filteredInventory.length === 0 ? (
             <Typography variant="h6" align="center" sx={{ marginTop: 4 }}>
               No Inventory found....
             </Typography>
           ) : (
-            <TableContainer
-              component={Paper}
-              sx={{ maxHeight: 500, maxWidth: "100%", overflowX: "auto" }}
-            >
-              <Table stickyHeader>
-                <TableHead>
-                  <TableRow>
-                    <TableCell
-                      sx={{
-                        backgroundColor: "#1976d2", // Primary color
-                        color: "white",
-                        fontWeight: "bold",
-                        fontSize: "16px",
-                      }}
-                    >
-                      Sr.No
-                    </TableCell>
-                    <TableCell
-                      sx={{
-                        backgroundColor: "#1976d2",
-                        color: "white",
-                        fontWeight: "bold",
-                        fontSize: "16px",
-                      }}
-                    >
-                      Image
-                    </TableCell>
-
-                    <TableCell
-                      sx={{
-                        backgroundColor: "#1976d2",
-                        color: "white",
-                        fontWeight: "bold",
-                        fontSize: "16px",
-                      }}
-                    >
-                      Barcode
-                    </TableCell>
-                    <TableCell
-                      sx={{
-                        backgroundColor: "#1976d2",
-                        color: "white",
-                        fontWeight: "bold",
-                        fontSize: "16px",
-                      }}
-                    >
-                      Type
-                    </TableCell>
-                    <TableCell
-                      sx={{
-                        backgroundColor: "#1976d2",
-                        color: "white",
-                        fontWeight: "bold",
-                        fontSize: "16px",
-                      }}
-                    >
-                      Name
-                    </TableCell>
-                    <TableCell
-                      sx={{
-                        backgroundColor: "#1976d2",
-                        color: "white",
-                        fontWeight: "bold",
-                        fontSize: "16px",
-                      }}
-                    >
-                      Price
-                    </TableCell>
-                    <TableCell
-                      sx={{
-                        backgroundColor: "#1976d2",
-                        color: "white",
-                        fontWeight: "bold",
-                        fontSize: "16px",
-                      }}
-                    >
-                      Quantity
-                    </TableCell>
-                    <TableCell
-                      sx={{
-                        backgroundColor: "#1976d2",
-                        color: "white",
-                        fontWeight: "bold",
-                        fontSize: "16px",
-                      }}
-                    >
-                      Color
-                    </TableCell>
-                    <TableCell
-                      sx={{
-                        backgroundColor: "#1976d2",
-                        color: "white",
-                        fontWeight: "bold",
-                        fontSize: "16px",
-                      }}
-                    >
-                      Actions
-                    </TableCell>
-                  </TableRow>
-                </TableHead>
-                <TableBody>
-                  {filteredInventory.map((item, i) => (
-                    <TableRow key={item.id}>
+            <div ref={printRef}>
+              <TableContainer
+                component={Paper}
+                sx={{ maxHeight: 500, maxWidth: "100%", overflowX: "auto" }}
+              >
+                <Table stickyHeader>
+                  <TableHead>
+                    <TableRow>
+                      <TableCell
+                        sx={{
+                          backgroundColor: "#1976d2", // Primary color
+                          color: "white",
+                          fontWeight: "bold",
+                          fontSize: "16px",
+                        }}
+                      >
+                        Sr.No
+                      </TableCell>
                       <TableCell
                         sx={{
                           backgroundColor: "#1976d2",
+                          color: "white",
                           fontWeight: "bold",
-                          textAlign: "center",
-                          color: "#333",
-
-                          borderRight: "1px solid #ccc", // Separate columns with border
+                          fontSize: "16px",
                         }}
                       >
-                        {i + 1}
+                        Image
                       </TableCell>
 
                       <TableCell
                         sx={{
-                          borderRight: "1px solid #ccc",
-                          backgroundColor: "#deeff5",
+                          backgroundColor: "#1976d2",
+                          color: "white",
+                          fontWeight: "bold",
+                          fontSize: "16px",
                         }}
                       >
-                        {item.image ? (
-                          <img
-                            src={item.image}
-                            alt={`Image ${i + 1}`}
-                            style={{
-                              width: "150px",
-                              height: "100px",
-                              cursor: "pointer",
-                              border: "2px #1976d2 solid",
-                            }}
-                            onClick={() => handleImageClick(item.image)}
-                          />
-                        ) : (
-                          "No Image"
-                        )}
-                      </TableCell>
-
-                      <TableCell
-                        sx={{
-                          borderRight: "1px solid #ccc",
-                          backgroundColor: "#deeff5",
-                        }}
-                      >
-                        {item.barcode}
+                        Barcode
                       </TableCell>
                       <TableCell
                         sx={{
-                          borderRight: "1px solid #ccc",
-                          backgroundColor: "#deeff5",
+                          backgroundColor: "#1976d2",
+                          color: "white",
+                          fontWeight: "bold",
+                          fontSize: "16px",
                         }}
                       >
-                        {item.type}
+                        Type
                       </TableCell>
                       <TableCell
                         sx={{
-                          borderRight: "1px solid #ccc",
-                          backgroundColor: "#deeff5",
+                          backgroundColor: "#1976d2",
+                          color: "white",
+                          fontWeight: "bold",
+                          fontSize: "16px",
                         }}
                       >
-                        {item.name}
+                        Name
                       </TableCell>
                       <TableCell
                         sx={{
-                          borderRight: "1px solid #ccc",
-                          backgroundColor: "#deeff5",
+                          backgroundColor: "#1976d2",
+                          color: "white",
+                          fontWeight: "bold",
+                          fontSize: "16px",
                         }}
                       >
-                        Rs.{item.price}
+                        Price
                       </TableCell>
                       <TableCell
                         sx={{
-                          borderRight: "1px solid #ccc",
-                          backgroundColor: "#deeff5",
+                          backgroundColor: "#1976d2",
+                          color: "white",
+                          fontWeight: "bold",
+                          fontSize: "16px",
                         }}
                       >
-                        {item.quantity}
+                        Quantity
                       </TableCell>
-
                       <TableCell
                         sx={{
-                          borderRight: "1px solid #ccc",
-                          backgroundColor: "#deeff5",
-                          display: "flex", // Flexbox to center content
-                          justifyContent: "center", // Horizontally center
-                          alignItems: "center", // Vertically center
-                          
+                          backgroundColor: "#1976d2",
+                          color: "white",
+                          fontWeight: "bold",
+                          fontSize: "16px",
                         }}
                       >
-                        <div
-                          style={{
-                            width: "98px",
-                            height: "100px",
-                            backgroundColor: item.color,
-                            
-                          }}
-                          title={item.color}
-                        ></div>
+                        Color
                       </TableCell>
-
                       <TableCell
                         sx={{
-                          backgroundColor: "#deeff5",
+                          backgroundColor: "#1976d2",
+                          color: "white",
+                          fontWeight: "bold",
+                          fontSize: "16px",
                         }}
                       >
-                        <Button onClick={() => openEditDialog(item)}>
-                          <EditIcon />
-                        </Button>
-                        <Button
-                          color="error"
-                          onClick={() => handleDeleteItem(item.id)}
-                        >
-                          <DeleteIcon />
-                        </Button>
+                        Actions
                       </TableCell>
                     </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </TableContainer>
-          )}
+                  </TableHead>
+                  <TableBody>
+                    {filteredInventory.map((item, i) => (
+                      <TableRow key={item.id}>
+                        <TableCell
+                          sx={{
+                            backgroundColor: "#1976d2",
+                            fontWeight: "bold",
+                            textAlign: "center",
+                            color: "#333",
 
+                            borderRight: "1px solid #ccc", // Separate columns with border
+                          }}
+                        >
+                          {i + 1}
+                        </TableCell>
+
+                        <TableCell
+                          sx={{
+                            borderRight: "1px solid #ccc",
+                            backgroundColor: "#deeff5",
+                          }}
+                        >
+                          {item.image ? (
+                            <img
+                              src={item.image}
+                              alt={`Image ${i + 1}`}
+                              style={{
+                                width: "150px",
+                                height: "100px",
+                                cursor: "pointer",
+                                border: "2px #1976d2 solid",
+                              }}
+                              onClick={() => handleImageClick(item.image)}
+                            />
+                          ) : (
+                            "No Image"
+                          )}
+                        </TableCell>
+
+                        <TableCell
+                          sx={{
+                            borderRight: "1px solid #ccc",
+                            backgroundColor: "#deeff5",
+                          }}
+                        >
+                          {item.barcode}
+                        </TableCell>
+                        <TableCell
+                          sx={{
+                            borderRight: "1px solid #ccc",
+                            backgroundColor: "#deeff5",
+                          }}
+                        >
+                          {item.type}
+                        </TableCell>
+                        <TableCell
+                          sx={{
+                            borderRight: "1px solid #ccc",
+                            backgroundColor: "#deeff5",
+                          }}
+                        >
+                          {item.name}
+                        </TableCell>
+                        <TableCell
+                          sx={{
+                            borderRight: "1px solid #ccc",
+                            backgroundColor: "#deeff5",
+                          }}
+                        >
+                          Rs.{item.price}
+                        </TableCell>
+                        <TableCell
+                          sx={{
+                            borderRight: "1px solid #ccc",
+                            backgroundColor: "#deeff5",
+                          }}
+                        >
+                          {item.quantity}
+                        </TableCell>
+
+                        <TableCell
+                          sx={{
+                            borderRight: "1px solid #ccc",
+                            backgroundColor: "#deeff5",
+                            display: "flex", // Flexbox to center content
+                            justifyContent: "center", // Horizontally center
+                            alignItems: "center", // Vertically center
+                          }}
+                        >
+                          <div
+                            style={{
+                              width: "98px",
+                              height: "100px",
+                              backgroundColor: item.color,
+                            }}
+                            title={item.color}
+                          ></div>
+                        </TableCell>
+
+                        <TableCell
+                          sx={{
+                            backgroundColor: "#deeff5",
+                          }}
+                        >
+                          <Button onClick={() => openEditDialog(item)}>
+                            <EditIcon />
+                          </Button>
+                          <Button
+                            color="error"
+                            onClick={() => handleDeleteItem(item.id)}
+                          >
+                            <DeleteIcon />
+                          </Button>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </TableContainer>
+            </div>
+          )}
           {/* Image Preview Dialog */}
           <Dialog open={openDialog} onClose={handleCloseDialog} maxWidth="md">
             <DialogTitle>Image Preview</DialogTitle>
@@ -407,7 +502,6 @@ const InventoryList = ({ inventory = [], loading = false }) => {
               </Button>
             </DialogActions>
           </Dialog>
-
           {/* Edit Item Dialog */}
           <Dialog
             open={editDialogOpen}

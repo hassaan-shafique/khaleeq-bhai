@@ -10,17 +10,14 @@ import {
   Box,
 } from "@mui/material";
 import {
-  
   Inventory2Outlined,
   SettingsOutlined,
   DescriptionOutlined,
   MonetizationOnOutlined,
   CardTravelOutlined,
   TrendingUpOutlined,
-  PeopleAltOutlined,
- 
 } from "@mui/icons-material";
-import { Link, NavLink, useLocation, useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 
 export default function SideBarComponent() {
   const navigate = useNavigate();
@@ -29,14 +26,8 @@ export default function SideBarComponent() {
   };
   const location = useLocation();
   const currentPage = location.pathname;
-  console.log(currentPage);
-  // const styles = theme => ({
-  //     listItemText:{
-  //         fontSize:'0.7em',//Insert your required size
-  //     }
-  //     });
+
   const sideBarComponent = [
-    
     {
       title: "Inventory",
       component: <Inventory2Outlined fontSize="medium" color="primary" />,
@@ -45,14 +36,17 @@ export default function SideBarComponent() {
       title: "Sales",
       component: <CardTravelOutlined fontSize="medium" color="primary" />,
     },
-    
     {
       title: "Glasses",
       component: <MonetizationOnOutlined fontSize="medium" color="primary" />,
     },
-     {
+    {
       title: "Vendors",
       component: <SettingsOutlined fontSize="medium" color="primary" />,
+    },
+    {
+      title: "Daily-Activity",
+      component: <TrendingUpOutlined fontSize="medium" color="primary" />,
     },
     {
       title: "Expense",
@@ -62,24 +56,38 @@ export default function SideBarComponent() {
       title: "Reports",
       component: <DescriptionOutlined fontSize="medium" color="primary" />,
     },
-   
   ];
+
   const [selected, setSelected] = useState(0);
+
   const handlSelectedComponent = (event, index) => {
     setSelected(index);
   };
+
   return (
-    <>
+    <Box
+      sx={{
+        position: "fixed", // Fixed position on the left
+        top: "60px", // Adjust this value to position the sidebar below the navbar
+        left: 0,
+        width: "230px", // Sidebar width
+        height: "calc(100vh - 60px)", // Full height minus the height of the navbar
+        backgroundColor: "#3884e7 ", // Sidebar background color
+        padding: 1,
+        zIndex: 10000,
+        borderTopRightRadius: "10px", // Top left corner
+        borderBottomRightRadius: "10px", // Bottom right corner// Make sure the sidebar stays on top of content
+      }}
+    >
       <List>
         {sideBarComponent.map((comp, index) => (
-          <ListItem disablePadding dense={true} key={index}>
+          <ListItem disablePadding dense key={index}>
             <Box width="100%">
               <ListItemButton
                 onClick={(event) => {
                   handlSelectedComponent(event, index);
                   navigateTo(comp.title.toLocaleLowerCase());
                 }}
-                // selected={}
                 selected={
                   index === selected &&
                   currentPage === "/" + comp.title.toLowerCase()
@@ -88,48 +96,27 @@ export default function SideBarComponent() {
                   mb: 3,
                   borderLeft: 0,
                   borderColor: "primary.main",
-                  ml: 1,
+                  backgroundColor:
+                    index === selected ? "darkblue" : "transparent", // Highlight selected item
                 }}
               >
                 <ListItemIcon>
                   <IconButton>{comp.component}</IconButton>
                 </ListItemIcon>
-                {/* <Link
-                  to={"" + comp.title.toLocaleLowerCase()}
-                  className="router-link"
-                > */}
+
                 <ListItemText
                   primary={comp.title}
                   primaryTypographyProps={{
-                    fontSize: "medium",
+                    fontSize: "large",
                     fontWeight: selected === index ? "bold" : "",
-                    color: selected === index ? "primary.main" : "inherit",
+                    color: "white", // Make text white for all items
                   }}
                 />
-                {/* </Link> */}
               </ListItemButton>
             </Box>
           </ListItem>
         ))}
       </List>
-      {/* <Snackbar open={open} autoHideDuration={6000} onClose={handleClose}>
-        <Alert onClose={handleClose} severity="success" sx={{ width: '100%' }}>
-          This is a success message!
-        </Alert>
-      </Snackbar> */}
-    </>
+    </Box>
   );
-    // const [open, setOpen] = React.useState(false);
-
-    // const handleClick = () => {
-    //   setOpen(true);
-    // };
-
-    // const handleClose = (event, reason) => {
-    //   if (reason === 'clickaway') {
-    //     return;
-    //   }
-
-    //   setOpen(false);
-    // };
 }

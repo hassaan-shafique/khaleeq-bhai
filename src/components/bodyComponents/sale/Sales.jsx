@@ -38,7 +38,7 @@ const Sales = () => {
   }, [refresh]);
 
   return (
-    <Box sx={{ width: "99%" }}>
+    <Box sx={{ width: "99%", marginTop: 6 }}>
       <Grid container sx={{ mx: 3, p: 3, width: "99%" }}>
         <Grid item md={12}>
           <Box
@@ -67,7 +67,7 @@ const Sales = () => {
             {!loading && !error && (
               <>
                 <SalesForm setRefresh={setRefresh} />
-                <SaleList sales={sales} />
+                <SaleList refresh={refresh} sales={sales} />
               </>
             )}
           </Box>

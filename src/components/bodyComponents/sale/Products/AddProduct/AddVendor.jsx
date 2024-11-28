@@ -15,6 +15,8 @@ const AddVendor = ({ vendorProducts, setVendorProducts,onVendorPriceChange}) => 
 
   const [totalVendorPrice,setTotalVendorPrice] =useState()
 
+
+
   const handleVendorProductChange = (index, field, value) => {
     const newProducts = [...vendorProducts];
     newProducts[index][field] = value;
@@ -77,6 +79,7 @@ const AddVendor = ({ vendorProducts, setVendorProducts,onVendorPriceChange}) => 
             </Grid>
             <Grid item xs={4}>
               <TextField
+              required
                 label="Quantity"
                 value={vendorProducts.quantity}
                 onChange={(e) =>

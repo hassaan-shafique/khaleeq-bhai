@@ -1,5 +1,5 @@
 
-import React, { useState } from "react";
+import React, { useState, useRef } from "react";
 import {
   Table,
   TableBody,
@@ -22,8 +22,12 @@ import {
   FormControlLabel,
   Radio,
   IconButton,
-
+FormControl,
+InputLabel,
+Select,
+MenuItem,
 } from "@mui/material";
+import { createTheme, ThemeProvider } from "@mui/material/styles";
 import { Timestamp } from "firebase/firestore";
 
 import DeleteIcon from "@mui/icons-material/Delete";
@@ -37,6 +41,9 @@ import AddInstallment from "./Installments/addInstallment";
 import ViewInstallment from "./Installments/viewInstallments";
 import { useNavigate } from "react-router-dom";
 
+
+
+
 // Helper function to format Firestore timestamp
 const formatTimestamp = (timestamp) => {
   if (timestamp instanceof Timestamp) {
@@ -49,20 +56,115 @@ const formatTimestamp = (timestamp) => {
 };
 
 
-const SaleList = ({ sales = [], loading = false, setRefresh }) => {
+const SaleList = ({ sales = [], loading = false, refresh }) => {
   const [open, setOpen] = useState(false);
   const [DSale, setDSale] = useState(null);
   const [salesData, setSalesData] = useState(sales); // Local sales state
   const [editOpen, setEditOpen] = useState(false);
-  const [editSale, setEditSale] = useState(new Date()); 
-  
+  const [editSale, setEditSale] = useState(new Date());
+
   const [showFields, setShowFields] = useState(false);
-  const [selectedSaleId, setSelectedSaleId] = useState(null)
-  const [installmentDialogOpen, setInstallmentDialogOpen] = useState(false)
-  const [installmentViewDialogOpen, setInstallmentViewDialogOpen] = useState(false);
+  const [selectedSaleId, setSelectedSaleId] = useState(null);
+  const [installmentDialogOpen, setInstallmentDialogOpen] = useState(false);
+  const [installmentViewDialogOpen, setInstallmentViewDialogOpen] =
+    useState(false);
+  const [searchSalesman, setSearchSalesman] = React.useState("");
+  const [searchContact, setSearchContact] = React.useState("");
+  const [searchCustomer, setSearchCustomer] = React.useState("");
+  const [searchOrder, setSearchOrder] =React.useState("");
+  const [statusFilter ,setStatusFilter] =React.useState("All");
 
-  const navigate = useNavigate()
 
+  const navigate = useNavigate();
+
+  const printRef = useRef(null);
+
+  const filteredSalesData = salesData.filter((sale) => {
+    const matchesSalesman = sale.salesman
+      .toLowerCase()
+      .includes(searchSalesman.toLowerCase());
+    const matchesContact = sale.contactNo
+      .toLowerCase()
+      .includes(searchContact.toLowerCase());
+    const matchesCustomer = sale.customerName
+      .toLowerCase()
+      .includes(searchCustomer.toLowerCase());
+const matchesOrder = sale.orderNo
+  .toLowerCase()
+  .includes(searchOrder.toLowerCase());
+   const matchesStatus =
+     statusFilter === "All" ||
+     sale.status.toLowerCase() === statusFilter.toLowerCase();
+  
+
+    return (
+      matchesSalesman && matchesContact && matchesCustomer && matchesOrder && matchesStatus
+    );
+  });
+
+  const handlePrint = () => {
+    // Clone the printRef content to a new window for printing
+    const printContents = printRef.current.innerHTML;
+    const newWindow = window.open("", "_blank");
+
+    // Write the content to the new window
+    newWindow.document.open();
+    newWindow.document.write(`
+    <!DOCTYPE html>
+    <html>
+      <head>
+        <title>Print</title>
+        <style>
+          /* Ensure the table fits on the page */
+          table {
+            width: 100%;
+            border-collapse: collapse;
+          }
+          th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+          }
+          th {
+            background-color: #f2f2f2;
+          }
+          /* Add styling for large tables */
+          .print-container {
+            overflow: visible !important; /* Ensure all content is visible */
+          }
+        </style>
+      </head>
+      <body>
+        <div class="print-container">
+          ${printContents}
+        </div>
+      </body>
+    </html>
+  `);
+    newWindow.document.close();
+    newWindow.print();
+    newWindow.close();
+  };
+
+  const theme = createTheme({
+    components: {
+      MuiTableCell: {
+        styleOverrides: {
+          root: {
+            padding: "3px",
+            fontSize: "0.875rem", // Smaller font size
+          },
+        },
+      },
+      MuiTableRow: {
+        styleOverrides: {
+          root: {
+            height: "20px", // Smaller row height
+          },
+        },
+      },
+    },
+  });
 
   // Open dialog with sale details
   const handleOpenDialog = (sale) => {
@@ -138,7 +240,6 @@ const SaleList = ({ sales = [], loading = false, setRefresh }) => {
     setEditSale(null);
   };
 
-
   // Save edited sale
   const handleSaveEdit = async () => {
     if (!editSale) return;
@@ -174,7 +275,7 @@ const SaleList = ({ sales = [], loading = false, setRefresh }) => {
   const updatePendingAmount = async (saleId, installmentAmount) => {
     const saleDocRef = doc(db, "sales", saleId);
     let currentSaleData = salesData.filter((sale) => sale.id === saleId)[0];
-    const newPendingAmount = currentSaleData.pendingAmount - installmentAmount
+    const newPendingAmount = currentSaleData.pendingAmount - installmentAmount;
     currentSaleData.pendingAmount = newPendingAmount;
     try {
       await updateDoc(saleDocRef, currentSaleData);
@@ -182,10 +283,73 @@ const SaleList = ({ sales = [], loading = false, setRefresh }) => {
       console.error("Error updating sale:", error);
       alert(`Error updating sale: ${error.message}`);
     }
-  }
-
+  };
+ const userRole= localStorage.getItem("userRole")
   return (
     <Box>
+    {userRole == "admin" &&(
+      <Box
+        sx={{
+          display: "flex",
+          flexDirection: "row",
+          gap: 2,
+          marginBottom: "1rem",
+        }}
+      >
+        <FormControl >
+          <InputLabel>Sale Status</InputLabel>
+          <Select
+            value={statusFilter}
+            onChange={(e) => setStatusFilter(e.target.value)}
+            label="Sale Status"
+          >
+            <MenuItem value="All">All Sales</MenuItem>
+            <MenuItem value="Pending">Pending</MenuItem>
+            <MenuItem value="Completed">Completed</MenuItem>
+          </Select>
+        </FormControl>
+        <TextField
+          label="Search by OrderNo"
+          variant="outlined"
+          value={searchOrder}
+          onChange={(e) => setSearchOrder(e.target.value)}
+          sx={{ maxWidth: "300px" }}
+        />
+        <TextField
+          label="Search by Salesman"
+          variant="outlined"
+          value={searchSalesman}
+          onChange={(e) => setSearchSalesman(e.target.value)}
+          sx={{ maxWidth: "300px" }}
+        />
+        <TextField
+          label="Search by Contact No"
+          variant="outlined"
+          value={searchContact}
+          onChange={(e) => setSearchContact(e.target.value)}
+          sx={{ maxWidth: "300px" }}
+        />
+        <TextField
+          label="Search by Customer Name"
+          variant="outlined"
+          value={searchCustomer}
+          onChange={(e) => setSearchCustomer(e.target.value)}
+          sx={{ maxWidth: "300px" }}
+        />
+      </Box>
+    )}
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "flex-start",
+          marginBottom: "1rem",
+        }}
+      >
+        <Button variant="contained" color="primary" onClick={handlePrint}>
+          Print Sale Information
+        </Button>
+      </div>
+
       {loading ? (
         <Box
           sx={{
@@ -200,207 +364,238 @@ const SaleList = ({ sales = [], loading = false, setRefresh }) => {
         </Box>
       ) : (
         <>
-          {salesData.length === 0 ? (
+          {filteredSalesData.length === 0 ? (
             <Typography variant="h6" align="center" sx={{ marginTop: 4 }}>
               No Sales found....
             </Typography>
           ) : (
-            <TableContainer
-              component={Paper}
-              sx={{
-                maxWidth: "100%",
-                height: "76vh", // Set a fixed height or adjust as necessary
-                overflowY: "auto", // Enables vertical scrolling
-                overflowX: "auto", // Prevents horizontal scrolling
-                "&::-webkit-scrollbar": {
-                  width: "10px", // Width of the vertical scrollbar
-                  height: "10px", // Height of the horizontal scrollbar
-                },
-                "&::-webkit-scrollbar-track": {
-                  backgroundColor: "#f0f0f0", // Track color
-                  borderRadius: "10px", // Rounded track
-                },
-                "&::-webkit-scrollbar-thumb": {
-                  backgroundColor: "#888", // Scrollbar thumb color
-                  borderRadius: "10px", // Rounded thumb
-                  border: "2px solid #f0f0f0", // Adds spacing around the thumb
-                  "&:hover": {
-                    backgroundColor: "#555", // Darker on hover
-                  },
-                },
-              }}
-            >
-              {/* Listing Table */}
-              <Table stickyHeader>
-                <TableHead>
-                  <TableRow>
-                    <TableCell sx={{ fontWeight: "bold" }}>Sale ID</TableCell>
-                    <TableCell sx={{ fontWeight: "bold" }}>
-                      Order Date
-                    </TableCell>
-                    <TableCell sx={{ fontWeight: "bold" }}>
-                      Delivery Date
-                    </TableCell>
-                    <TableCell sx={{ fontWeight: "bold" }}>
-                      Delivered Date
-                    </TableCell>
-                    {/* <TableCell sx={{ fontWeight: "bold" }}>Source</TableCell>
+            <ThemeProvider theme={theme}>
+              <div ref={printRef}>
+                <TableContainer
+                  component={Paper}
+                  sx={{
+                    maxWidth: "100%",
+                    height: "76vh", // Set a fixed height or adjust as necessary
+                    overflowY: "auto", // Enables vertical scrolling
+                    overflowX: "auto", // Prevents horizontal scrolling
+                    "&::-webkit-scrollbar": {
+                      width: "10px", // Width of the vertical scrollbar
+                      height: "10px", // Height of the horizontal scrollbar
+                    },
+                    "&::-webkit-scrollbar-track": {
+                      backgroundColor: "#f0f0f0", // Track color
+                      borderRadius: "10px", // Rounded track
+                    },
+                    "&::-webkit-scrollbar-thumb": {
+                      backgroundColor: "#888", // Scrollbar thumb color
+                      borderRadius: "10px", // Rounded thumb
+                      border: "2px solid #f0f0f0", // Adds spacing around the thumb
+                      "&:hover": {
+                        backgroundColor: "#555", // Darker on hover
+                      },
+                    },
+                  }}
+                >
+                  {/* Listing Table */}
+                  <Table stickyHeader>
+                    <TableHead>
+                      <TableRow sx={{ height: "40px" }}>
+                        <TableCell sx={{ fontWeight: "bold" }}>
+                          Sale ID
+                        </TableCell>
+                        <TableCell sx={{ fontWeight: "bold" }}>
+                          Order Date
+                        </TableCell>
+                        <TableCell sx={{ fontWeight: "bold" }}>
+                          Delivery Date
+                        </TableCell>
+                        <TableCell sx={{ fontWeight: "bold" }}>
+                          Delivered Date
+                        </TableCell>
+                        {/* <TableCell sx={{ fontWeight: "bold" }}>Source</TableCell>
                     <TableCell sx={{ fontWeight: "bold" }}>Barcode</TableCell> */}
-                    <TableCell sx={{ fontWeight: "bold" }}>
-                     Order No
-                    </TableCell>
-                    <TableCell sx={{ fontWeight: "bold" }}>
-                      Customer Name
-                    </TableCell>
-                    <TableCell sx={{ fontWeight: "bold" }}>Contact</TableCell>
+                        <TableCell sx={{ fontWeight: "bold" }}>
+                          Order No
+                        </TableCell>
+                        <TableCell sx={{ fontWeight: "bold" }}>
+                          Customer Name
+                        </TableCell>
+                        <TableCell sx={{ fontWeight: "bold" }}>
+                          Contact
+                        </TableCell>
 
-                    <TableCell sx={{ fontWeight: "bold" }}>Salesman</TableCell>
-                    <TableCell sx={{ fontWeight: "bold" }}>Doctor</TableCell>
+                        <TableCell sx={{ fontWeight: "bold" }}>
+                          Salesman
+                        </TableCell>
+                        <TableCell sx={{ fontWeight: "bold" }}>
+                          Doctor
+                        </TableCell>
 
-                    {/* <TableCell sx={{ fontWeight: "bold" }}>
+                        {/* <TableCell sx={{ fontWeight: "bold" }}>
                       Total Amount
                     </TableCell>
                     <TableCell sx={{ fontWeight: "bold" }}>Advance</TableCell> */}
-                    <TableCell sx={{ fontWeight: "bold" }}>
-                      Pending Amount
-                    </TableCell>
+                        <TableCell sx={{ fontWeight: "bold" }}>
+                          Pending Amount
+                        </TableCell>
 
-                    {/* <TableCell sx={{ fontWeight: "bold" }}>
+                        {/* <TableCell sx={{ fontWeight: "bold" }}>
                       Instruction
                     </TableCell> */}
-                    <TableCell sx={{ fontWeight: "bold" }}>Status</TableCell>
-                    <TableCell sx={{ fontWeight: "bold" }}>Actions</TableCell>
-                    <TableCell sx={{ fontWeight: "bold" }}>
-                      view Details
-                    </TableCell>
-                  </TableRow>
-                </TableHead>
-                <TableBody>
-                  {salesData.map((sale, i) => (
-                    <TableRow key={sale.id}>
-                      <TableCell>{i + 1}</TableCell>
-                      <TableCell>
-                        {sale.startDate
-                          ? formatTimestamp(sale.startDate)
-                          : "No Date"}
-                      </TableCell>
-                      <TableCell>
-                        {sale.endDate
-                          ? formatTimestamp(sale.endDate)
-                          : "No Date"}
-                      </TableCell>
-                      <TableCell>
-                        {sale.DeliveredDate
-                          ? formatTimestamp(sale.DeliveredDate)
-                          : "No Date"}
-                      </TableCell>
-                      {/* <TableCell>{sale.source}</TableCell>
+                        <TableCell sx={{ fontWeight: "bold" }}>
+                          Status
+                        </TableCell>
+                        <TableCell sx={{ fontWeight: "bold" }}>
+                          Actions
+                        </TableCell>
+                        <TableCell sx={{ fontWeight: "bold" }}>
+                          view Details
+                        </TableCell>
+                      </TableRow>
+                    </TableHead>
+                    <TableBody>
+                      {filteredSalesData.map((sale, i) => (
+                        <TableRow key={sale.id} sx={{ height: "40px" }}>
+                          <TableCell>{i + 1}</TableCell>
+                          <TableCell sx={{ padding: "4px" }}>
+                            {sale.startDate
+                              ? formatTimestamp(sale.startDate)
+                              : "No Date"}
+                          </TableCell>
+                          <TableCell sx={{ padding: "4px" }}>
+                            {sale.endDate
+                              ? formatTimestamp(sale.endDate)
+                              : "No Date"}
+                          </TableCell>
+                          <TableCell sx={{ padding: "4px" }}>
+                            {sale.DeliveredDate
+                              ? formatTimestamp(sale.DeliveredDate)
+                              : "No Date"}
+                          </TableCell>
+                          {/* <TableCell>{sale.source}</TableCell>
                       <TableCell>{sale.barcode}</TableCell> */}
-                      <TableCell>{sale.orderNo}</TableCell>
-                      <TableCell>{sale.customerName}</TableCell>
-                      <TableCell>{sale.contactNo}</TableCell>
+                          <TableCell sx={{ padding: "4px" }}>
+                            {sale.orderNo}
+                          </TableCell>
+                          <TableCell sx={{ padding: "4px" }}>
+                            {sale.customerName}
+                          </TableCell>
+                          <TableCell sx={{ padding: "4px" }}>
+                            {sale.contactNo}
+                          </TableCell>
 
-                      <TableCell>{sale.salesman}</TableCell>
-                      <TableCell>{sale.doctor}</TableCell>
+                          <TableCell sx={{ padding: "4px" }}>
+                            {sale.salesman}
+                          </TableCell>
+                          <TableCell sx={{ padding: "4px" }}>
+                            {sale.doctor}
+                          </TableCell>
 
-                      {/* <TableCell>{sale.totalAmount}</TableCell>
+                          {/* <TableCell>{sale.totalAmount}</TableCell>
                       <TableCell>{sale.advance}</TableCell> */}
-                      <TableCell>{sale.pendingAmount}</TableCell>
-                      {/* <TableCell>{sale.instruction}</TableCell> */}
+                          <TableCell sx={{ padding: "2px" }}>
+                            {sale.pendingAmount}
+                          </TableCell>
+                          {/* <TableCell>{sale.instruction}</TableCell> */}
 
-                      <TableCell>
-                        <Button
-                          variant="contained"
-                          color={
-                            sale.status === "Pending" ? "error" : "success"
-                          } // Set color based on status
-                          sx={{ textTransform: "none", minWidth: "100px" }} // Style the button
-                        >
-                          {sale.status === "Pending" ? "Pending" : "Completed"}
-                        </Button>
-                      </TableCell>
-
-                      {/* Status buttons with click handlers */}
-                      <TableCell>
-                        <Box sx={{ display: "flex", alignItems: "center" }}>
-                          {sale.status === "Pending" && (
-                            <IconButton
-                              color="success"
-                              onClick={() =>
-                                handleMarkAsComplete(
-                                  sale.id,
-                                  sale.deliveredDate
-                                )
-                              }
-                              sx={{ marginLeft: 1 }}
+                          <TableCell sx={{ padding: "20px" }}>
+                            <Button
+                              variant="contained"
+                              color={
+                                sale.status === "Pending" ? "error" : "success"
+                              } // Set color based on status
+                              sx={{ textTransform: "none", minWidth: "100px" }} // Style the button
                             >
-                              <CheckCircleIcon />
-                            </IconButton>
-                          )}
-                          <IconButton
-                            variant="outlined"
-                            color="primary"
-                            onClick={() => handleEditSale(sale)}
-                            sx={{ marginLeft: 1 }}
-                          >
-                            <EditIcon />
-                          </IconButton>
-                          <IconButton
-                            variant="outlined"
-                            color="error"
-                            onClick={() => handleDeleteSale(sale.id)}
-                            sx={{ marginLeft: 1 }}
-                          >
-                            <DeleteIcon />
-                          </IconButton>
-                        </Box>
-                      </TableCell>
+                              {sale.status === "Pending"
+                                ? "Pending"
+                                : "Completed"}
+                            </Button>
+                          </TableCell>
 
-                      <TableCell
-                        sx={{
-                          display: "flex",
-                          flexDirection: "column",
-                          gap: 2,
-                        }}
-                      >
-                        <Button
-                          variant="contained"
-                          color="success"
-                          sx={{ textTransform: "none" }}
-                          onClick={() => {
-                            navigate(`${sale.id}/products`);
-                          }}
-                        >
-                          <span>View Products</span>
-                        </Button>
-                        <Button
-                          variant="contained"
-                          color="warning"
-                          sx={{ textTransform: "none" }}
-                          onClick={() => {
-                            setInstallmentDialogOpen(true);
-                            setSelectedSaleId(sale.id);
-                          }}
-                        >
-                          Add Installment
-                        </Button>
-                        <Button
-                          variant="contained"
-                          color="secondary"
-                          sx={{ textTransform: "none" }}
-                          onClick={() => {
-                            setInstallmentViewDialogOpen(true);
-                            setSelectedSaleId(sale.id);
-                          }}
-                        >
-                          <EyeIcon /> <span>Installments</span>
-                        </Button>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </TableContainer>
+                          {/* Status buttons with click handlers */}
+                          <TableCell sx={{ padding: "8px", padding: "40px" }}>
+                            <Box sx={{ display: "flex", alignItems: "center" }}>
+                              {sale.status === "Pending" && (
+                                <IconButton
+                                  color="success"
+                                  onClick={() =>
+                                    handleMarkAsComplete(
+                                      sale.id,
+                                      sale.deliveredDate
+                                    )
+                                  }
+                                  sx={{ marginLeft: 1 }}
+                                >
+                                  <CheckCircleIcon />
+                                </IconButton>
+                              )}
+                              <IconButton
+                                variant="outlined"
+                                color="primary"
+                                onClick={() => handleEditSale(sale)}
+                                sx={{ marginLeft: 1 }}
+                              >
+                                <EditIcon />
+                              </IconButton>
+                              <IconButton
+                                variant="outlined"
+                                color="error"
+                                onClick={() => handleDeleteSale(sale.id)}
+                                sx={{ marginLeft: 1 }}
+                              >
+                                <DeleteIcon />
+                              </IconButton>
+                            </Box>
+                          </TableCell>
+
+                          <TableCell
+                            sx={{
+                              display: "flex",
+                              flexDirection: "column",
+                              gap: 2,
+                              padding: "10px",
+                            }}
+                          >
+                            <Button
+                              variant="contained"
+                              color="success"
+                              sx={{ textTransform: "none" }}
+                              onClick={() => {
+                                navigate(`${sale.id}/products`);
+                              }}
+                            >
+                              <span>View Products</span>
+                            </Button>
+                            <Button
+                              variant="contained"
+                              color="warning"
+                              sx={{ textTransform: "none" }}
+                              onClick={() => {
+                                setInstallmentDialogOpen(true);
+                                setSelectedSaleId(sale.id);
+                              }}
+                            >
+                              Add Installment
+                            </Button>
+                            <Button
+                              variant="contained"
+                              color="secondary"
+                              sx={{ textTransform: "none" }}
+                              onClick={() => {
+                                setInstallmentViewDialogOpen(true);
+                                setSelectedSaleId(sale.id);
+                              }}
+                            >
+                              <EyeIcon /> <span>Installments</span>
+                            </Button>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </TableContainer>
+              </div>
+            </ThemeProvider>
           )}
         </>
       )}

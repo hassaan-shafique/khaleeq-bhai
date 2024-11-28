@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import {
+
   Button,
   Dialog,
   DialogActions,
@@ -15,6 +16,7 @@ import {
   MenuItem,
   CircularProgress,
 } from "@mui/material";
+import { query, where ,getDocs} from "firebase/firestore";
 import AddAPhotoIcon from "@mui/icons-material/AddAPhoto";
 import { addDoc, collection } from "firebase/firestore";
 import { getStorage, ref, uploadBytes, getDownloadURL } from "firebase/storage";
@@ -45,8 +47,12 @@ const InventoryForm = ({ setRefresh }) => {
   const [image, setImage] = useState(null);
   const [customType, setCustomType] = useState(""); // State to handle custom type
   const [errors, setErrors] = useState({});
+  const [barcode, setBarcode] =useState ();
+
 
   const storage = getStorage();
+
+
 
   const handleImageChange = (e) => {
     const file = e.target.files[0];
@@ -81,34 +87,74 @@ const InventoryForm = ({ setRefresh }) => {
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+const checkBarcodeExistence = async (barcode) => {
+  const inventoryCollectionRef = collection(db, "inventory");
+  const q = query(inventoryCollectionRef, where("barcode", "==", barcode));
 
-    if (!validateForm()) return;
+  try {
+    // Add logs to track query execution and barcode being passed
+    console.log("Checking for barcode:", barcode);
 
-    setLoading(true);
+    const querySnapshot = await getDocs(q);
 
-    try {
-      const storageRef = ref(storage, `inventory-images/${image.name}`);
-      await uploadBytes(storageRef, image);
+    // Debug the query result
+    console.log("Query snapshot empty:", querySnapshot.empty); // This will log true if no matching documents, false if found
 
-      const imageUrl = await getDownloadURL(storageRef);
+    querySnapshot.forEach((doc) => {
+      console.log("Matching document:", doc.id, doc.data()); // Log the document ID and its data
+    });
 
-      const inventoryCollectionRef = collection(db, "inventory");
-      await addDoc(inventoryCollectionRef, {
-        ...value,
-        type: value.type === "other" ? customType : value.type, // Use custom type if "Other" is selected
-        image: imageUrl,
-      });
+    return !querySnapshot.empty; // If the snapshot is empty, it means no matching barcode was found
+  } catch (error) {
+    console.error("Error checking barcode existence:", error);
+    return false;
+  }
+};
 
-      setOpen(false);
-      setRefresh((prev) => !prev);
-      setLoading(false);
-    } catch (error) {
-      console.error("Error adding document: ", error);
-      setLoading(false);
-    }
-  };
+
+const handleSubmit = async (e) => {
+  e.preventDefault();
+
+  if (!validateForm()) return;
+
+  // Log the barcode value to ensure it is the correct one
+  console.log("Submitted barcode:", value.barcode); // This should match the barcode in the Firestore DB
+
+  // Check if the barcode already exists
+  const barcodeExists = await checkBarcodeExistence(value.barcode);
+  console.log("Barcode exists:", barcodeExists); // This will log whether the barcode exists
+
+  if (barcodeExists) {
+    alert("The barcode is already available.");
+    return;
+  }
+
+  setLoading(true);
+
+  try {
+    const storageRef = ref(storage, `inventory-images/${image.name}`);
+    await uploadBytes(storageRef, image);
+
+    const imageUrl = await getDownloadURL(storageRef);
+
+    const inventoryCollectionRef = collection(db, "inventory");
+    await addDoc(inventoryCollectionRef, {
+      ...value,
+      type: value.type === "other" ? customType : value.type, // Use custom type if "Other" is selected
+      image: imageUrl,
+    });
+
+    setOpen(false);
+    setRefresh((prev) => !prev);
+    setLoading(false);
+  } catch (error) {
+    console.error("Error adding document: ", error);
+    setLoading(false);
+  }
+};
+
+
+
 
   const handleClickOpen = () => setOpen(true);
 

@@ -10,7 +10,7 @@ const Expense = ({expenses, loading, setRefresh=()=>{}}) => {
 
   return (
     <>
-      <Box sx={{ width: "100%" }}>
+      <Box sx={{ marginTop: 6, width: "100%" }}>
         {" "}
         {/* Set Box to full width */}
         <Grid container sx={{ mx: 4, p: 3, width: "98%" }}>

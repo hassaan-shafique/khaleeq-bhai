@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import { useParams } from "react-router-dom";
 import { collection, doc, getDoc, updateDoc } from "firebase/firestore";
 import { db } from "../../../../config/Firebase";
@@ -45,6 +45,8 @@ const ViewProducts = () => {
   const [selectedGlassesProductId, setSelectedGlassesProductId] = useState();
   const [editOpen, setEditOpen] = useState(false);
 
+  const printRef = useRef(null);
+
   useEffect(() => {
     const fetchSalesData = async () => {
       try {
@@ -87,6 +89,8 @@ const ViewProducts = () => {
       year: "numeric",
     });
   };
+
+ 
 
   const styles = {
     heading: { color: "#3f51b5", fontWeight: "bold", marginBottom: "1rem" },
@@ -182,6 +186,8 @@ const handleDeleteClick = async (product, productType) => {
 
 
 
+
+
   const handleSaveProduct = async () => {
     try {
       const updatedSalesData = { ...salesData };
@@ -252,324 +258,404 @@ const handleDeleteClick = async (product, productType) => {
     }
   };
 
+
+   const handlePrint = () => {
+     // Clone the printRef content to a new window for printing
+     const printContents = printRef.current.innerHTML;
+     const newWindow = window.open("", "_blank");
+
+     // Write the content to the new window
+     newWindow.document.open();
+     newWindow.document.write(`
+    <!DOCTYPE html>
+    <html>
+      <head>
+        <title>Print</title>
+        <style>
+          /* Ensure the table fits on the page */
+          table {
+            width: 100%;
+            border-collapse: collapse;
+          }
+          th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+          }
+          th {
+            background-color: #f2f2f2;
+          }
+          /* Add styling for large tables */
+          .print-container {
+            overflow: visible !important; /* Ensure all content is visible */
+          }
+        </style>
+      </head>
+      <body>
+        <div class="print-container">
+          ${printContents}
+        </div>
+      </body>
+    </html>
+  `);
+     newWindow.document.close();
+     newWindow.print();
+     newWindow.close();
+   };
+
+
   return (
     <div style={{ padding: "2rem" }}>
       {/* Customer Information */}
       <Typography variant="h6" style={styles.heading}>
         Customer Information
       </Typography>
-      <TableContainer component={Paper}>
-        <Table>
-          <TableBody>
-            <TableRow>
-              <TableCell style={styles.tableCell}>Sales Date</TableCell>
-              <TableCell>{formatDate(salesData.startDate)}</TableCell>
-            </TableRow>
-            <TableRow>
-              <TableCell style={styles.tableCell}>Delivery Date</TableCell>
-              <TableCell>{formatDate(salesData.endDateDate)}</TableCell>
-            </TableRow>
-            <TableRow>
-              <TableCell style={styles.tableCell}>Customer Name</TableCell>
-              <TableCell>{salesData.customerName}</TableCell>
-            </TableRow>
-            <TableRow>
-              <TableCell style={styles.tableCell}>Contact No</TableCell>
-              <TableCell>{salesData.contactNo}</TableCell>
-            </TableRow>
-            <TableRow>
-              <TableCell style={styles.tableCell}>Address</TableCell>
-              <TableCell>{salesData.address}</TableCell>
-            </TableRow>
-            <TableRow>
-              <TableCell style={styles.tableCell}>Doctor</TableCell>
-              <TableCell>{salesData.doctor}</TableCell>
-            </TableRow>
-          </TableBody>
-        </Table>
-      </TableContainer>
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "flex-end",
+          marginBottom: "1rem",
+        }}
+      >
+        <Button variant="contained" color="primary" onClick={handlePrint}>
+          Print Sale Information
+        </Button>
+      </div>
 
-      {/* Order Details */}
-      <Typography variant="h6" style={styles.heading}>
-        Order Details
-      </Typography>
-      <TableContainer component={Paper}>
-        <Table>
-          <TableBody>
-            <TableRow>
-              <TableCell style={styles.tableCell}>Order No</TableCell>
-              <TableCell>{salesData.orderNo}</TableCell>
-            </TableRow>
-          </TableBody>
-        </Table>
-        <br />
-        {/* table for displaying Numbers  */}
-        <Table>
-          <TableHead>
-            <TableRow>
-              <TableCell></TableCell>
-
-              <TableCell style={styles.tableCell}>SPH</TableCell>
-              <TableCell style={styles.tableCell}>CYL</TableCell>
-              <TableCell style={styles.tableCell}>AXIS</TableCell>
-              <TableCell style={styles.tableCell}>ADD</TableCell>
-              <TableCell style={styles.tableCell}>IPD</TableCell>
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            {/* LE Row */}
-            <TableRow>
-              <TableCell style={styles.tableCell}>LE</TableCell>
-              <TableCell>{salesData.leSph}</TableCell>
-              <TableCell>{salesData.leCyl}</TableCell>
-              <TableCell>{salesData.leAxis}</TableCell>
-              <TableCell>{salesData.leAdd}</TableCell>
-              <TableCell>{salesData.leIpd}</TableCell>
-            </TableRow>
-
-            {/* RE Row */}
-            <TableRow>
-              <TableCell style={styles.tableCell}>RE</TableCell>
-              <TableCell>{salesData.reSph}</TableCell>
-              <TableCell>{salesData.reCyl}</TableCell>
-              <TableCell>{salesData.reAxis}</TableCell>
-              <TableCell>{salesData.reAdd}</TableCell>
-              <TableCell>{salesData.reIpd}</TableCell>
-            </TableRow>
-          </TableBody>
-        </Table>
-      </TableContainer>
-
-      {/* KBCW Products */}
-      <Typography variant="h6" style={styles.heading}>
-        KBCW Products
-      </Typography>
-      <TableContainer component={Paper}>
-        <Table>
-          <TableHead>
-            <TableRow>
-              <TableCell style={styles.tableCell}>Barcode</TableCell>
-              <TableCell style={styles.tableCell}>Type</TableCell>
-              <TableCell style={styles.tableCell}>Name</TableCell>
-              <TableCell style={styles.tableCell}>Size</TableCell>
-              <TableCell style={styles.tableCell}>Quantity</TableCell>
-              <TableCell style={styles.tableCell}>Price</TableCell>
-              <TableCell style={styles.tableCell}>Date</TableCell>
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            {salesData.kbcwProducts?.map((product, index) => (
-              <TableRow key={index}>
-                <TableCell>{index + 1}</TableCell>
-                <TableCell>{product.kbcwBarcode}</TableCell>
-                <TableCell>{product.kbcwType}</TableCell>
-                <TableCell>{product.kbcwName}</TableCell>
-                <TableCell>{product.kbcwQuantity}</TableCell>
-                <TableCell>{product.kbcwPrice}</TableCell>
-
-                <TableCell>{formatDate(product.kbcwDeliveredDate)}</TableCell>
-                <TableCell>
-                  <Button onClick={() => handleKbcwEditClick(product)}>Edit</Button>
-                  <Button
-                    onClick={() => handleDeleteClick(product ,"kbcwProducts" )}
-                    color="error"
-                  >
-                    Delete
-                  </Button>
-                </TableCell>
+      <div ref={printRef}>
+        <TableContainer component={Paper}>
+          <Table>
+            <TableBody>
+              <TableRow>
+                <TableCell style={styles.tableCell}>Sales Date</TableCell>
+                <TableCell>{formatDate(salesData.startDate)}</TableCell>
               </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-        <Typography
-          variant="h6"
-          style={{ fontWeight: "bold", color: "#3f51b5", marginBottom: "1rem" }}
-        >
-          Total Amount For KBCW Products:
-          <span
-            style={{ fontWeight: "bold", color: "black", marginLeft: "8px" }}
-          >
-            Rs {totalKBCWAmount}
-          </span>
-        </Typography>
-      </TableContainer>
-
-      {/* Glasses Products */}
-      <Typography variant="h6" style={styles.heading}>
-        Glasses Products
-      </Typography>
-      <TableContainer component={Paper}>
-        <Table>
-          <TableHead>
-            <TableRow>
-              <TableCell style={styles.tableCell}>Product</TableCell>
-              <TableCell style={styles.tableCell}>Type</TableCell>
-              <TableCell style={styles.tableCell}>Number</TableCell>
-              <TableCell style={styles.tableCell}>Quantity</TableCell>
-              <TableCell style={styles.tableCell}>Price</TableCell>
-              <TableCell style={styles.tableCell}>Delivered Date</TableCell>
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            {salesData.glassesProducts?.map((product, index) => (
-              <TableRow key={index}>
-                <TableCell>{index + 1}</TableCell>
-                <TableCell>{product.glassesType}</TableCell>
-                <TableCell>{product.glassesNumber}</TableCell>
-                <TableCell>{product.glassesQuantity}</TableCell>
-                <TableCell>{product.glassesPrice}</TableCell>
-                <TableCell>
-                  {formatDate(product.glassesDeliveredDate)}
-                </TableCell>
-                <TableCell>
-                  <Button
-                    onClick={() => handleGlassEditClick(product )}
-                  >
-                    Edit
-                  </Button>
-                  <Button
-                    onClick={() => handleDeleteClick(product)}
-                    color="error"
-                  >
-                    Delete
-                  </Button>
-                </TableCell>
+              <TableRow>
+                <TableCell style={styles.tableCell}>Delivery Date</TableCell>
+                <TableCell>{formatDate(salesData.endDateDate)}</TableCell>
               </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-        <Typography
-          variant="h6"
-          style={{ fontWeight: "bold", color: "#3f51b5", marginBottom: "1rem" }}
-        >
-          Total Amount For Glasses Products:
-          <span
-            style={{ fontWeight: "bold", color: "black", marginLeft: "8px" }}
-          >
-            Rs {totalGlassesAmount}
-          </span>
-        </Typography>
-      </TableContainer>
-
-      {/* Vendor Products */}
-      <Typography variant="h6" style={styles.heading}>
-        Vendor Products
-      </Typography>
-      <TableContainer component={Paper}>
-        <Table>
-          <TableHead>
-            <TableRow>
-              <TableCell style={styles.tableCell}>Sr. No</TableCell>
-              <TableCell style={styles.tableCell}>Order No</TableCell>
-              <TableCell style={styles.tableCell}>Vendor Name</TableCell>
-              <TableCell style={styles.tableCell}>Borrowed Branch</TableCell>
-              <TableCell style={styles.tableCell}>Quantity</TableCell>
-              <TableCell style={styles.tableCell}>Price</TableCell>
-              <TableCell style={styles.tableCell}>Item Name</TableCell>
-              <TableCell style={styles.tableCell}>Delivered Date</TableCell>
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            {salesData.vendorProducts?.map((product, index) => (
-              <TableRow key={index}>
-                <TableCell>{index + 1}</TableCell>
-                <TableCell>{product.orderNumber}</TableCell>
-                <TableCell>{product.vendorName}</TableCell>
-                <TableCell>{product.borrowedBranch}</TableCell>
-                <TableCell>{product.quantity}</TableCell>
-                <TableCell>{product.vendorPrice}</TableCell>
-                <TableCell>{product.VendorItemName}</TableCell>
-                <TableCell>{formatDate(product.vendorDeliveredDate)}</TableCell>
-                <TableCell>
-                  <Button onClick={() => handleVendorEditClick(product)}>Edit</Button>
-                  <Button
-                    onClick={() => handleDeleteClick(product )}
-                    color="error"
-                  >
-                    Delete
-                  </Button>
-                </TableCell>
+              <TableRow>
+                <TableCell style={styles.tableCell}>Customer Name</TableCell>
+                <TableCell>{salesData.customerName}</TableCell>
               </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-        <Typography
-          variant="h6"
-          style={{ fontWeight: "bold", color: "#3f51b5", marginBottom: "1rem" }}
-        >
-          Total Amount For Vendor Amount:
-          <span
-            style={{ fontWeight: "bold", color: "black", marginLeft: "8px" }}
-          >
-            Rs {totalVendorAmount}
-          </span>
+              <TableRow>
+                <TableCell style={styles.tableCell}>Contact No</TableCell>
+                <TableCell>{salesData.contactNo}</TableCell>
+              </TableRow>
+              <TableRow>
+                <TableCell style={styles.tableCell}>Address</TableCell>
+                <TableCell>{salesData.address}</TableCell>
+              </TableRow>
+              <TableRow>
+                <TableCell style={styles.tableCell}>Doctor</TableCell>
+                <TableCell>{salesData.doctor}</TableCell>
+              </TableRow>
+              <TableRow>
+                <TableCell style={styles.tableCell}>Payment Method</TableCell>
+                <TableCell>{salesData.payment}</TableCell>
+              </TableRow>
+            </TableBody>
+          </Table>
+        </TableContainer>
+
+        {/* Order Details */}
+        <Typography variant="h6" style={styles.heading}>
+          Order Details
         </Typography>
-      </TableContainer>
-      <TableContainer component={Paper} sx={{ marginTop: "20px" }}>
-        <Table>
-          <TableHead>
-            <TableRow sx={{ backgroundColor: "#e3f2fd" }}>
-              {" "}
-              {/* Light Blue Background */}
-              <TableCell
-                align="center"
-                sx={{ fontWeight: "bold", color: "#000", fontSize: "16px" }}
-              >
-                Total Sales Amount
-              </TableCell>
-              <TableCell
-                align="center"
-                sx={{ fontWeight: "bold", color: "#000", fontSize: "16px" }}
-              >
-                Discount
-              </TableCell>
-              <TableCell
-                align="center"
-                sx={{ fontWeight: "bold", color: "#000", fontSize: "16px" }}
-              >
-                Advance
-              </TableCell>
-              <TableCell
-                align="center"
-                sx={{ fontWeight: "bold", color: "#000", fontSize: "16px" }}
-              >
-                Pending Amount
-              </TableCell>
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            <TableRow
-              sx={{ "&:nth-of-type(odd)": { backgroundColor: "#f9f9f9" } }}
+        <TableContainer component={Paper}>
+          <Table>
+            <TableBody>
+              <TableRow>
+                <TableCell style={styles.tableCell}>Order No</TableCell>
+                <TableCell>{salesData.orderNo}</TableCell>
+              </TableRow>
+            </TableBody>
+          </Table>
+          <br />
+          {/* table for displaying Numbers  */}
+          <Table>
+            <TableHead>
+              <TableRow>
+                <TableCell></TableCell>
+
+                <TableCell style={styles.tableCell}>SPH</TableCell>
+                <TableCell style={styles.tableCell}>CYL</TableCell>
+                <TableCell style={styles.tableCell}>AXIS</TableCell>
+                <TableCell style={styles.tableCell}>ADD</TableCell>
+                <TableCell style={styles.tableCell}>IPD</TableCell>
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              {/* LE Row */}
+              <TableRow>
+                <TableCell style={styles.tableCell}>LE</TableCell>
+                <TableCell>{salesData.leSph}</TableCell>
+                <TableCell>{salesData.leCyl}</TableCell>
+                <TableCell>{salesData.leAxis}</TableCell>
+                <TableCell>{salesData.leAdd}</TableCell>
+                <TableCell>{salesData.leIpd}</TableCell>
+              </TableRow>
+
+              {/* RE Row */}
+              <TableRow>
+                <TableCell style={styles.tableCell}>RE</TableCell>
+                <TableCell>{salesData.reSph}</TableCell>
+                <TableCell>{salesData.reCyl}</TableCell>
+                <TableCell>{salesData.reAxis}</TableCell>
+                <TableCell>{salesData.reAdd}</TableCell>
+                <TableCell>{salesData.reIpd}</TableCell>
+              </TableRow>
+            </TableBody>
+          </Table>
+        </TableContainer>
+
+        {/* KBCW Products */}
+        <Typography variant="h6" style={styles.heading}>
+          KBCW Products
+        </Typography>
+        <TableContainer component={Paper}>
+          <Table>
+            <TableHead>
+              <TableRow>
+                <TableCell style={styles.tableCell}>Barcode</TableCell>
+                <TableCell style={styles.tableCell}>Type</TableCell>
+                <TableCell style={styles.tableCell}>Name</TableCell>
+                <TableCell style={styles.tableCell}>Size</TableCell>
+                <TableCell style={styles.tableCell}>Quantity</TableCell>
+                <TableCell style={styles.tableCell}>Price</TableCell>
+                <TableCell style={styles.tableCell}>Date</TableCell>
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              {salesData.kbcwProducts?.map((product, index) => (
+                <TableRow key={index}>
+                  <TableCell>{index + 1}</TableCell>
+                  <TableCell>{product.kbcwBarcode}</TableCell>
+                  <TableCell>{product.kbcwType}</TableCell>
+                  <TableCell>{product.kbcwName}</TableCell>
+                  <TableCell>{product.kbcwQuantity}</TableCell>
+                  <TableCell>{product.kbcwPrice}</TableCell>
+
+                  <TableCell>{formatDate(product.kbcwDeliveredDate)}</TableCell>
+                  <TableCell>
+                    <Button onClick={() => handleKbcwEditClick(product)}>
+                      Edit
+                    </Button>
+                    <Button
+                      onClick={() => handleDeleteClick(product, "kbcwProducts")}
+                      color="error"
+                    >
+                      Delete
+                    </Button>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+          <Typography
+            variant="h6"
+            style={{
+              fontWeight: "bold",
+              color: "#3f51b5",
+              marginBottom: "1rem",
+            }}
+          >
+            Total Amount For KBCW Products:
+            <span
+              style={{ fontWeight: "bold", color: "black", marginLeft: "8px" }}
             >
-              <TableCell
-                align="center"
-                sx={{ padding: "10px", fontSize: "15px" }}
-              >
-                Rs: {totalSalesAmount}
-              </TableCell>
-              <TableCell
-                align="center"
-                sx={{ padding: "10px", fontSize: "15px" }}
-              >
-                Rs: {salesData.discount}
-              </TableCell>
-              <TableCell
-                align="center"
-                sx={{ padding: "10px", fontSize: "15px" }}
-              >
-                Rs: {salesData.advance}
-              </TableCell>
-              <TableCell
-                align="center"
-                sx={{ padding: "10px", fontSize: "15px" }}
-              >
-                Rs: {salesData.pendingAmount}
-              </TableCell>
-            </TableRow>
-          </TableBody>
-        </Table>
-      </TableContainer>
+              Rs {totalKBCWAmount}
+            </span>
+          </Typography>
+        </TableContainer>
 
+        {/* Glasses Products */}
+        <Typography variant="h6" style={styles.heading}>
+          Glasses Products
+        </Typography>
+        <TableContainer component={Paper}>
+          <Table>
+            <TableHead>
+              <TableRow>
+                <TableCell style={styles.tableCell}>Product</TableCell>
+                <TableCell style={styles.tableCell}>Type</TableCell>
+                <TableCell style={styles.tableCell}>Number</TableCell>
+                <TableCell style={styles.tableCell}>Quantity</TableCell>
+                <TableCell style={styles.tableCell}>Price</TableCell>
+                <TableCell style={styles.tableCell}>Delivered Date</TableCell>
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              {salesData.glassesProducts?.map((product, index) => (
+                <TableRow key={index}>
+                  <TableCell>{index + 1}</TableCell>
+                  <TableCell>{product.glassesType}</TableCell>
+                  <TableCell>{product.glassesNumber}</TableCell>
+                  <TableCell>{product.glassesQuantity}</TableCell>
+                  <TableCell>{product.glassesPrice}</TableCell>
+                  <TableCell>
+                    {formatDate(product.glassesDeliveredDate)}
+                  </TableCell>
+                  <TableCell>
+                    <Button onClick={() => handleGlassEditClick(product)}>
+                      Edit
+                    </Button>
+                    <Button
+                      onClick={() => handleDeleteClick(product)}
+                      color="error"
+                    >
+                      Delete
+                    </Button>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+          <Typography
+            variant="h6"
+            style={{
+              fontWeight: "bold",
+              color: "#3f51b5",
+              marginBottom: "1rem",
+            }}
+          >
+            Total Amount For Glasses Products:
+            <span
+              style={{ fontWeight: "bold", color: "black", marginLeft: "8px" }}
+            >
+              Rs {totalGlassesAmount}
+            </span>
+          </Typography>
+        </TableContainer>
+
+        {/* Vendor Products */}
+        <Typography variant="h6" style={styles.heading}>
+          Vendor Products
+        </Typography>
+        <TableContainer component={Paper}>
+          <Table>
+            <TableHead>
+              <TableRow>
+                <TableCell style={styles.tableCell}>Sr. No</TableCell>
+                <TableCell style={styles.tableCell}>Order No</TableCell>
+                <TableCell style={styles.tableCell}>Vendor Name</TableCell>
+                <TableCell style={styles.tableCell}>Borrowed Branch</TableCell>
+                <TableCell style={styles.tableCell}>Quantity</TableCell>
+                <TableCell style={styles.tableCell}>Price</TableCell>
+                <TableCell style={styles.tableCell}>Item Name</TableCell>
+                <TableCell style={styles.tableCell}>Delivered Date</TableCell>
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              {salesData.vendorProducts?.map((product, index) => (
+                <TableRow key={index}>
+                  <TableCell>{index + 1}</TableCell>
+                  <TableCell>{product.orderNumber}</TableCell>
+                  <TableCell>{product.vendorName}</TableCell>
+                  <TableCell>{product.borrowedBranch}</TableCell>
+                  <TableCell>{product.quantity}</TableCell>
+                  <TableCell>{product.vendorPrice}</TableCell>
+                  <TableCell>{product.VendorItemName}</TableCell>
+                  <TableCell>
+                    {formatDate(product.vendorDeliveredDate)}
+                  </TableCell>
+                  <TableCell>
+                    <Button onClick={() => handleVendorEditClick(product)}>
+                      Edit
+                    </Button>
+                    <Button
+                      onClick={() => handleDeleteClick(product)}
+                      color="error"
+                    >
+                      Delete
+                    </Button>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+          <Typography
+            variant="h6"
+            style={{
+              fontWeight: "bold",
+              color: "#3f51b5",
+              marginBottom: "1rem",
+            }}
+          >
+            Total Amount For Vendor Amount:
+            <span
+              style={{ fontWeight: "bold", color: "black", marginLeft: "8px" }}
+            >
+              Rs {totalVendorAmount}
+            </span>
+          </Typography>
+        </TableContainer>
+
+        <TableContainer component={Paper} sx={{ marginTop: "20px" }}>
+          <Table>
+            <TableHead>
+              <TableRow sx={{ backgroundColor: "#e3f2fd" }}>
+                {" "}
+                {/* Light Blue Background */}
+                <TableCell
+                  align="center"
+                  sx={{ fontWeight: "bold", color: "#000", fontSize: "16px" }}
+                >
+                  Total Sales Amount
+                </TableCell>
+                <TableCell
+                  align="center"
+                  sx={{ fontWeight: "bold", color: "#000", fontSize: "16px" }}
+                >
+                  Discount
+                </TableCell>
+                <TableCell
+                  align="center"
+                  sx={{ fontWeight: "bold", color: "#000", fontSize: "16px" }}
+                >
+                  Advance
+                </TableCell>
+                <TableCell
+                  align="center"
+                  sx={{ fontWeight: "bold", color: "#000", fontSize: "16px" }}
+                >
+                  Pending Amount
+                </TableCell>
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              <TableRow
+                sx={{ "&:nth-of-type(odd)": { backgroundColor: "#f9f9f9" } }}
+              >
+                <TableCell
+                  align="center"
+                  sx={{ padding: "10px", fontSize: "15px" }}
+                >
+                  Rs: {totalSalesAmount}
+                </TableCell>
+                <TableCell
+                  align="center"
+                  sx={{ padding: "10px", fontSize: "15px" }}
+                >
+                  Rs: {salesData.discount}
+                </TableCell>
+                <TableCell
+                  align="center"
+                  sx={{ padding: "10px", fontSize: "15px" }}
+                >
+                  Rs: {salesData.advance}
+                </TableCell>
+                <TableCell
+                  align="center"
+                  sx={{ padding: "10px", fontSize: "15px" }}
+                >
+                  Rs: {salesData.pendingAmount}
+                </TableCell>
+              </TableRow>
+            </TableBody>
+          </Table>
+        </TableContainer>
+      </div>
       <EditGlassDialog
         editGlassProduct={editGlassProduct}
         setEditGlassProduct={setEditGlassProduct}

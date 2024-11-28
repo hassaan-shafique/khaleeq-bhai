@@ -210,6 +210,7 @@ const AddGlasses = ({
             </Grid>
             <Grid item xs={4}>
               <TextField
+              required
                 type="number"
                 label="Quantity"
                 variant="outlined"

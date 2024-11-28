@@ -39,7 +39,8 @@ const Revenue = () => {
                 borderRadius: 2,
                 padding: 3,
                 height: "100%",
-                width: "98%", // Increased width to 98%
+                width: "98%",
+                marginTop: 6, // Increased width to 98%
               }}
             >
               <GlassesForm setRefresh={setRefresh} />
