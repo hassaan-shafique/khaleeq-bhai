@@ -31,7 +31,7 @@ const Inventory = () => {
 
   return (
     <>
-      <Box sx={{ width: "98%" }}>
+      <Box sx={{ width: "98%", marginTop: 6 }}>
         <Grid container sx={{ mx: 3, p: 3, width: "100%" }}>
           <Grid item md={12} sx={{ width: "98%" }}>
             {" "}

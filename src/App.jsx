@@ -20,9 +20,12 @@ import Expense from "./components/bodyComponents/expense/Expense";
 import Report from "./components/bodyComponents/report/Report";
 import reportExpense from "./components/bodyComponents/report/reportExpense";
 import Vendors from "./components/bodyComponents/Vendors/Vendors";
+import Activity from "./components/bodyComponents/activity/Activity";
 import Sales from "./components/bodyComponents/sale/Sales";
 import ViewProducts from "./components/bodyComponents/sale/Products/ViewProducts";
 import { app } from "./config/Firebase";
+import { db } from "./config/Firebase";
+import { collection, getDocs } from "firebase/firestore";
 
 // Custom Protected Route Component
 const ProtectedRoute = ({ isAuthenticated, children }) => {
@@ -33,16 +36,47 @@ function App() {
   const auth = getAuth(app);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [role, setRole] = useState(""); // Role state to manage user role
+  const [expenses, setExpenses] = useState([]);
+  const [refresh, setRefresh] = useState(false);
 
-  // Check authentication state on app load
+  const fetchExpenses = async () => {
+    try {
+      const querySnapshot = await getDocs(collection(db, "expenses"));
+      const expenseData = [];
+      querySnapshot.forEach((doc) => {
+        expenseData.push({ id: doc.id, ...doc.data() });
+      });
+      setExpenses(expenseData);
+      setLoading(false);
+    } catch (error) {
+      console.error("Error fetching expenses: ", error);
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
+    fetchExpenses();
+  }, [refresh]);
+
+  // Check authentication state and user role on app load
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, async (user) => {
       setIsAuthenticated(!!user);
       setLoading(false);
+
       if (user) {
         localStorage.setItem("authToken", user.accessToken);
+
+        // Fetch user role from Firestore (or your backend)
+        const userRef = db.collection("users").doc(user.uid); // Assuming you store role in Firestore
+        const userDoc = await userRef.get();
+        if (userDoc.exists) {
+          setRole(userDoc.data().role); // Set role (e.g., 'Admin' or 'Employee')
+        }
       } else {
         localStorage.removeItem("authToken");
+        setRole(""); // Clear role when logged out
       }
     });
 
@@ -94,7 +128,6 @@ function App() {
       <CssBaseline />
       <BrowserRouter>
         <Routes>
-          
           <Route
             path="/"
             element={
@@ -123,10 +156,31 @@ function App() {
             <Route path="inventory" element={<Inventory />} />
             <Route path="sales/:id/products" element={<ViewProducts />} />
             <Route path="glasses" element={<Glasses />} />
-            <Route path="expense" element={<Expense />} />
+            <Route
+              path="expense"
+              element={
+                <Expense
+                  expenses={expenses}
+                  loading={loading}
+                  setRefresh={setRefresh}
+                />
+              }
+            />
+
+            {/* Admin-Only Routes */}
+            {role === "Admin" && (
+              <>
+                <Route
+                  path="reports"
+                  element={<Report expenses={expenses} />}
+                />
+                <Route path="vendors" element={<Vendors />} />
+              </>
+            )}
+
+            {/* Routes accessible by all authenticated users */}
+            <Route path="daily-activity" element={<Activity />} />
             <Route path="reports" element={<Report />} />
-            <Route path="reports/expense" element={<reportExpense />} />
-            <Route path="reports/sale" element={<Sales />} />
             <Route path="vendors" element={<Vendors />} />
           </Route>
         </Routes>

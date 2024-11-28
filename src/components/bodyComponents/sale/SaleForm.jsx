@@ -18,7 +18,12 @@ TableHead,
 TableRow,
 TableCell,
 TableBody,
+FormControl,
+InputLabel,
+Select,
+MenuItem,
 } from "@mui/material";
+import { useMemo } from "react";
 
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
@@ -40,32 +45,54 @@ const SalesForm = () => {
     endDate: "",
     DeliveredDate: "",
     instruction: "",
-    leSph:"",
-    leCyl:"",
-    leAxis:"",
-    leAdd:"",
-    leIpd:"",
-    reSph:"",
-    reCyl:"",
-    reAxis:"",
-    reAdd:"",
-    reIpd:"",
+    leSph: "",
+    leCyl: "",
+    leAxis: "",
+    leAdd: "",
+    leIpd: "",
+    reSph: "",
+    reCyl: "",
+    reAxis: "",
+    reAdd: "",
+    reIpd: "",
     status: "Pending",
     totalAmount: "",
+    payment: "Cash",
     pendingAmount: "",
     advance: "",
-    discount: "" ,
+    discount: "",
+  
   });
 
   const [open, setOpen] = useState(false);
     const [showFields, setShowFields] = useState(false);
 
  const [vendorProducts, setVendorProducts] = useState([]);
-
   const [kbcwProducts, setKbcwProducts] = useState([]);
-
   const [glassesProducts, setGlassesProducts] = useState([]);
+
   const [refresh ,setRefresh] = useState (false);
+
+     const [totalVendorPrice, setTotalVendorPrice] = useState(0);
+     const [totalKbcwPrice, setTotalKbcwPrice] = useState(0);
+     const [totalGlassesPrice, setTotalGlassesPrice] = useState(0);
+
+    const handleVendorPriceChange = (total) => {
+    setTotalVendorPrice(total);
+  };
+
+  const handleKbcwPriceChange = (total) => {
+    setTotalKbcwPrice(total);
+  };
+
+  const handleGlassesPriceChange = (total) => {
+    setTotalGlassesPrice(total);
+  };
+
+  // Calculate the grand total
+  const grandTotal = totalVendorPrice + totalKbcwPrice + totalGlassesPrice;
+
+
 
   const handleClickOpen = () => {
     setOpen(true);
@@ -91,41 +118,116 @@ const SalesForm = () => {
   };
 
  useEffect(() => {
-   const total = parseFloat(value.totalAmount) || 0;
+   const total = parseFloat(grandTotal) || 0;
    const advance = parseFloat(value.advance) || 0;
-   const discount = parseFloat(value.discount) || 0; // New discount field
+   const discount = parseFloat(value.discount) || 0; 
    const pending = total - advance - discount;
 
    setValue((prev) => ({
      ...prev,
      pendingAmount: pending >= 0 ? pending : 0, // Ensure no negative value
    }));
- }, [value.totalAmount, value.advance, value.discount]);
+ }, [grandTotal, value.advance, value.discount]);
 
 const handleSubmit = async (e) => {
   e.preventDefault();
+  console.log({
+    kbcwProducts ,glassesProducts, vendorProducts
+  })
   try {
-    const expensesCollectionRef = collection(db, "sales");
+    // Log the initial value to see if products are present
+    console.log("Initial value before any processing:", value);
 
-    value.kbcwProducts = kbcwProducts;
-    value.glassesProducts = glassesProducts;
-    value.vendorProducts = vendorProducts;
+    // Reference to the sales collection
+    const salesCollectionRef = collection(db, "sales");
 
-    // Ensure discount is captured in the submitted data
-    await addDoc(expensesCollectionRef, value);
+    // Ensure product arrays are defined and empty arrays if not provided
+    value.kbcwProducts = kbcwProducts
+    value.glassesProducts = glassesProducts
+    value.vendorProducts = vendorProducts
+     
 
+    // // Convert dates to Firebase timestamps within each product array
+    // const convertDatesToTimestamps = (productsArray) => {
+    //   return productsArray.map((product) => ({
+    //     ...product,
+    //     deliveredDate:
+    //       product.deliveredDate && !isNaN(new Date(product.deliveredDate))
+    //         ? Timestamp.fromDate(new Date(product.deliveredDate))
+    //         : null,
+    //   }));
+    // };
+
+    // Update product arrays with cleaned data
+    // value.kbcwProducts = convertDatesToTimestamps(value.kbcwProducts);
+    // value.glassesProducts = convertDatesToTimestamps(value.glassesProducts);
+    // value.vendorProducts = convertDatesToTimestamps(value.vendorProducts);
+
+    // Log the cleaned data for debugging
+    // console.log(
+    //   "Value after converting dates to timestamps:",
+    //   JSON.stringify(value, null, 2)
+    // );
+
+    // Add the sale to Firestore
+    const saleDocRef = await addDoc(salesCollectionRef, value);
+    console.log("Sale successfully added with ID:", saleDocRef.id);
+
+    // Function to submit products to their respective collections
+    // const submitProducts = async (productsArray, collectionName) => {
+    //   if (productsArray.length > 0) {
+    //     console.log(`Submitting ${collectionName} products:`, productsArray); // Log products before submission
+    //     const productsCollectionRef = collection(db, collectionName);
+    //     const promises = productsArray.map(async (product) => {
+    //       const productData = {
+    //         ...product,
+    //         saleId: saleDocRef.id, // Link the product to the sale
+    //       };
+    //       await addDoc(productsCollectionRef, productData);
+    //     });
+
+    //     await Promise.all(promises); // Wait for all product additions to finish
+    //     console.log(`${collectionName} products added successfully.`);
+    //   } else {
+    //     console.log(`No products to add in ${collectionName}`);
+    //   }
+    // };
+
+    // Submit all product arrays and log data before submission
+    // console.log("KBCW Products before submission:", value.kbcwProducts);
+    // await submitProducts(kbcwProducts, "kbcwProducts");
+
+    // console.log("Glasses Products before submission:", value.glassesProducts);
+    // await submitProducts(glassesProducts, "glassesProducts");
+
+    // console.log("Vendor Products before submission:", value.vendorProducts);
+    // await submitProducts(vendorProducts, "vendorProducts");
+
+    // Reset or close modal after success
     setOpen(false);
   } catch (error) {
-    console.error("Error adding document: ", error);
+    console.error("Error submitting sale or products:", error.message);
   }
 };
+
+
+
+
+
+
+
+
+
+
 
   const handleToggleFields = () => {
     setShowFields((prev) => !prev);
   };
 
   const handleAddVendorProducts = () => {
-    setVendorProducts([...vendorProducts,  {
+    setVendorProducts((prev) => [
+      ...prev,
+      {
         orderNumber: "",
         vendorName: "",
         quantity: "",
@@ -133,32 +235,40 @@ const handleSubmit = async (e) => {
         vendorPrice: "",
         vendorItemType: "",
         vendorGlassNumber: "",
-        vendorDeliveredDate:"",
-    }])
-  }
-  const handleAddGlassesProducts= () => {
-    setGlassesProducts([...glassesProducts,{
-       glassesBarcode: "", 
-       glassesType: "", 
-       glassesName: "",
-        glassesSize: "",
-         glassesNumber: "",
-          glassesQuantity: "", 
-          glassesDeliveredDate: "",
-           glassesPrice: "",
+        vendorDeliveredDate: "",
+      },
+    ]);
+  };
 
-    }])
-  }
+  const handleAddGlassesProducts = () => {
+    setGlassesProducts((prev) => [
+      ...prev,
+      {
+        glassesBarcode: "",
+        glassesType: "",
+        glassesName: "",
+        glassesSize: "",
+        glassesNumber: "",
+        glassesQuantity: "",
+        glassesDeliveredDate: "",
+        glassesPrice: "",
+      },
+    ]);
+  };
+
   const handleAddKbcwProducts = () => {
-    setKbcwProducts([...kbcwProducts, {
-       kbcwInventoryType: "",
-         kbcwBarcode: "", 
-         kbcwName: "", 
-         kbcwQuantity: "",
-          kbcwSize: "", 
-          kbcwPrice: "",
-          kbcwDeliveredDate:"",
-        }]);
+    setKbcwProducts((prev) => [
+      ...prev,
+      {
+        kbcwInventoryType: "",
+        kbcwBarcode: "",
+        kbcwName: "",
+        kbcwQuantity: "",
+        kbcwSize: "",
+        kbcwPrice: "",
+        kbcwDeliveredDate: "",
+      },
+    ]);
   };
 
   return (
@@ -377,7 +487,7 @@ const handleSubmit = async (e) => {
                         <TableCell>LE</TableCell>
                         <TableCell>
                           <TextField
-                            type="number"
+                            type="text"
                             name="leSph"
                             value={value.leSph}
                             onChange={handleChange}
@@ -386,7 +496,7 @@ const handleSubmit = async (e) => {
                         </TableCell>
                         <TableCell>
                           <TextField
-                            type="number"
+                            type="text"
                             name="leCyl"
                             value={value.leCyl}
                             onChange={handleChange}
@@ -395,7 +505,7 @@ const handleSubmit = async (e) => {
                         </TableCell>
                         <TableCell>
                           <TextField
-                            type="number"
+                            type="text"
                             name="leAxis"
                             value={value.leAxis}
                             onChange={handleChange}
@@ -404,7 +514,7 @@ const handleSubmit = async (e) => {
                         </TableCell>
                         <TableCell>
                           <TextField
-                            type="number"
+                            type="text"
                             name="leAdd"
                             value={value.leAdd}
                             onChange={handleChange}
@@ -413,7 +523,7 @@ const handleSubmit = async (e) => {
                         </TableCell>
                         <TableCell>
                           <TextField
-                            type="number"
+                            type="text"
                             name="leIpd"
                             value={value.leIpd}
                             onChange={handleChange}
@@ -427,7 +537,7 @@ const handleSubmit = async (e) => {
                         <TableCell>RE</TableCell>
                         <TableCell>
                           <TextField
-                            type="number"
+                            type="text"
                             name="reSph"
                             value={value.reSph}
                             onChange={handleChange}
@@ -436,7 +546,7 @@ const handleSubmit = async (e) => {
                         </TableCell>
                         <TableCell>
                           <TextField
-                            type="number"
+                            type="text"
                             name="reCyl"
                             value={value.reCyl}
                             onChange={handleChange}
@@ -445,7 +555,7 @@ const handleSubmit = async (e) => {
                         </TableCell>
                         <TableCell>
                           <TextField
-                            type="number"
+                            type="text"
                             name="reAxis"
                             value={value.reAxis}
                             onChange={handleChange}
@@ -454,7 +564,7 @@ const handleSubmit = async (e) => {
                         </TableCell>
                         <TableCell>
                           <TextField
-                            type="number"
+                            type="text"
                             name="reAdd"
                             value={value.reAdd}
                             onChange={handleChange}
@@ -463,7 +573,7 @@ const handleSubmit = async (e) => {
                         </TableCell>
                         <TableCell>
                           <TextField
-                            type="number"
+                            type="text"
                             name="reIpd"
                             value={value.reIpd}
                             onChange={handleChange}
@@ -546,24 +656,29 @@ const handleSubmit = async (e) => {
               <AddVendor
                 vendorProducts={vendorProducts}
                 setVendorProducts={setVendorProducts}
+                onVendorPriceChange={handleVendorPriceChange}
               />
               <AddGlasses
                 glassesProducts={glassesProducts}
                 setGlassesProducts={setGlassesProducts}
+                onGlassesPriceChange={handleGlassesPriceChange}
               />
               <AddKbcw
                 kbcwProducts={kbcwProducts}
                 setKbcwProducts={setKbcwProducts}
+                onKbcwPriceChange={handleKbcwPriceChange}
               />
+
               <Grid item xs={8}>
                 <TextField
                   label="Total Amount"
                   name="totalAmount"
-                  value={value.totalAmount}
+                  value={grandTotal}
                   onChange={handleChange}
                   placeholder="Total Amount"
                   margin="normal"
                   fullWidth
+                  disabled
                 />
               </Grid>
               <Grid item xs={8}>
@@ -597,8 +712,31 @@ const handleSubmit = async (e) => {
                   placeholder="Pending Amount"
                   margin="normal"
                   fullWidth
+                  disabled
                 />
               </Grid>
+              <Box sx={{ maxWidth: 300, margin: "20px auto" }}>
+                <Typography variant="h6" mb={2}>
+                  Select Payment Method
+                </Typography>
+                <FormControl fullWidth>
+                  <InputLabel >
+                    Payment Method
+                  </InputLabel>
+                  <Select
+                    value={value.payment}
+                    name="payment"
+                    onChange={handleChange}
+                    label="Payment Method"
+                  >
+                    <MenuItem value="Cash">Cash</MenuItem>
+                    <MenuItem value="Bank">Bank</MenuItem>
+                    <MenuItem value="EasyPaisa">EasyPaisa</MenuItem>
+                    <MenuItem value="JazzCash">JazzCash</MenuItem>
+                  </Select>
+                </FormControl>
+              </Box>
+              
 
               <DialogActions sx={{ marginTop: "50px" }}>
                 <Button onClick={handleClose} color="secondary">

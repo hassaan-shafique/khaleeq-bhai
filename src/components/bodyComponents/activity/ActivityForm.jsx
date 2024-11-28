@@ -10,24 +10,21 @@ import {
 } from "@mui/material";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
-import { addDoc, collection, query, where, getDocs } from "firebase/firestore";
+import { addDoc, collection } from "firebase/firestore";
 import { db } from "../../../config/Firebase";
 
-const GlassesForm = ({ setRefresh }) => {
+const ActivityForm = ({ setRefresh }) => {
   const [open, setOpen] = useState(false);
 
   // State for form values
   const [value, setValue] = useState({
+    selectedDate: new Date(),
+    itemName: "",
+    vendor: "",
     price: 0,
-    type: "",
-    glass: "",
-    number: "",
     quantity: "",
-    barcodeNumber: "",
-    selectedDate: new Date(), // Initializing with the current date
   });
-  const [error ,setError] =useState()
-;
+
   // Update form state when inputs change
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -50,54 +47,23 @@ const GlassesForm = ({ setRefresh }) => {
     setOpen(true);
   };
 
-  // Function to check if the barcode number already exists
-  const checkBarcodeExistence = async (number) => {
-    const glassesCollectionRef = collection(db, "glasses");
-    const q = query(
-      glassesCollectionRef,
-      where("number", "==", number)
-    );
-    const querySnapshot = await getDocs(q);
-    return !querySnapshot.empty; // If query is not empty, the barcode exists
-  };
-
-
   // Handle form submission
   const handleSubmit = async (e) => {
     e.preventDefault();
-    const {
-      price,
-      type,
-      glass,
-      selectedDate,
-      number,
-      quantity,
-      barcodeNumber,
-    } = value;
-
-      
-
-    // Check if the barcode number already exists
-    const numberExists = await checkBarcodeExistence(number);
-    if (numberExists) {
-      alert("The Glasses number is already available.");
-      return; // Exit early if the barcode already exists
-    }
+    const { selectedDate, itemName, vendor, price, quantity } = value;
 
     try {
-      const glassesCollectionRef = collection(db, "glasses");
-      await addDoc(glassesCollectionRef, {
-        price,
-        type,
-        glass,
-        barcodeNumber,
-        number,
-        quantity,
+      const activityCollectionRef = collection(db, "daily-activity");
+      await addDoc(activityCollectionRef, {
         selectedDate,
+        itemName,
+        vendor,
+        price,
+        quantity,
       });
 
       setOpen(false);
-      setRefresh((prev) => !prev);
+      setRefresh((prev) => !prev); // Trigger refresh after adding a new entry
     } catch (error) {
       console.error("Error adding document: ", error);
     }
@@ -108,19 +74,19 @@ const GlassesForm = ({ setRefresh }) => {
       <Typography
         variant="h5"
         sx={{
-          m: 3,
+          m: 9,
           fontWeight: "bold",
           display: "flex",
           justifyContent: "space-between",
         }}
       >
-        Glasses Inventory
+        Daily Activity
         <Button
           variant="contained"
-          sx={{ bgcolor: "#448EE4", m: 1, px: 9 }}
+          sx={{ bgcolor: "#448EE4", m: 1, px: 7 }}
           onClick={handleClickOpen}
         >
-          Add Glasses
+          Add Daily Activity
         </Button>
       </Typography>
       <Dialog
@@ -129,7 +95,7 @@ const GlassesForm = ({ setRefresh }) => {
         fullWidth
         maxWidth="sm"
       >
-        <DialogTitle>Add Glasses</DialogTitle>
+        <DialogTitle>Add Daily Activity</DialogTitle>
         <DialogContent>
           <form onSubmit={handleSubmit}>
             <Typography variant="h7">Select Date</Typography>
@@ -149,69 +115,40 @@ const GlassesForm = ({ setRefresh }) => {
                 }
               />
             </div>
+
             <TextField
-              label="Barcode Number"
-              name="barcodeNumber"
-              type="number"
-              value={value.barcodeNumber}
-              onChange={handleInputChange}
-              fullWidth
-              margin="normal"
-            />
-            <TextField
-              label="Glass Name"
+              label="Item Name"
               type="text"
-              name="glass"
-              value={value.glass}
+              name="itemName"
+              value={value.itemName}
               onChange={handleInputChange}
               fullWidth
               margin="normal"
-            />
-            <TextField
-              required
-              label="Glass Type"
-              type="text"
-              name="type"
-              value={value.type}
-              onChange={handleInputChange}
-              fullWidth
-              margin="normal"
-              error={Boolean(error)} // Display error if any
-              helperText={error && error.includes("type") ? error : ""}
             />
 
-            {/* Number Field */}
             <TextField
-              required
-              label="Number"
-              name="number"
+              label="Vendor"
+              name="vendor"
               type="text"
-              value={value.number}
+              value={value.vendor}
               onChange={handleInputChange}
               fullWidth
               margin="normal"
-              error={Boolean(error)} // Display error if any
-              helperText={error && error.includes("number") ? error : ""}
-            />
-
-            {/* Quantity Field */}
-            <TextField
-              required
-              label="Quantity"
-              name="quantity"
-              type="number"
-              value={value.quantity}
-              onChange={handleInputChange}
-              fullWidth
-              margin="normal"
-              error={Boolean(error)} // Display error if any
-              helperText={error && error.includes("quantity") ? error : ""}
             />
             <TextField
               label="Price"
               name="price"
               type="number"
               value={value.price}
+              onChange={handleInputChange}
+              fullWidth
+              margin="normal"
+            />
+            <TextField
+              label="Quantity"
+              name="quantity"
+              type="number"
+              value={value.quantity}
               onChange={handleInputChange}
               fullWidth
               margin="normal"
@@ -229,4 +166,4 @@ const GlassesForm = ({ setRefresh }) => {
   );
 };
 
-export default GlassesForm;
+export default ActivityForm;

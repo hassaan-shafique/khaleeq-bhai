@@ -55,7 +55,7 @@ const ExpenseReportCard = () => {
   }, [startDate, endDate]);
 
   return (
-    <Card sx={{ margin: 2, padding: 2 }}>
+    <Card sx={{ marginTop:5, margin: 9, padding: 6}}>
       <CardContent>
         <Typography variant="h6" gutterBottom>
           Expense Report

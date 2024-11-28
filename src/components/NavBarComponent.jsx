@@ -20,17 +20,20 @@ import {
   Logout,
   AccountCircleOutlined,
 } from "@mui/icons-material";
-import { useState } from "react";
+import { useState ,useEffect } from "react";
 import { getAuth, signOut } from "firebase/auth";
 import { app } from "../config/Firebase";
 import { useNavigate } from "react-router-dom";
+import { db } from "../config/Firebase";
+import {doc, getDoc} from "firebase/firestore"
 
 const auth = getAuth(app);
 
 export default function NavBarComponent() {
   const [notificationAnchorEl, setNotificationAnchorEl] = useState(null);
   const [anchorEl, setAnchorEl] = useState(null);
-  // handleNotificationClicked
+  const [userName, setUserName] = useState(""); // State to store the user's name
+  const auth = getAuth();
   const open = Boolean(anchorEl);
   const notificationOpen = Boolean(notificationAnchorEl);
   const handleAvatarClicked = (event) => {
@@ -49,13 +52,40 @@ export default function NavBarComponent() {
 
   const navigate = useNavigate();
 
+useEffect(() => {
+  const fetchUserName = async () => {
+    try {
+      const user = auth.currentUser; // Get the current logged-in user
+      if (user) {
+        const userDoc = await getDoc(doc(db, "users", user.uid)); // Fetch Firestore document by UID
+        if (userDoc.exists()) {
+          const userData = userDoc.data();
+          if (userData.name) {
+            setUserName(userData.name); // Set the user's name
+          } else {
+            console.error("Name field does not exist in Firestore document.");
+          }
+        } else {
+          console.error("User document does not exist in Firestore.");
+        }
+      } else {
+        console.error("No user is currently logged in.");
+      }
+    } catch (error) {
+      console.error("Error fetching user data from Firestore:", error);
+    }
+  };
+
+  fetchUserName();
+}, [auth]);
+
   const handleLogout = async () => {
     try {
       await signOut(auth);
-      // Remove the token from localStorage
       localStorage.removeItem("authToken");
       console.log("Successfully logged out");
-      navigate("/login"); // Redirect to login page or any other page
+      localStorage.removeItem("userRole");
+      navigate("/login");
     } catch (error) {
       console.error("Error logging out:", error);
       alert("Failed to log out. Please try again.");
@@ -66,7 +96,17 @@ export default function NavBarComponent() {
     <Grid container>
       <Grid item md={12}>
         <Paper elevation={4}>
-          <AppBar sx={{ padding: 2 }} position="static">
+          <AppBar
+            sx={{
+              padding: 2,
+              position: "fixed", // Make the navbar fixed
+              top: 0, // Fix it at the top
+              left: 0,
+              right: 0,
+              zIndex: 1100, // Make sure it stays on top
+            }}
+            position="static"
+          >
             <Container maxWidth="xxl">
               <Box
                 sx={{
@@ -98,8 +138,6 @@ export default function NavBarComponent() {
                     alignItems: "center",
                   }}
                 >
-                  
-                 
                   <IconButton
                     onClick={handleAvatarClicked}
                     size="small"
@@ -110,7 +148,10 @@ export default function NavBarComponent() {
                       <Avatar sx={{ width: 32, height: 32 }}></Avatar>
                     </Tooltip>
                   </IconButton>
-                  <Typography fontFamily={"Inter"}>khaleeq</Typography>
+                  {/* Display the user's name */}
+                  <Typography fontFamily={"Inter"}>
+                    {userName || "user"}
+                  </Typography>
                 </Box>
 
                 <Menu
@@ -119,9 +160,6 @@ export default function NavBarComponent() {
                   onClick={handleClose}
                   onClose={handleClose}
                 >
-                 
-
-                  
                   <MenuItem onClick={() => handleLogout()}>
                     <ListItemIcon>
                       <Logout fontSize="small" />
@@ -136,33 +174,4 @@ export default function NavBarComponent() {
       </Grid>
     </Grid>
   );
-}
-
-{
-  /* <Grid item md={7}>
-                  <Paper
-                    component="form"
-                    sx={{
-                      p: "2px 4px",
-                      width: "50%",
-                      mx: "auto",
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                    }}
-                  >
-                    <InputBase
-                      sx={{ ml: 1, flex: 1 }}
-                      placeholder="Search "
-                      inputProps={{ "aria-label": "search" }}
-                    />
-                    <IconButton
-                      type="button"
-                      sx={{ p: "10px" }}
-                      aria-label="search"
-                    >
-                      <Search />
-                    </IconButton>
-                  </Paper>
-                </Grid> */
 }

@@ -5,32 +5,12 @@ import ExpenseList from "./ExpenseList";
 import { db } from "../../../config/Firebase";
 import { collection, getDocs } from "firebase/firestore";
 
-const Expense = () => {
-  const [expenses, setExpenses] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [refresh, setRefresh] = useState(false);
-
-  useEffect(() => {
-    const fetchExpenses = async () => {
-      try {
-        const querySnapshot = await getDocs(collection(db, "expenses"));
-        const expenseData = [];
-        querySnapshot.forEach((doc) => {
-          expenseData.push({ id: doc.id, ...doc.data() });
-        });
-        setExpenses(expenseData);
-        setLoading(false);
-      } catch (error) {
-        console.error("Error fetching expenses: ", error);
-        setLoading(false);
-      }
-    };
-    fetchExpenses();
-  }, [refresh]);
+const Expense = ({expenses, loading, setRefresh=()=>{}}) => {
+ 
 
   return (
     <>
-      <Box sx={{ width: "100%" }}>
+      <Box sx={{ marginTop: 6, width: "100%" }}>
         {" "}
         {/* Set Box to full width */}
         <Grid container sx={{ mx: 4, p: 3, width: "98%" }}>

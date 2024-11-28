@@ -3,14 +3,21 @@ import {
   Box,
   Grid,
   Button,
+  Typography,
 } from "@mui/material";
+
 import DeleteIcon from "@mui/icons-material/Delete";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
+import { useEffect,useState } from "react";
 
-const AddVendor = ({ vendorProducts, setVendorProducts }) => {
+const AddVendor = ({ vendorProducts, setVendorProducts,onVendorPriceChange}) => {
 
-  const handlevendorProductChange = (index, field, value) => {
+  const [totalVendorPrice,setTotalVendorPrice] =useState()
+
+
+
+  const handleVendorProductChange = (index, field, value) => {
     const newProducts = [...vendorProducts];
     newProducts[index][field] = value;
     setVendorProducts(newProducts);
@@ -30,6 +37,15 @@ const AddVendor = ({ vendorProducts, setVendorProducts }) => {
      setVendorProducts(updatedProducts); // Update the state with new values
    };
 
+  useEffect(() => {
+    const totalVendorPrice = vendorProducts.reduce((total, product) => {
+      const price = parseFloat(product.vendorPrice) || 0; // Ensure price is a number
+      return total + price;
+    }, 0);
+    
+
+    onVendorPriceChange(totalVendorPrice); // Pass total up
+  }, [vendorProducts,onVendorPriceChange]);
 
   return (
     <Box sx={{ marginTop: "20px" }}>
@@ -42,7 +58,7 @@ const AddVendor = ({ vendorProducts, setVendorProducts }) => {
                 label="Order Number"
                 value={vendorProducts.orderNumber}
                 onChange={(e) =>
-                  handlevendorProductChange(
+                  handleVendorProductChange(
                     index,
                     "orderNumber",
                     e.target.value
@@ -56,17 +72,18 @@ const AddVendor = ({ vendorProducts, setVendorProducts }) => {
                 label="Vendor Name"
                 value={vendorProducts.vendorName}
                 onChange={(e) =>
-                  handlevendorProductChange(index, "vendorName", e.target.value)
+                  handleVendorProductChange(index, "vendorName", e.target.value)
                 }
                 fullWidth
               />
             </Grid>
             <Grid item xs={4}>
               <TextField
+              required
                 label="Quantity"
                 value={vendorProducts.quantity}
                 onChange={(e) =>
-                  handlevendorProductChange(index, "quantity", e.target.value)
+                  handleVendorProductChange(index, "quantity", e.target.value)
                 }
                 fullWidth
               />
@@ -76,7 +93,7 @@ const AddVendor = ({ vendorProducts, setVendorProducts }) => {
                 label="Borrowed Branch"
                 value={vendorProducts.borrowedBranch}
                 onChange={(e) =>
-                  handlevendorProductChange(
+                  handleVendorProductChange(
                     index,
                     "borrowedBranch",
                     e.target.value
@@ -90,7 +107,7 @@ const AddVendor = ({ vendorProducts, setVendorProducts }) => {
                 label="Item Number"
                 value={vendorProducts.vendorGlassNumber}
                 onChange={(e) =>
-                  handlevendorProductChange(
+                  handleVendorProductChange(
                     index,
                     "vendorGlassNumber",
                     e.target.value
@@ -105,7 +122,7 @@ const AddVendor = ({ vendorProducts, setVendorProducts }) => {
                 label="Item Type"
                 value={vendorProducts.vendorItemType}
                 onChange={(e) =>
-                  handlevendorProductChange(
+                  handleVendorProductChange(
                     index,
                     "vendorItemType",
                     e.target.value
@@ -119,7 +136,7 @@ const AddVendor = ({ vendorProducts, setVendorProducts }) => {
                 label="Price"
                 value={vendorProducts.vendorPrice}
                 onChange={(e) =>
-                  handlevendorProductChange(
+                  handleVendorProductChange(
                     index,
                     "vendorPrice",
                     e.target.value
@@ -162,6 +179,9 @@ const AddVendor = ({ vendorProducts, setVendorProducts }) => {
               />
             </Grid>
           </Grid>
+          {/* <Box sx={{ marginTop: "20px" }}>
+            <h3>Total Price For Vendor Product: Rs {totalVendorPrice}</h3>
+          </Box> */}
           <Box sx={{ display: "flex", justifyContent: "flex-end" }}>
             <Button
               variant="contained"

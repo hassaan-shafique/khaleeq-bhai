@@ -10,27 +10,127 @@ import {
 import DeleteIcon from "@mui/icons-material/Delete";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
+import {useEffect,useState} from  'react';
+import { getDocs,doc } from "firebase/firestore";
+import { db } from "../../../../../config/Firebase";
+import {
+  
+ 
+  updateDoc,
+  query,
+  where,
+  collection,
+} from "firebase/firestore";
 
-const AddGlasses = ({ glassesProducts, setGlassesProducts }) => {
+const AddGlasses = ({
+  glassesProducts,
+  setGlassesProducts,
+  onGlassesPriceChange,
+}) => {
+  const [totalGlassesPrice, setTotalGlassesPrice] = useState(0);
 
-  const handleGlassesProductChange = (index, field, value) => {
-    const newProducts = [...glassesProducts];
-    newProducts[index][field] = value;
-    setGlassesProducts(newProducts);
+
+   const handleGlassesProductChange = (index, field, value) => {
+     const updatedProducts = [...glassesProducts];
+     updatedProducts[index][field] = value;
+     setGlassesProducts(updatedProducts);
+
+     if (field === "glassesNumber") {
+       fetchProductData(value, index);
+     }
+
+     if (field === "glassesQuantity") {
+       handleQuantityChange(index, value);
+     }
+   };
+
+    const fetchProductData = async (number, index) => {
+      if (!number) return;
+
+      try {
+        const q = query(
+          collection(db, "glasses"),
+          where("number", "==", number)
+        );
+        const querySnapshot = await getDocs(q);
+
+        if (!querySnapshot.empty) {
+          const productDoc = querySnapshot.docs[0];
+          const productData = productDoc.data();
+
+          const updatedProducts = [...glassesProducts];
+          updatedProducts[index] = {
+            ...updatedProducts[index],
+            glassesName: productData.name,
+            glassesPrice: productData.price,
+            glassesSize: productData.size,
+            glassesNumber: productData.number,
+            glassesType: productData.type,
+            inventoryQuantity: productData.quantity, // Initial inventory quantity
+          };
+          setGlassesProducts(updatedProducts);
+        }
+      } catch (error) {
+        console.error("Error fetching product:", error);
+      }
+    };
+
+  const handleQuantityChange = async (index, enteredQuantity) => {
+    const product = glassesProducts[index];
+    const remainingQuantity = product.inventoryQuantity - enteredQuantity;
+
+    if (remainingQuantity <= 0) {
+      alert("Insufficient stock in inventory");
+      return;
+    }
+
+    const updatedProducts = [...glassesProducts];
+    updatedProducts[index].inventoryQuantity = remainingQuantity;
+    setGlassesProducts(updatedProducts);
+
+    // Update inventory quantity in Firestore
+    try {
+      const q = query(
+        collection(db, "glasses"),
+        where("number", "==", product.glassesNumber)
+      
+      );
+      const querySnapshot = await getDocs(q);
+
+      if (!querySnapshot.empty) {
+        const productDocRef = doc(db, "glasses", querySnapshot.docs[0].id);
+        await updateDoc(productDocRef, { quantity: remainingQuantity });
+      }
+    } catch (error) {
+      console.error("Error updating inventory quantity:", error);
+    }
   };
+
+
+
 
   const handleRemove = (index) => {
     const newProducts = glassesProducts.filter((_, i) => i !== index);
     setGlassesProducts(newProducts);
   };
- const handleDateChange = (date, key, index) => {
-   const updatedProducts = [...glassesProducts]; // Create a copy of the products array
-   updatedProducts[index] = {
-     ...updatedProducts[index],
-     [key]: date, // Update the specific date field
-   };
-   setGlassesProducts(updatedProducts); // Update the state with new values
- };
+
+  const handleDateChange = (date, key, index) => {
+    const updatedProducts = [...glassesProducts];
+    updatedProducts[index] = {
+      ...updatedProducts[index],
+      [key]: date,
+    };
+    setGlassesProducts(updatedProducts);
+  };
+
+  useEffect(() => {
+    const totalGlassesPrice = glassesProducts.reduce((total, product) => {
+      const price = parseFloat(product.glassesPrice) || 0;
+      return total + price;
+    }, 0);
+    setTotalGlassesPrice(totalGlassesPrice);
+    onGlassesPriceChange(totalGlassesPrice);
+  }, [glassesProducts, onGlassesPriceChange]);
 
   return (
     <Box sx={{ marginTop: "20px" }}>
@@ -55,7 +155,7 @@ const AddGlasses = ({ glassesProducts, setGlassesProducts }) => {
             <Grid item xs={4}>
               <TextField
                 label="Glasses Type"
-                value={glassesProducts.glassesType}
+                value={glassesProducts.glassesType || ""}
                 onChange={(e) =>
                   handleGlassesProductChange(
                     index,
@@ -69,7 +169,7 @@ const AddGlasses = ({ glassesProducts, setGlassesProducts }) => {
             <Grid item xs={4}>
               <TextField
                 label="Name"
-                value={glassesProducts.glassesName}
+                value={glassesProducts.glassesName || ""}
                 onChange={(e) =>
                   handleGlassesProductChange(
                     index,
@@ -83,7 +183,7 @@ const AddGlasses = ({ glassesProducts, setGlassesProducts }) => {
             <Grid item xs={4}>
               <TextField
                 label="Size"
-                value={glassesProducts.glassesSize}
+                value={glassesProducts.glassesSize || ""}
                 onChange={(e) =>
                   handleGlassesProductChange(
                     index,
@@ -97,7 +197,7 @@ const AddGlasses = ({ glassesProducts, setGlassesProducts }) => {
             <Grid item xs={4}>
               <TextField
                 label="Number"
-                value={glassesProducts.glassesNumber}
+                value={glassesProducts.glassesNumber || ""}
                 onChange={(e) =>
                   handleGlassesProductChange(
                     index,
@@ -110,22 +210,25 @@ const AddGlasses = ({ glassesProducts, setGlassesProducts }) => {
             </Grid>
             <Grid item xs={4}>
               <TextField
+              required
+                type="number"
                 label="Quantity"
-                value={glassesProducts.glassesQuantity}
-                onChange={(e) =>
-                  handleGlassesProductChange(
-                    index,
-                    "glassesQuantity",
-                    e.target.value
-                  )
-                }
+                variant="outlined"
                 fullWidth
+                value={glassesProducts.enteredQuantity || ""}
+                onChange={(e) =>
+                  setGlassesProducts((prev) => {
+                    const updatedProducts = [...prev];
+                    updatedProducts[index].enteredQuantity = e.target.value;
+                    return updatedProducts;
+                  })
+                }
               />
             </Grid>
             <Grid item xs={4}>
               <TextField
                 label="Price"
-                value={glassesProducts.glassesPrice}
+                value={glassesProducts.glassesPrice || ""}
                 onChange={(e) =>
                   handleGlassesProductChange(
                     index,
@@ -138,7 +241,7 @@ const AddGlasses = ({ glassesProducts, setGlassesProducts }) => {
             </Grid>
             <Grid item xs={4}>
               <DatePicker
-                selected={glassesProducts.glassesDeliveredDate}
+                selected={glassesProducts.glassesDeliveredDate || ""}
                 onChange={(date) =>
                   handleDateChange(date, "glassesDeliveredDate", index)
                 }
@@ -170,11 +273,32 @@ const AddGlasses = ({ glassesProducts, setGlassesProducts }) => {
               />
             </Grid>
           </Grid>
-          <Box sx={{ display: "flex", justifyContent: "flex-end" }}>
+          {/* <Box sx={{ marginTop: "20px" }}>
+            <h3>
+              Total Price For Glasses Product: Rs {totalGlassesPrice}
+            </h3>
+          </Box> */}
+          <Box
+            sx={{
+              display: "flex",
+              justifyContent: "flex-end",
+              marginTop: "10px",
+            }}
+          >
+            <Button
+              variant="contained"
+              color="primary"
+              onClick={() =>
+                handleQuantityChange(index, glassesProducts.enteredQuantity)
+              }
+            >
+              Save
+            </Button>
             <Button
               variant="contained"
               color="error"
               onClick={() => handleRemove(index)}
+              sx={{ marginLeft: "8px" }}
             >
               <DeleteIcon />
             </Button>
@@ -183,6 +307,6 @@ const AddGlasses = ({ glassesProducts, setGlassesProducts }) => {
       ))}
     </Box>
   );
-}
+};
 
 export default AddGlasses;
