@@ -40,6 +40,7 @@ import { db } from "../../../config/Firebase"; // Ensure db is correctly importe
 import AddInstallment from "./Installments/addInstallment";
 import ViewInstallment from "./Installments/viewInstallments";
 import { useNavigate } from "react-router-dom";
+import { LocalGasStationRounded } from "@mui/icons-material";
 
 
 
@@ -73,6 +74,9 @@ const SaleList = ({ sales = [], loading = false, refresh }) => {
   const [searchCustomer, setSearchCustomer] = React.useState("");
   const [searchOrder, setSearchOrder] =React.useState("");
   const [statusFilter ,setStatusFilter] =React.useState("All");
+  const [startDate, setStartDate] =useState("");
+  const [endDate,setEndDate] =useState ("");
+
 
 
   const navigate = useNavigate();
@@ -95,12 +99,18 @@ const matchesOrder = sale.orderNo
    const matchesStatus =
      statusFilter === "All" ||
      sale.status.toLowerCase() === statusFilter.toLowerCase();
+
+    const matchesDate =
+      (!startDate || new Date(sale.startDate) >= new Date(startDate)) &&
+      (!endDate || new Date(sale.endDate) <= new Date(endDate));
+
   
 
     return (
-      matchesSalesman && matchesContact && matchesCustomer && matchesOrder && matchesStatus
+      matchesSalesman && matchesContact && matchesCustomer && matchesOrder && matchesStatus && matchesDate
     );
   });
+  
 
   const handlePrint = () => {
     // Clone the printRef content to a new window for printing
@@ -285,9 +295,9 @@ const matchesOrder = sale.orderNo
     }
   };
  const userRole= localStorage.getItem("userRole")
+
   return (
     <Box>
-    {userRole == "admin" &&(
       <Box
         sx={{
           display: "flex",
@@ -296,7 +306,7 @@ const matchesOrder = sale.orderNo
           marginBottom: "1rem",
         }}
       >
-        <FormControl >
+        <FormControl>
           <InputLabel>Sale Status</InputLabel>
           <Select
             value={statusFilter}
@@ -336,8 +346,34 @@ const matchesOrder = sale.orderNo
           onChange={(e) => setSearchCustomer(e.target.value)}
           sx={{ maxWidth: "300px" }}
         />
+        {userRole == "admin" && (
+          <div style={{ marginBottom: "1rem", display: "flex", gap: "1rem" }}>
+            <TextField
+              label="Start Date"
+              type="date"
+              variant="outlined"
+              size="small"
+              value={startDate}
+              onChange={(e) => setStartDate(e.target.value)}
+              InputLabelProps={{
+                shrink: true,
+              }}
+            />
+            <TextField
+              label="End Date"
+              type="date"
+              variant="outlined"
+              size="small"
+              value={endDate}
+              onChange={(e) => setEndDate(e.target.value)}
+              InputLabelProps={{
+                shrink: true,
+              }}
+            />
+          </div>
+        )}
       </Box>
-    )}
+
       <div
         style={{
           display: "flex",

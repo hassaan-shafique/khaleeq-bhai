@@ -211,15 +211,6 @@ const handleSubmit = async (e) => {
 };
 
 
-
-
-
-
-
-
-
-
-
   const handleToggleFields = () => {
     setShowFields((prev) => !prev);
   };
@@ -747,7 +738,7 @@ const handleSubmit = async (e) => {
                   variant="contained"
                   sx={{ bgcolor: "#448EE4" }}
                 >
-                  Save
+                  Submit Sale 
                 </Button>
               </DialogActions>
             </form>

@@ -270,7 +270,7 @@ function AddKbcw({ kbcwProducts, setKbcwProducts, onKbcwPriceChange }) {
             </Grid>
             {/* Display Product Image */}
           </Grid>
-          <Box sx={{ display: "flex", justifyContent: "flex-end" }}>
+          <Box sx={{ display: "flex", justifyContent: "flex-end",gap:"0.5rem" }}>
            
               <Button
                 variant="contained"
@@ -279,7 +279,7 @@ function AddKbcw({ kbcwProducts, setKbcwProducts, onKbcwPriceChange }) {
                   handleQuantityChange(index, product.enteredQuantity)
                 }
               >
-                Save
+                Click Here to Update Kbcw Inventory Quantity  
               </Button>
          
             <Button

@@ -45,6 +45,8 @@ const ExpenseList = ({ expenses = [], loading = false }) => {
   const [expenseData, setExpenseData] = useState(expenses)
   const [rowsPerPage, setRowsPerPage] = useState(5);
 
+  const userRole =localStorage.getItem("userRole");
+
   const formatTimestamp = (timestamp) =>
     timestamp ? timestamp.toDate().toLocaleDateString("en-GB") : "";
   // where("selectedDate", "==", new Date(date));
@@ -140,36 +142,38 @@ const ExpenseList = ({ expenses = [], loading = false }) => {
         </Box>
       ) : (
         <>
-          <Box sx={{ display: "flex", justifyContent: "center", mb: 3 }}>
-            <FormControl sx={{ minWidth: 200, mr: 2 }}>
-              <InputLabel>Filter by Expense Type</InputLabel>
-              <Select
-                value={selectedType}
-                onChange={(e) => setSelectedType(e.target.value)}
-                label="Filter by Expense Type"
-              >
-                <MenuItem value="">All</MenuItem>
-                {[...new Set(expenses.map((e) => e.expenseType))].map(
-                  (type, index) => (
-                    <MenuItem key={index} value={type}>
-                      {type}
-                    </MenuItem>
-                  )
-                )}
-              </Select>
-            </FormControl>
-            <TextField
-              type="date"
-              value={startDate}
-              onChange={(e) => setStartDate(e.target.value)}
-              sx={{ mr: 2 }}
-            />
-            <TextField
-              type="date"
-              value={endDate}
-              onChange={(e) => setEndDate(e.target.value)}
-            />
-          </Box>
+          {userRole == "admin" && (
+            <Box sx={{ display: "flex", justifyContent: "center", mb: 3 }}>
+              <FormControl sx={{ minWidth: 200, mr: 2 }}>
+                <InputLabel>Filter by Expense Type</InputLabel>
+                <Select
+                  value={selectedType}
+                  onChange={(e) => setSelectedType(e.target.value)}
+                  label="Filter by Expense Type"
+                >
+                  <MenuItem value="">All</MenuItem>
+                  {[...new Set(expenses.map((e) => e.expenseType))].map(
+                    (type, index) => (
+                      <MenuItem key={index} value={type}>
+                        {type}
+                      </MenuItem>
+                    )
+                  )}
+                </Select>
+              </FormControl>
+              <TextField
+                type="date"
+                value={startDate}
+                onChange={(e) => setStartDate(e.target.value)}
+                sx={{ mr: 2 }}
+              />
+              <TextField
+                type="date"
+                value={endDate}
+                onChange={(e) => setEndDate(e.target.value)}
+              />
+            </Box>
+          )}
 
           {sortedDates.length === 0 ? (
             <Typography variant="h6" align="center" sx={{ mt: 4 }}>
@@ -200,74 +204,78 @@ const ExpenseList = ({ expenses = [], loading = false }) => {
                 },
               }}
             >
-              <Table>
-                <TableHead>
-                  <TableRow sx={{ bgcolor: "#0056b3" }}>
-                    <TableCell sx={{ fontWeight: "bold", color: "white" }}>
-                      Date
-                    </TableCell>
-                    <TableCell sx={{ fontWeight: "bold", color: "white" }}>
-                      Expenses
-                    </TableCell>
-                    <TableCell sx={{ fontWeight: "bold", color: "white" }}>
-                      Total (Rs.)
-                    </TableCell>
-                  </TableRow>
-                </TableHead>
-                <TableBody>
-                  {sortedDates
-                    .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
-                    .map((date, index) => (
-                      <TableRow key={index}>
-                        <TableCell>{date}</TableCell>
-                        <TableCell>
-                          <Accordion>
-                            <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-                              <Typography variant="subtitle1">
-                                View Expenses
-                              </Typography>
-                            </AccordionSummary>
-                            <AccordionDetails>
-                              {groupedExpenses[date].map((expense, i) => (
-                                <Box
-                                  key={i}
-                                  sx={{
-                                    mb: 1,
-                                    p: 1,
-                                    bgcolor: "#f9f9f9",
-                                    borderRadius: 2,
-                                  }}
-                                >
-                                  <Typography key={i}>
-                                    <strong> Expense {i + 1}</strong> <br />
-                                    <strong>Type:</strong> {expense.expenseType}{" "}
-                                    | <strong>Price:</strong> Rs.{" "}
-                                    {expense.price}
-                                  </Typography>
-                                  <Typography>
-                                    <strong>Other:</strong>{" "}
-                                    {expense.otherExpense || ""}
-                                  </Typography>
-                                  <IconButton
-                                    onClick={() =>
-                                      handleDelete(expense.id)
-                                    } 
-                                    color="error"
+              {userRole == "admin" && (
+                <Table>
+                  <TableHead>
+                    <TableRow sx={{ bgcolor: "#0056b3" }}>
+                      <TableCell sx={{ fontWeight: "bold", color: "white" }}>
+                        Date
+                      </TableCell>
+                      <TableCell sx={{ fontWeight: "bold", color: "white" }}>
+                        Expenses
+                      </TableCell>
+                      <TableCell sx={{ fontWeight: "bold", color: "white" }}>
+                        Total (Rs.)
+                      </TableCell>
+                    </TableRow>
+                  </TableHead>
+                  <TableBody>
+                    {sortedDates
+                      .slice(
+                        page * rowsPerPage,
+                        page * rowsPerPage + rowsPerPage
+                      )
+                      .map((date, index) => (
+                        <TableRow key={index}>
+                          <TableCell>{date}</TableCell>
+                          <TableCell>
+                            <Accordion>
+                              <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+                                <Typography variant="subtitle1">
+                                  View Expenses
+                                </Typography>
+                              </AccordionSummary>
+                              <AccordionDetails>
+                                {groupedExpenses[date].map((expense, i) => (
+                                  <Box
+                                    key={i}
+                                    sx={{
+                                      mb: 1,
+                                      p: 1,
+                                      bgcolor: "#f9f9f9",
+                                      borderRadius: 2,
+                                    }}
                                   >
-                                    <DeleteIcon />
-                                  </IconButton>
-                                </Box>
-                              ))}
-                            </AccordionDetails>
-                          </Accordion>
-                        </TableCell>
-                        <TableCell>
-                          Rs. {calculateTotalExpense(groupedExpenses[date])}
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                </TableBody>
-              </Table>
+                                    <Typography key={i}>
+                                      <strong> Expense {i + 1}</strong> <br />
+                                      <strong>Type:</strong>{" "}
+                                      {expense.expenseType} |{" "}
+                                      <strong>Price:</strong> Rs.{" "}
+                                      {expense.price}
+                                    </Typography>
+                                    <Typography>
+                                      <strong>Other:</strong>{" "}
+                                      {expense.otherExpense || ""}
+                                    </Typography>
+                                    <IconButton
+                                      onClick={() => handleDelete(expense.id)}
+                                      color="error"
+                                    >
+                                      <DeleteIcon />
+                                    </IconButton>
+                                  </Box>
+                                ))}
+                              </AccordionDetails>
+                            </Accordion>
+                          </TableCell>
+                          <TableCell>
+                            Rs. {calculateTotalExpense(groupedExpenses[date])}
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                  </TableBody>
+                </Table>
+              )}
             </TableContainer>
           )}
 

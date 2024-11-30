@@ -49,6 +49,14 @@ const ActivityList = ({ refresh }) => {
     }
   };
 
+   const calculateGrandTotal = () => {
+     return filteredActivities.reduce((total, activity) => {
+       const price = parseFloat(activity.price) || 0;
+       
+       return total + price ;
+     }, 0);
+   };
+
   // Fetch activities on component mount or when refresh changes
   useEffect(() => {
     fetchActivities();
@@ -162,49 +170,51 @@ const ActivityList = ({ refresh }) => {
     return matchVendor && matchItem && matchStartDate && matchEndDate;
   });
 
+  const userRole = localStorage.getItem("userRole");
+
   return (
     <div>
-      
-
       {/* Search and Date Filters */}
-      <div style={{ marginBottom: "20px" ,display: "flex"} }>
-        <TextField
-          label="Search by Vendor"
-          value={vendorSearch}
-          onChange={handleVendorSearchChange}
-          fullWidth
-          sx={{ mb: 2, mr: 2 }}
-        />
-        <TextField
-          label="Search by Item Name"
-          value={itemSearch}
-          onChange={handleItemSearchChange}
-          fullWidth
-          sx={{ mb: 2, mr: 2 }}
-        />
-        <TextField
-          label="Start Date"
-          type="date"
-          value={startDate}
-          onChange={handleStartDateChange}
-          fullWidth
-          sx={{ mb: 2 }}
-          InputLabelProps={{
-            shrink: true,
-          }}
-        />
-        <TextField
-          label="End Date"
-          type="date"
-          value={endDate}
-          onChange={handleEndDateChange}
-          fullWidth
-          sx={{ mb: 2 }}
-          InputLabelProps={{
-            shrink: true,
-          }}
-        />
-      </div>
+      {userRole == "admin" && (
+        <div style={{ marginBottom: "20px", display: "flex" }}>
+          <TextField
+            label="Search by Vendor"
+            value={vendorSearch}
+            onChange={handleVendorSearchChange}
+            fullWidth
+            sx={{ mb: 2, mr: 2 }}
+          />
+          <TextField
+            label="Search by Item Name"
+            value={itemSearch}
+            onChange={handleItemSearchChange}
+            fullWidth
+            sx={{ mb: 2, mr: 2 }}
+          />
+          <TextField
+            label="Start Date"
+            type="date"
+            value={startDate}
+            onChange={handleStartDateChange}
+            fullWidth
+            sx={{ mb: 2 }}
+            InputLabelProps={{
+              shrink: true,
+            }}
+          />
+          <TextField
+            label="End Date"
+            type="date"
+            value={endDate}
+            onChange={handleEndDateChange}
+            fullWidth
+            sx={{ mb: 2 }}
+            InputLabelProps={{
+              shrink: true,
+            }}
+          />
+        </div>
+      )}
 
       <TableContainer component={Paper} sx={{ mt: 2 }}>
         <Table>
@@ -324,6 +334,17 @@ const ActivityList = ({ refresh }) => {
           </TableBody>
         </Table>
       </TableContainer>
+
+      <Typography
+        variant="h6"
+        sx={{
+          marginTop: 2,
+          textAlign: "left ",
+          fontWeight: "bold",
+        }}
+      >
+        Grand Total: {calculateGrandTotal().toFixed(2)}
+      </Typography>
 
       {/* Edit Dialog */}
       {openDialog && editedActivity && (

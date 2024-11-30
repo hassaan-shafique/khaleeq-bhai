@@ -292,7 +292,7 @@ const AddGlasses = ({
                 handleQuantityChange(index, glassesProducts.enteredQuantity)
               }
             >
-              Save
+            Click Here To Update Glasses Inventory Quantity
             </Button>
             <Button
               variant="contained"

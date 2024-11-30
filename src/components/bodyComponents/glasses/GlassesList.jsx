@@ -45,6 +45,8 @@ const GlassesList = ({ glasses = [], loading = false, onDelete, onEdit }) => {
    const [filteredGlasses, setFilteredGlasses] = React.useState(glasses);
    const [refresh ,setRefresh] =useState();
 
+   const userRole = localStorage.getItem("userRole");
+
    
   const printRef = useRef (null);
 
@@ -250,45 +252,47 @@ const GlassesList = ({ glasses = [], loading = false, onDelete, onEdit }) => {
         </Box>
       ) : (
         <>
-          <Box
-            sx={{
-              display: "flex",
-              gap: "1rem", // Add gap property for consistent spacing
-              marginBottom: "1rem",
-            }}
-          >
-            <TextField
-              variant="outlined"
-              label="Search by Number"
-              value={searchNumber}
-              onChange={(e) => setSearchNumber(e.target.value)} // Update searchNumber state
-              sx={{ width: "300px" }}
-            />
-            <TextField
-              variant="outlined"
-              label="Search by Type"
-              value={searchType}
-              onChange={(e) => setSearchType(e.target.value)} // Update searchType state
-              sx={{ width: "300px" }}
-            />
-            <FormControl sx={{ width: "300px", marginBottom: "1rem" }}>
-              <InputLabel>Filter by Price Range</InputLabel>
-              <Select value={priceRange} onChange={handlePriceRangeChange}>
-                <MenuItem value="0">All</MenuItem>
-                <MenuItem value="1">350 - 600</MenuItem>
-                <MenuItem value="2">601 - 950</MenuItem>
-                <MenuItem value="3">951 - 1250</MenuItem>
-                <MenuItem value="4">1251 - 1550</MenuItem>
-                <MenuItem value="5">1551 - 1850</MenuItem>
-                <MenuItem value="6">1851 - 2550</MenuItem>
-                <MenuItem value="7">2551 - 3500</MenuItem>
-                <MenuItem value="8">3501 - 6000</MenuItem>
-                <MenuItem value="9">6001 - 10000</MenuItem>
-                <MenuItem value="10">10001 - 30000</MenuItem>
-                <MenuItem value="11">30001 - 50000</MenuItem>
-              </Select>
-            </FormControl>
-          </Box>
+          {userRole == "admin" && (
+            <Box
+              sx={{
+                display: "flex",
+                gap: "1rem", // Add gap property for consistent spacing
+                marginBottom: "1rem",
+              }}
+            >
+              <TextField
+                variant="outlined"
+                label="Search by Number"
+                value={searchNumber}
+                onChange={(e) => setSearchNumber(e.target.value)} // Update searchNumber state
+                sx={{ width: "300px" }}
+              />
+              <TextField
+                variant="outlined"
+                label="Search by Type"
+                value={searchType}
+                onChange={(e) => setSearchType(e.target.value)} // Update searchType state
+                sx={{ width: "300px" }}
+              />
+              <FormControl sx={{ width: "300px", marginBottom: "1rem" }}>
+                <InputLabel>Filter by Price Range</InputLabel>
+                <Select value={priceRange} onChange={handlePriceRangeChange}>
+                  <MenuItem value="0">All</MenuItem>
+                  <MenuItem value="1">350 - 600</MenuItem>
+                  <MenuItem value="2">601 - 950</MenuItem>
+                  <MenuItem value="3">951 - 1250</MenuItem>
+                  <MenuItem value="4">1251 - 1550</MenuItem>
+                  <MenuItem value="5">1551 - 1850</MenuItem>
+                  <MenuItem value="6">1851 - 2550</MenuItem>
+                  <MenuItem value="7">2551 - 3500</MenuItem>
+                  <MenuItem value="8">3501 - 6000</MenuItem>
+                  <MenuItem value="9">6001 - 10000</MenuItem>
+                  <MenuItem value="10">10001 - 30000</MenuItem>
+                  <MenuItem value="11">30001 - 50000</MenuItem>
+                </Select>
+              </FormControl>
+            </Box>
+          )}
 
           <div
             style={{
@@ -305,8 +309,8 @@ const GlassesList = ({ glasses = [], loading = false, onDelete, onEdit }) => {
             style={{
               display: "flex",
               justifyContent: "flex-end",
-             marginTop:"-2rem",
-             marginBottom: "1rem"
+              marginTop: "-2rem",
+              marginBottom: "1rem",
             }}
           >
             <UpdateGlassesQuantity setRefresh={setRefresh} />
