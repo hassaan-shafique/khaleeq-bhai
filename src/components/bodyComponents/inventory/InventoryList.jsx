@@ -251,9 +251,11 @@ const handlePrint = () => {
               gap: "40rem",
             }}
           >
-            <Button variant="contained" color="primary" onClick={handlePrint}>
-              Print Kbcw Inventory
-            </Button>
+            {userRole == "admin" && (
+              <Button variant="contained" color="primary" onClick={handlePrint}>
+                Print Kbcw Inventory
+              </Button>
+            )}
 
             <div
               style={{
@@ -478,15 +480,14 @@ const handlePrint = () => {
                           <Button onClick={() => openEditDialog(item)}>
                             <EditIcon />
                           </Button>
-                          {userRole ==
-                            "admin" && (
-                              <Button
-                                color="error"
-                                onClick={() => handleDeleteItem(item.id)}
-                              >
-                                <DeleteIcon />
-                              </Button>
-                            )}
+                          {userRole == "admin" && (
+                            <Button
+                              color="error"
+                              onClick={() => handleDeleteItem(item.id)}
+                            >
+                              <DeleteIcon />
+                            </Button>
+                          )}
                         </TableCell>
                       </TableRow>
                     ))}

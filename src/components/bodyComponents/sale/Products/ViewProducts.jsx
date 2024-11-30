@@ -310,17 +310,20 @@ const handleDeleteClick = async (product, productType) => {
       <Typography variant="h6" style={styles.heading}>
         Customer Information
       </Typography>
-      <div
-        style={{
-          display: "flex",
-          justifyContent: "flex-end",
-          marginBottom: "1rem",
-        }}
-      >
-        <Button variant="contained" color="primary" onClick={handlePrint}>
-          Print Sale Information
-        </Button>
-      </div>
+
+      {userRole == "admin" && (
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "flex-end",
+            marginBottom: "1rem",
+          }}
+        >
+          <Button variant="contained" color="primary" onClick={handlePrint}>
+            Print Sale Information
+          </Button>
+        </div>
+      )}
 
       <div ref={printRef}>
         <TableContainer component={Paper}>

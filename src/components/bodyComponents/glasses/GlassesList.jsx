@@ -294,6 +294,8 @@ const GlassesList = ({ glasses = [], loading = false, onDelete, onEdit }) => {
             </Box>
           )}
 
+          {userRole == "admin" && (
+
           <div
             style={{
               display: "flex",
@@ -305,6 +307,8 @@ const GlassesList = ({ glasses = [], loading = false, onDelete, onEdit }) => {
               Print Glasses Inventory
             </Button>
           </div>
+
+          )}
           <div
             style={{
               display: "flex",
