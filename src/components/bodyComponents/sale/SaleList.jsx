@@ -346,45 +346,48 @@ const matchesOrder = sale.orderNo
           onChange={(e) => setSearchCustomer(e.target.value)}
           sx={{ maxWidth: "300px" }}
         />
-        {userRole == "admin" && (
-          <div style={{ marginBottom: "1rem", display: "flex", gap: "1rem" }}>
-            <TextField
-              label="Start Date"
-              type="date"
-              variant="outlined"
-              size="small"
-              value={startDate}
-              onChange={(e) => setStartDate(e.target.value)}
-              InputLabelProps={{
-                shrink: true,
-              }}
-            />
-            <TextField
-              label="End Date"
-              type="date"
-              variant="outlined"
-              size="small"
-              value={endDate}
-              onChange={(e) => setEndDate(e.target.value)}
-              InputLabelProps={{
-                shrink: true,
-              }}
-            />
-          </div>
-        )}
       </Box>
 
-      <div
-        style={{
-          display: "flex",
-          justifyContent: "flex-start",
-          marginBottom: "1rem",
-        }}
-      >
-        <Button variant="contained" color="primary" onClick={handlePrint}>
-          Print Sale Information
-        </Button>
-      </div>
+      {userRole == "admin" && (
+        <div style={{ marginBottom: "1rem", display: "flex", gap: "1rem" }}>
+          <TextField
+            label="Start Date"
+            type="date"
+            variant="outlined"
+            size="small"
+            value={startDate}
+            onChange={(e) => setStartDate(e.target.value)}
+            InputLabelProps={{
+              shrink: true,
+            }}
+          />
+          <TextField
+            label="End Date"
+            type="date"
+            variant="outlined"
+            size="small"
+            value={endDate}
+            onChange={(e) => setEndDate(e.target.value)}
+            InputLabelProps={{
+              shrink: true,
+            }}
+          />
+        </div>
+      )}
+
+      {userRole == "admin" && (
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "flex-start",
+            marginBottom: "1rem",
+          }}
+        >
+          <Button variant="contained" color="primary" onClick={handlePrint}>
+            Print Sale Information
+          </Button>
+        </div>
+      )}
 
       {loading ? (
         <Box
