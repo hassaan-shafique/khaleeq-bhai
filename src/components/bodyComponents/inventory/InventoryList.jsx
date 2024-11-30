@@ -194,7 +194,9 @@ const handlePrint = () => {
   newWindow.document.close();
 };
 
-   
+ const userRole = localStorage.getItem ("userRole");
+
+
 
   return (
     <Box>
@@ -204,44 +206,49 @@ const handlePrint = () => {
         </Box>
       ) : (
         <>
-          <FormControl fullWidth sx={{ marginBottom: 2 }}>
-            <InputLabel>Filter by Inventory Type</InputLabel>
-            <Select value={selectedType} onChange={handleTypeChange}>
-              <MenuItem value="">All</MenuItem>
-              {inventoryTypes.map((type, index) => (
-                <MenuItem key={index} value={type}>
-                  {type}
-                </MenuItem>
-              ))}
-            </Select>
-          </FormControl>
-          <FormControl fullWidth sx={{ marginBottom: 2 }}>
-            <InputLabel>Filter by Price Range</InputLabel>
-            <Select
-              value={selectedPriceRange}
-              onChange={handlePriceRangeChange}
-            >
-              <MenuItem value="">All</MenuItem>
-              <MenuItem value="1">Rs. 350 to 600</MenuItem>
-              <MenuItem value="2">Rs. 601 to 950</MenuItem>
-              <MenuItem value="3">Rs. 951 to 1250</MenuItem>
-              <MenuItem value="4">Rs. 1251 to 1550</MenuItem>
-              <MenuItem value="5">Rs. 1551 to 1850</MenuItem>
-              <MenuItem value="6">Rs. 1851 to 2550</MenuItem>
-              <MenuItem value="7">Rs. 2551 to 3500</MenuItem>
-              <MenuItem value="8">Rs. 3501 to 6000</MenuItem>
-              <MenuItem value="9">Rs. 6001 to 10000</MenuItem>
-              <MenuItem value="10">Rs. 10001 to 30000</MenuItem>
-              <MenuItem value="11">Rs. 30001 to 50000</MenuItem>
-              {/* Add other price ranges */}
-            </Select>
-          </FormControl>
+          {userRole == "admin" && (
+            <FormControl fullWidth sx={{ marginBottom: 2 }}>
+              <InputLabel>Filter by Inventory Type</InputLabel>
+              <Select value={selectedType} onChange={handleTypeChange}>
+                <MenuItem value="">All</MenuItem>
+                {inventoryTypes.map((type, index) => (
+                  <MenuItem key={index} value={type}>
+                    {type}
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+          )}
+
+          {userRole == "admin" && (
+            <FormControl fullWidth sx={{ marginBottom: 2 }}>
+              <InputLabel>Filter by Price Range</InputLabel>
+              <Select
+                value={selectedPriceRange}
+                onChange={handlePriceRangeChange}
+              >
+                <MenuItem value="">All</MenuItem>
+                <MenuItem value="1">Rs. 350 to 600</MenuItem>
+                <MenuItem value="2">Rs. 601 to 950</MenuItem>
+                <MenuItem value="3">Rs. 951 to 1250</MenuItem>
+                <MenuItem value="4">Rs. 1251 to 1550</MenuItem>
+                <MenuItem value="5">Rs. 1551 to 1850</MenuItem>
+                <MenuItem value="6">Rs. 1851 to 2550</MenuItem>
+                <MenuItem value="7">Rs. 2551 to 3500</MenuItem>
+                <MenuItem value="8">Rs. 3501 to 6000</MenuItem>
+                <MenuItem value="9">Rs. 6001 to 10000</MenuItem>
+                <MenuItem value="10">Rs. 10001 to 30000</MenuItem>
+                <MenuItem value="11">Rs. 30001 to 50000</MenuItem>
+                {/* Add other price ranges */}
+              </Select>
+            </FormControl>
+          )}
           <div
             style={{
               display: "flex",
               justifyContent: "flex-start",
               marginBottom: "1rem",
-              gap: "40rem"
+              gap: "40rem",
             }}
           >
             <Button variant="contained" color="primary" onClick={handlePrint}>
@@ -252,7 +259,6 @@ const handlePrint = () => {
               style={{
                 display: "flex",
                 justifyContent: "flex-end",
-               
               }}
             >
               <UpdateQuantity setRefresh={setRefresh} />
@@ -472,12 +478,15 @@ const handlePrint = () => {
                           <Button onClick={() => openEditDialog(item)}>
                             <EditIcon />
                           </Button>
-                          <Button
-                            color="error"
-                            onClick={() => handleDeleteItem(item.id)}
-                          >
-                            <DeleteIcon />
-                          </Button>
+                          {userRole ==
+                            "admin" && (
+                              <Button
+                                color="error"
+                                onClick={() => handleDeleteItem(item.id)}
+                              >
+                                <DeleteIcon />
+                              </Button>
+                            )}
                         </TableCell>
                       </TableRow>
                     ))}

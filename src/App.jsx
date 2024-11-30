@@ -25,7 +25,7 @@ import Sales from "./components/bodyComponents/sale/Sales";
 import ViewProducts from "./components/bodyComponents/sale/Products/ViewProducts";
 import { app } from "./config/Firebase";
 import { db } from "./config/Firebase";
-import { collection, getDocs } from "firebase/firestore";
+import { collection, getDocs,doc } from "firebase/firestore";
 
 // Custom Protected Route Component
 const ProtectedRoute = ({ isAuthenticated, children }) => {
@@ -39,6 +39,7 @@ function App() {
   const [role, setRole] = useState(""); // Role state to manage user role
   const [expenses, setExpenses] = useState([]);
   const [refresh, setRefresh] = useState(false);
+   
 
   const fetchExpenses = async () => {
     try {
@@ -69,11 +70,11 @@ function App() {
         localStorage.setItem("authToken", user.accessToken);
 
         // Fetch user role from Firestore (or your backend)
-        const userRef = db.collection("users").doc(user.uid); // Assuming you store role in Firestore
-        const userDoc = await userRef.get();
-        if (userDoc.exists) {
-          setRole(userDoc.data().role); // Set role (e.g., 'Admin' or 'Employee')
-        }
+        // const userRef = doc(db, "users", user.uid); // Assuming you store role in Firestore
+        // const userDoc = await userRef.get();
+        // if (userDoc.exists) {
+        //   setRole(userDoc.data().role); // Set role (e.g., 'Admin' or 'Employee')
+        // }
       } else {
         localStorage.removeItem("authToken");
         setRole(""); // Clear role when logged out
@@ -122,6 +123,7 @@ function App() {
       </Box>
     );
   }
+  
 
   return (
     <ThemeProvider theme={theme}>
@@ -168,20 +170,21 @@ function App() {
             />
 
             {/* Admin-Only Routes */}
-            {role === "Admin" && (
-              <>
+           
+              
                 <Route
                   path="reports"
                   element={<Report expenses={expenses} />}
                 />
                 <Route path="vendors" element={<Vendors />} />
-              </>
-            )}
+              
+         
 
             {/* Routes accessible by all authenticated users */}
             <Route path="daily-activity" element={<Activity />} />
             <Route path="reports" element={<Report />} />
             <Route path="vendors" element={<Vendors />} />
+           
           </Route>
         </Routes>
       </BrowserRouter>

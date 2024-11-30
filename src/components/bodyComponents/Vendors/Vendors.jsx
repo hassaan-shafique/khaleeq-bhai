@@ -87,6 +87,7 @@ const handlePrint = () => {
              sale.customerName
                .toLowerCase()
                .includes(customerSearch.toLowerCase()))) &&
+               
          (!startDate ||
            (sale.startDate &&
              new Date(sale.startDate) >= new Date(startDate))) &&
