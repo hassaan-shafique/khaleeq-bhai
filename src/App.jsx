@@ -39,6 +39,7 @@ function App() {
   const [role, setRole] = useState(""); // Role state to manage user role
   const [expenses, setExpenses] = useState([]);
   const [refresh, setRefresh] = useState(false);
+  const userRole = localStorage.getItem("userRole");
    
 
   const fetchExpenses = async () => {
@@ -158,6 +159,8 @@ function App() {
             <Route path="inventory" element={<Inventory />} />
             <Route path="sales/:id/products" element={<ViewProducts />} />
             <Route path="glasses" element={<Glasses />} />
+            <Route path="daily-activity" element={<Activity />} />
+
             <Route
               path="expense"
               element={
@@ -168,23 +171,8 @@ function App() {
                 />
               }
             />
-
-            {/* Admin-Only Routes */}
-           
-              
-                <Route
-                  path="reports"
-                  element={<Report expenses={expenses} />}
-                />
-                <Route path="vendors" element={<Vendors />} />
-              
-         
-
-            {/* Routes accessible by all authenticated users */}
-            <Route path="daily-activity" element={<Activity />} />
             <Route path="reports" element={<Report />} />
             <Route path="vendors" element={<Vendors />} />
-           
           </Route>
         </Routes>
       </BrowserRouter>

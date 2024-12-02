@@ -1,5 +1,4 @@
 import React, { useState } from "react";
-import "../../public/styles/links.css";
 import {
   List,
   ListItem,
@@ -7,8 +6,13 @@ import {
   ListItemText,
   ListItemButton,
   IconButton,
+  Drawer,
   Box,
+  useMediaQuery,
 } from "@mui/material";
+import MenuIcon from "@mui/icons-material/Menu";
+import ArrowBackIosNewIcon from "@mui/icons-material/ArrowBackIosNew";
+import ArrowForwardIosIcon from "@mui/icons-material/ArrowForwardIos";
 import {
   Inventory2Outlined,
   SettingsOutlined,
@@ -59,51 +63,50 @@ export default function SideBarComponent() {
   ];
 
   const [selected, setSelected] = useState(0);
+  const [mobileOpen, setMobileOpen] = useState(false);
+  const [sidebarOpen, setSidebarOpen] = useState(true); // For desktop sidebar toggle
+  const isMobile = useMediaQuery("(max-width:600px)");
 
-  const handlSelectedComponent = (event, index) => {
+  const handleSelectedComponent = (event, index) => {
     setSelected(index);
+    if (isMobile) setMobileOpen(false); // Close drawer on mobile after selection
   };
 
-  return (
-    <Box
-      sx={{
-        position: "fixed", // Fixed position on the left
-        top: "60px", // Adjust this value to position the sidebar below the navbar
-        left: 0,
-        width: "230px", // Sidebar width
-        height: "calc(100vh - 60px)", // Full height minus the height of the navbar
-        backgroundColor: "#3884e7 ", // Sidebar background color
-        padding: 1,
-        zIndex: 10000,
-        borderTopRightRadius: "10px", // Top left corner
-        borderBottomRightRadius: "10px", // Bottom right corner// Make sure the sidebar stays on top of content
-      }}
-    >
-      <List>
-        {sideBarComponent.map((comp, index) => (
-          <ListItem disablePadding dense key={index}>
-            <Box width="100%">
-              <ListItemButton
-                onClick={(event) => {
-                  handlSelectedComponent(event, index);
-                  navigateTo(comp.title.toLocaleLowerCase());
-                }}
-                selected={
-                  index === selected &&
-                  currentPage === "/" + comp.title.toLowerCase()
-                }
-                sx={{
-                  mb: 3,
-                  borderLeft: 0,
-                  borderColor: "primary.main",
-                  backgroundColor:
-                    index === selected ? "darkblue" : "transparent", // Highlight selected item
-                }}
-              >
-                <ListItemIcon>
-                  <IconButton>{comp.component}</IconButton>
-                </ListItemIcon>
+  const toggleDrawer = () => {
+    setMobileOpen(!mobileOpen);
+  };
 
+  const toggleSidebar = () => {
+    setSidebarOpen(!sidebarOpen);
+  };
+
+  const sidebarContent = (
+    <List>
+      {sideBarComponent.map((comp, index) => (
+        <ListItem disablePadding dense key={index}>
+          <Box width="100%">
+            <ListItemButton
+              onClick={(event) => {
+                handleSelectedComponent(event, index);
+                navigateTo(comp.title.toLocaleLowerCase());
+              }}
+              selected={
+                index === selected &&
+                currentPage === "/" + comp.title.toLowerCase()
+              }
+              sx={{
+                mb: 3,
+                borderLeft: 0,
+                borderColor: "primary.main",
+                backgroundColor:
+                  index === selected ? "darkblue" : "transparent", // Highlight selected item
+              }}
+            >
+              <ListItemIcon>
+                <IconButton>{comp.component}</IconButton>
+              </ListItemIcon>
+
+              {!isMobile && sidebarOpen && (
                 <ListItemText
                   primary={comp.title}
                   primaryTypographyProps={{
@@ -112,11 +115,84 @@ export default function SideBarComponent() {
                     color: "white", // Make text white for all items
                   }}
                 />
-              </ListItemButton>
-            </Box>
-          </ListItem>
-        ))}
-      </List>
-    </Box>
+              )}
+            </ListItemButton>
+          </Box>
+        </ListItem>
+      ))}
+    </List>
+  );
+
+  return (
+    <>
+      {/* Mobile toggle button */}
+      {isMobile && (
+        <IconButton
+          sx={{
+            position: "fixed",
+            top: 16,
+            left: 16,
+            zIndex: 11000,
+            backgroundColor: "white",
+            boxShadow: 3,
+          }}
+          onClick={toggleDrawer}
+        >
+          <MenuIcon />
+        </IconButton>
+      )}
+
+      {/* Drawer for mobile */}
+      <Drawer
+        anchor="left"
+        open={mobileOpen}
+        onClose={toggleDrawer}
+        sx={{
+          "& .MuiDrawer-paper": {
+            width: "230px",
+            backgroundColor: "#3884e7",
+          },
+        }}
+      >
+        {sidebarContent}
+      </Drawer>
+
+      {/* Sidebar for desktop */}
+      {!isMobile && (
+        <Box
+          sx={{
+            position: "fixed", // Fixed position on the left
+            top: "60px", // Adjust this value to position the sidebar below the navbar
+            left: 0,
+            width: sidebarOpen ? "230px" : "60px", // Toggle width
+            height: "calc(100vh - 60px)", // Full height minus the height of the navbar
+            backgroundColor: "#3884e7", // Sidebar background color
+            padding: 1,
+            zIndex: 10000,
+            borderTopRightRadius: "10px", // Top left corner
+            borderBottomRightRadius: "10px", // Bottom right corner
+            transition: "width 0.3s ease", // Smooth transition
+          }}
+        >
+          {/* Toggle arrow button */}
+          <IconButton
+            sx={{
+              position: "absolute",
+              top: "50%",
+              right: "-20px",
+              transform: "translateY(-50%)",
+              backgroundColor: "white",
+              boxShadow: 3,
+              zIndex: 11000,
+            }}
+            onClick={toggleSidebar}
+          >
+            {sidebarOpen ? <ArrowBackIosNewIcon /> : <ArrowForwardIosIcon />}
+          </IconButton>
+
+          {sidebarContent}
+        </Box>
+      )}
+    </>
   );
 }

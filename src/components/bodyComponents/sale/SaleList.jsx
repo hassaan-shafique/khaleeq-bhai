@@ -83,34 +83,45 @@ const SaleList = ({ sales = [], loading = false, refresh }) => {
 
   const printRef = useRef(null);
 
-  const filteredSalesData = salesData.filter((sale) => {
-    const matchesSalesman = sale.salesman
-      .toLowerCase()
-      .includes(searchSalesman.toLowerCase());
-    const matchesContact = sale.contactNo
-      .toLowerCase()
-      .includes(searchContact.toLowerCase());
-    const matchesCustomer = sale.customerName
-      .toLowerCase()
-      .includes(searchCustomer.toLowerCase());
-const matchesOrder = sale.orderNo
-  .toLowerCase()
-  .includes(searchOrder.toLowerCase());
-   const matchesStatus =
-     statusFilter === "All" ||
-     sale.status.toLowerCase() === statusFilter.toLowerCase();
+const filteredSalesData = salesData.filter((sale) => {
+  // Ensure the fields are strings before calling toLowerCase
+  const matchesSalesman = String(sale.salesman || "")
+    .toLowerCase()
+    .includes((searchSalesman || "").toLowerCase());
 
-    const matchesDate =
-      (!startDate || new Date(sale.startDate) >= new Date(startDate)) &&
-      (!endDate || new Date(sale.endDate) <= new Date(endDate));
+  const matchesContact = String(sale.contactNo || "")
+    .toLowerCase()
+    .includes((searchContact || "").toLowerCase());
 
-  
+  const matchesCustomer = String(sale.customerName || "")
+    .toLowerCase()
+    .includes((searchCustomer || "").toLowerCase());
 
-    return (
-      matchesSalesman && matchesContact && matchesCustomer && matchesOrder && matchesStatus && matchesDate
-    );
-  });
-  
+  const matchesOrder = String(sale.orderNo || "")
+    .toLowerCase()
+    .includes((searchOrder || "").toLowerCase());
+
+  const matchesStatus =
+    statusFilter === "All" ||
+    String(sale.status || "").toLowerCase() ===
+      (statusFilter || "").toLowerCase();
+
+  // Safely handle date comparisons
+  const matchesDate =
+    (!startDate || new Date(sale.startDate) >= new Date(startDate)) &&
+    (!endDate || new Date(sale.endDate) <= new Date(endDate));
+
+  return (
+    matchesSalesman &&
+    matchesContact &&
+    matchesCustomer &&
+    matchesOrder &&
+    matchesStatus &&
+    matchesDate
+  );
+});
+
+
 
   const handlePrint = () => {
     // Clone the printRef content to a new window for printing
@@ -552,7 +563,7 @@ const matchesOrder = sale.orderNo
                           </TableCell>
 
                           {/* Status buttons with click handlers */}
-                          <TableCell sx={{ padding: "8px", padding: "40px" }}>
+                          <TableCell sx={{ padding: "8px" }}>
                             <Box sx={{ display: "flex", alignItems: "center" }}>
                               {sale.status === "Pending" && (
                                 <IconButton

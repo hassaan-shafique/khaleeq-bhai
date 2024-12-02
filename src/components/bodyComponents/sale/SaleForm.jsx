@@ -131,77 +131,64 @@ const SalesForm = () => {
 
 const handleSubmit = async (e) => {
   e.preventDefault();
-  console.log({
-    kbcwProducts ,glassesProducts, vendorProducts
-  })
-  try {
-    // Log the initial value to see if products are present
-    console.log("Initial value before any processing:", value);
 
+  try {
     // Reference to the sales collection
     const salesCollectionRef = collection(db, "sales");
 
-    // Ensure product arrays are defined and empty arrays if not provided
-    value.kbcwProducts = kbcwProducts
-    value.glassesProducts = glassesProducts
-    value.vendorProducts = vendorProducts
-     
+    // Ensure product arrays are defined and fallback to empty arrays
+    const safeValue = {
+      ...value,
+      kbcwProducts: kbcwProducts || [],
+      glassesProducts: glassesProducts || [],
+      vendorProducts: vendorProducts || [],
+    };
 
-    // // Convert dates to Firebase timestamps within each product array
-    // const convertDatesToTimestamps = (productsArray) => {
-    //   return productsArray.map((product) => ({
-    //     ...product,
-    //     deliveredDate:
-    //       product.deliveredDate && !isNaN(new Date(product.deliveredDate))
-    //         ? Timestamp.fromDate(new Date(product.deliveredDate))
-    //         : null,
-    //   }));
-    // };
+    // Function to convert dates to Firebase Timestamps within product arrays
+    const convertDatesToTimestamps = (productsArray) => {
+      return productsArray.map((product) => ({
+        ...product,
+        deliveredDate:
+          product.deliveredDate && !isNaN(new Date(product.deliveredDate))
+            ? Timestamp.fromDate(new Date(product.deliveredDate))
+            : null, // Ensure null if the date is invalid
+      }));
+    };
 
-    // Update product arrays with cleaned data
-    // value.kbcwProducts = convertDatesToTimestamps(value.kbcwProducts);
-    // value.glassesProducts = convertDatesToTimestamps(value.glassesProducts);
-    // value.vendorProducts = convertDatesToTimestamps(value.vendorProducts);
+    // Update product arrays with converted dates
+    safeValue.kbcwProducts = convertDatesToTimestamps(safeValue.kbcwProducts);
+    safeValue.glassesProducts = convertDatesToTimestamps(
+      safeValue.glassesProducts
+    );
+    safeValue.vendorProducts = convertDatesToTimestamps(
+      safeValue.vendorProducts
+    );
 
-    // Log the cleaned data for debugging
-    // console.log(
-    //   "Value after converting dates to timestamps:",
-    //   JSON.stringify(value, null, 2)
-    // );
+    // Remove undefined or null fields (deep cleaning for nested objects)
+    const cleanData = (data) => {
+      if (Array.isArray(data)) {
+        return data.map(cleanData); // Recursively clean each item in the array
+      } else if (data && typeof data === "object") {
+        return Object.fromEntries(
+          Object.entries(data)
+            .filter(([_, v]) => v !== undefined && v !== null)
+            .map(([k, v]) => [k, cleanData(v)])
+        );
+      }
+      return data; // Return the value if it’s neither an object nor an array
+    };
+
+    const cleanedValue = cleanData(safeValue);
+
+    // Debugging: Log the cleaned data with timestamps
+    console.log(
+      "Value after converting dates to timestamps:",
+      JSON.stringify(cleanedValue, null, 2)
+    );
 
     // Add the sale to Firestore
-    const saleDocRef = await addDoc(salesCollectionRef, value);
+    const saleDocRef = await addDoc(salesCollectionRef, cleanedValue);
     console.log("Sale successfully added with ID:", saleDocRef.id);
-
-    // Function to submit products to their respective collections
-    // const submitProducts = async (productsArray, collectionName) => {
-    //   if (productsArray.length > 0) {
-    //     console.log(`Submitting ${collectionName} products:`, productsArray); // Log products before submission
-    //     const productsCollectionRef = collection(db, collectionName);
-    //     const promises = productsArray.map(async (product) => {
-    //       const productData = {
-    //         ...product,
-    //         saleId: saleDocRef.id, // Link the product to the sale
-    //       };
-    //       await addDoc(productsCollectionRef, productData);
-    //     });
-
-    //     await Promise.all(promises); // Wait for all product additions to finish
-    //     console.log(`${collectionName} products added successfully.`);
-    //   } else {
-    //     console.log(`No products to add in ${collectionName}`);
-    //   }
-    // };
-
-    // Submit all product arrays and log data before submission
-    // console.log("KBCW Products before submission:", value.kbcwProducts);
-    // await submitProducts(kbcwProducts, "kbcwProducts");
-
-    // console.log("Glasses Products before submission:", value.glassesProducts);
-    // await submitProducts(glassesProducts, "glassesProducts");
-
-    // console.log("Vendor Products before submission:", value.vendorProducts);
-    // await submitProducts(vendorProducts, "vendorProducts");
 
     // Reset or close modal after success
     setOpen(false);
@@ -209,6 +196,9 @@ const handleSubmit = async (e) => {
     console.error("Error submitting sale or products:", error.message);
   }
 };
+
+
+
 
 
   const handleToggleFields = () => {

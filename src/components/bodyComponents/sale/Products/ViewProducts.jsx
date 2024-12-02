@@ -27,6 +27,8 @@ import EditVendorDialog from "./EditProduct/EditVendor";
 // -----------------------------------------
 
 const ViewProducts = () => {
+
+  const userRole = localStorage.getItem("userRole");
   const { id } = useParams();
   const [salesData, setSalesData] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -74,21 +76,35 @@ const ViewProducts = () => {
   if (loading) return <p>Loading...</p>;
   if (!salesData) return <p>No sales data found for this customer.</p>;
 
-  const formatDate = (date) => {
-    if (!date) return "N/A"; // Handle null or undefined dates
+ const formatDate = (date) => {
+   if (!date) return "N/A"; // Handle null or undefined dates
 
-    // If it's a Firebase Timestamp, convert it to a Date object
-    if (date.seconds) {
-      date = new Date(date.seconds * 1000);
-    }
+   try {
+     // If it's a Firebase Timestamp (object with `seconds`), convert it to a Date object
+     if (typeof date === "object" && date.seconds) {
+       date = new Date(date.seconds * 1000);
+     }
 
-    // Format the Date object to a readable string (dd-MMM-yyyy)
-    return date.toLocaleDateString("en-GB", {
-      day: "2-digit",
-      month: "short",
-      year: "numeric",
-    });
-  };
+     // Ensure `date` is now a valid Date object
+     const validDate = date instanceof Date ? date : new Date(date);
+
+     if (isNaN(validDate.getTime())) {
+       // Handle invalid dates gracefully
+       return "Invalid Date";
+     }
+
+     // Format the valid Date object to a readable string (dd-MMM-yyyy)
+     return validDate.toLocaleDateString("en-GB", {
+       day: "2-digit",
+       month: "short",
+       year: "numeric",
+     });
+   } catch (error) {
+     console.error("Error formatting date:", error);
+     return "Invalid Date";
+   }
+ };
+
 
  
 
@@ -259,6 +275,8 @@ const handleDeleteClick = async (product, productType) => {
   };
 
 
+
+
    const handlePrint = () => {
      // Clone the printRef content to a new window for printing
      const printContents = printRef.current.innerHTML;
@@ -335,7 +353,11 @@ const handleDeleteClick = async (product, productType) => {
               </TableRow>
               <TableRow>
                 <TableCell style={styles.tableCell}>Delivery Date</TableCell>
-                <TableCell>{formatDate(salesData.endDateDate)}</TableCell>
+                <TableCell>{formatDate(salesData.endDate)}</TableCell>
+              </TableRow>
+              <TableRow>
+                <TableCell style={styles.tableCell}>Delivery Date</TableCell>
+                <TableCell>{formatDate(salesData.DeliveredDate)}</TableCell>
               </TableRow>
               <TableRow>
                 <TableCell style={styles.tableCell}>Customer Name</TableCell>
