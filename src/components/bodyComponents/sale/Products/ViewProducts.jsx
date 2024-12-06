@@ -356,8 +356,8 @@ const handleDeleteClick = async (product, productType) => {
                 <TableCell>{formatDate(salesData.endDate)}</TableCell>
               </TableRow>
               <TableRow>
-                <TableCell style={styles.tableCell}>Delivery Date</TableCell>
-                <TableCell>{formatDate(salesData.DeliveredDate)}</TableCell>
+                <TableCell style={styles.tableCell}>Delivered Date</TableCell>
+                <TableCell>{formatDate(salesData.deliveredDate)}</TableCell>
               </TableRow>
               <TableRow>
                 <TableCell style={styles.tableCell}>Customer Name</TableCell>
@@ -411,16 +411,6 @@ const handleDeleteClick = async (product, productType) => {
               </TableRow>
             </TableHead>
             <TableBody>
-              {/* LE Row */}
-              <TableRow>
-                <TableCell style={styles.tableCell}>LE</TableCell>
-                <TableCell>{salesData.leSph}</TableCell>
-                <TableCell>{salesData.leCyl}</TableCell>
-                <TableCell>{salesData.leAxis}</TableCell>
-                <TableCell>{salesData.leAdd}</TableCell>
-                <TableCell>{salesData.leIpd}</TableCell>
-              </TableRow>
-
               {/* RE Row */}
               <TableRow>
                 <TableCell style={styles.tableCell}>RE</TableCell>
@@ -429,6 +419,15 @@ const handleDeleteClick = async (product, productType) => {
                 <TableCell>{salesData.reAxis}</TableCell>
                 <TableCell>{salesData.reAdd}</TableCell>
                 <TableCell>{salesData.reIpd}</TableCell>
+              </TableRow>
+              {/* LE Row */}
+              <TableRow>
+                <TableCell style={styles.tableCell}>LE</TableCell>
+                <TableCell>{salesData.leSph}</TableCell>
+                <TableCell>{salesData.leCyl}</TableCell>
+                <TableCell>{salesData.leAxis}</TableCell>
+                <TableCell>{salesData.leAdd}</TableCell>
+                <TableCell>{salesData.leIpd}</TableCell>
               </TableRow>
             </TableBody>
           </Table>

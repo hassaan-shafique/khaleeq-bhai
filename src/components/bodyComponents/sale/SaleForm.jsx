@@ -22,12 +22,13 @@ FormControl,
 InputLabel,
 Select,
 MenuItem,
+
 } from "@mui/material";
 import { useMemo } from "react";
 
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
-import { addDoc, collection } from "firebase/firestore";
+import { addDoc, collection, Timestamp} from "firebase/firestore";
 import { db } from "../../../config/Firebase";
 import AddVendor from './Products/AddProduct/AddVendor';
 import AddGlasses from "./Products/AddProduct/AddGlasses";
@@ -41,9 +42,9 @@ const SalesForm = () => {
     address: "",
     salesman: "",
     doctor: "",
-    startDate: "",
-    endDate: "",
-    DeliveredDate: "",
+    startDate: new Date(),
+    endDate: new Date(),
+    deliveredDate: "",
     instruction: "",
     leSph: "",
     leCyl: "",
@@ -61,23 +62,25 @@ const SalesForm = () => {
     pendingAmount: "",
     advance: "",
     discount: "",
-  
   });
 
   const [open, setOpen] = useState(false);
-    const [showFields, setShowFields] = useState(false);
+  const [showFields, setShowFields] = useState(false);
 
- const [vendorProducts, setVendorProducts] = useState([]);
+  const [vendorProducts, setVendorProducts] = useState([]);
   const [kbcwProducts, setKbcwProducts] = useState([]);
   const [glassesProducts, setGlassesProducts] = useState([]);
 
-  const [refresh ,setRefresh] = useState (false);
+  const [refresh, setRefresh] = useState(false);
 
-     const [totalVendorPrice, setTotalVendorPrice] = useState(0);
-     const [totalKbcwPrice, setTotalKbcwPrice] = useState(0);
-     const [totalGlassesPrice, setTotalGlassesPrice] = useState(0);
+  const [totalVendorPrice, setTotalVendorPrice] = useState(0);
+  const [totalKbcwPrice, setTotalKbcwPrice] = useState(0);
+  const [totalGlassesPrice, setTotalGlassesPrice] = useState(0);
 
-    const handleVendorPriceChange = (total) => {
+
+  
+
+  const handleVendorPriceChange = (total) => {
     setTotalVendorPrice(total);
   };
 
@@ -91,8 +94,6 @@ const SalesForm = () => {
 
   // Calculate the grand total
   const grandTotal = totalVendorPrice + totalKbcwPrice + totalGlassesPrice;
-
-
 
   const handleClickOpen = () => {
     setOpen(true);
@@ -117,89 +118,90 @@ const SalesForm = () => {
     }));
   };
 
- useEffect(() => {
-   const total = parseFloat(grandTotal) || 0;
-   const advance = parseFloat(value.advance) || 0;
-   const discount = parseFloat(value.discount) || 0; 
-   const pending = total - advance - discount;
+  useEffect(() => {
+    const total = parseFloat(grandTotal) || 0;
+    const advance = parseFloat(value.advance) || 0;
+    const discount = parseFloat(value.discount) || 0;
+    const pending = total - advance - discount;
 
-   setValue((prev) => ({
-     ...prev,
-     pendingAmount: pending >= 0 ? pending : 0, // Ensure no negative value
-   }));
- }, [grandTotal, value.advance, value.discount]);
+    setValue((prev) => ({
+      ...prev,
+      pendingAmount: pending >= 0 ? pending : 0, // Ensure no negative value
+    }));
+  }, [grandTotal, value.advance, value.discount]);
 
-const handleSubmit = async (e) => {
-  e.preventDefault();
-
-  try {
-    // Reference to the sales collection
-    const salesCollectionRef = collection(db, "sales");
-
-    // Ensure product arrays are defined and fallback to empty arrays
-    const safeValue = {
-      ...value,
-      kbcwProducts: kbcwProducts || [],
-      glassesProducts: glassesProducts || [],
-      vendorProducts: vendorProducts || [],
-    };
-
-    // Function to convert dates to Firebase Timestamps within product arrays
-    const convertDatesToTimestamps = (productsArray) => {
-      return productsArray.map((product) => ({
-        ...product,
-        deliveredDate:
-          product.deliveredDate && !isNaN(new Date(product.deliveredDate))
-            ? Timestamp.fromDate(new Date(product.deliveredDate))
-            : null, // Ensure null if the date is invalid
-      }));
-    };
-
-    // Update product arrays with converted dates
-    safeValue.kbcwProducts = convertDatesToTimestamps(safeValue.kbcwProducts);
-    safeValue.glassesProducts = convertDatesToTimestamps(
-      safeValue.glassesProducts
-    );
-    safeValue.vendorProducts = convertDatesToTimestamps(
-      safeValue.vendorProducts
-    );
-
-    // Remove undefined or null fields (deep cleaning for nested objects)
-    const cleanData = (data) => {
-      if (Array.isArray(data)) {
-        return data.map(cleanData); // Recursively clean each item in the array
-      } else if (data && typeof data === "object") {
-        return Object.fromEntries(
-          Object.entries(data)
-            .filter(([_, v]) => v !== undefined && v !== null)
-            .map(([k, v]) => [k, cleanData(v)])
-        );
-      }
-      return data; // Return the value if it’s neither an object nor an array
-    };
-
-    const cleanedValue = cleanData(safeValue);
-
-    // Debugging: Log the cleaned data with timestamps
-    console.log(
-      "Value after converting dates to timestamps:",
-      JSON.stringify(cleanedValue, null, 2)
-    );
-
-    // Add the sale to Firestore
-    const saleDocRef = await addDoc(salesCollectionRef, cleanedValue);
-    console.log("Sale successfully added with ID:", saleDocRef.id);
-
-    // Reset or close modal after success
-    setOpen(false);
-  } catch (error) {
-    console.error("Error submitting sale or products:", error.message);
-  }
-};
+  const handleSubmit = async (e) => {
+    e.preventDefault();
 
 
+    try {
+
+  
 
 
+      // Reference to the sales collection
+      const salesCollectionRef = collection(db, "sales");
+
+      // Ensure product arrays are defined and fallback to empty arrays
+      const safeValue = {
+        ...value,
+        kbcwProducts: kbcwProducts || [],
+        glassesProducts: glassesProducts || [],
+        vendorProducts: vendorProducts || [],
+      };
+
+      // Function to convert dates to Firebase Timestamps within product arrays
+      const convertDatesToTimestamps = (productsArray) => {
+        return productsArray.map((product) => ({
+          ...product,
+          deliveredDate:
+            product.deliveredDate && !isNaN(new Date(product.deliveredDate))
+              ? Timestamp.fromDate(new Date(product.deliveredDate))
+              : null, // Ensure null if the date is invalid
+        }));
+      };
+
+      // Update product arrays with converted dates
+      safeValue.kbcwProducts = convertDatesToTimestamps(safeValue.kbcwProducts);
+      safeValue.glassesProducts = convertDatesToTimestamps(
+        safeValue.glassesProducts
+      );
+      safeValue.vendorProducts = convertDatesToTimestamps(
+        safeValue.vendorProducts
+      );
+
+      // Remove undefined or null fields (deep cleaning for nested objects)
+      const cleanData = (data) => {
+        if (Array.isArray(data)) {
+          return data.map(cleanData); // Recursively clean each item in the array
+        } else if (data && typeof data === "object") {
+          return Object.fromEntries(
+            Object.entries(data)
+              .filter(([_, v]) => v !== undefined && v !== null)
+              .map(([k, v]) => [k, cleanData(v)])
+          );
+        }
+        return data; // Return the value if it’s neither an object nor an array
+      };
+
+      const cleanedValue = cleanData(safeValue);
+
+      // Debugging: Log the cleaned data with timestamps
+      console.log(
+        "Value after converting dates to timestamps:",
+        JSON.stringify(cleanedValue, null, 2)
+      );
+
+      // Add the sale to Firestore
+      const saleDocRef = await addDoc(salesCollectionRef, cleanedValue);
+      console.log("Sale successfully added with ID:", saleDocRef.id);
+
+      // Reset or close modal after success
+      setOpen(false);
+    } catch (error) {
+      console.error("Error submitting sale or products:", error.message);
+    }
+  };
 
   const handleToggleFields = () => {
     setShowFields((prev) => !prev);
@@ -300,6 +302,7 @@ const handleSubmit = async (e) => {
                         fullWidth
                         variant="outlined"
                         label="Sales Date"
+                        value={value.startDate.toLocaleDateString()}
                         sx={{
                           "& .MuiOutlinedInput-root": {
                             borderRadius: "8px",
@@ -327,6 +330,7 @@ const handleSubmit = async (e) => {
                     customInput={
                       <TextField
                         fullWidth
+                        value={value.endDate.toLocaleDateString()}
                         variant="outlined"
                         label="Delivery Date"
                         sx={{
@@ -350,12 +354,13 @@ const handleSubmit = async (e) => {
                 </Grid>
                 <Grid item xs={4}>
                   <DatePicker
-                    selected={value.DeliveredDate}
-                    onChange={(date) => handleDateChange(date, "DeliveredDate")}
+                    selected={value.deliveredDate}
+                    onChange={(date) => handleDateChange(date, "deliveredDate")}
                     placeholderText="Select Delivered Date"
                     customInput={
                       <TextField
                         fullWidth
+                    
                         variant="outlined"
                         label="Delivered Date"
                         sx={{
@@ -463,56 +468,6 @@ const handleSubmit = async (e) => {
                       </TableRow>
                     </TableHead>
                     <TableBody>
-                      {/* LE Row */}
-                      <TableRow>
-                        <TableCell>LE</TableCell>
-                        <TableCell>
-                          <TextField
-                            type="text"
-                            name="leSph"
-                            value={value.leSph}
-                            onChange={handleChange}
-                            fullWidth
-                          />
-                        </TableCell>
-                        <TableCell>
-                          <TextField
-                            type="text"
-                            name="leCyl"
-                            value={value.leCyl}
-                            onChange={handleChange}
-                            fullWidth
-                          />
-                        </TableCell>
-                        <TableCell>
-                          <TextField
-                            type="text"
-                            name="leAxis"
-                            value={value.leAxis}
-                            onChange={handleChange}
-                            fullWidth
-                          />
-                        </TableCell>
-                        <TableCell>
-                          <TextField
-                            type="text"
-                            name="leAdd"
-                            value={value.leAdd}
-                            onChange={handleChange}
-                            fullWidth
-                          />
-                        </TableCell>
-                        <TableCell>
-                          <TextField
-                            type="text"
-                            name="leIpd"
-                            value={value.leIpd}
-                            onChange={handleChange}
-                            fullWidth
-                          />
-                        </TableCell>
-                      </TableRow>
-
                       {/* RE Row */}
                       <TableRow>
                         <TableCell>RE</TableCell>
@@ -557,6 +512,56 @@ const handleSubmit = async (e) => {
                             type="text"
                             name="reIpd"
                             value={value.reIpd}
+                            onChange={handleChange}
+                            fullWidth
+                          />
+                        </TableCell>
+                      </TableRow>
+
+                      {/* LE Row */}
+                      <TableRow>
+                        <TableCell>LE</TableCell>
+                        <TableCell>
+                          <TextField
+                            type="text"
+                            name="leSph"
+                            value={value.leSph}
+                            onChange={handleChange}
+                            fullWidth
+                          />
+                        </TableCell>
+                        <TableCell>
+                          <TextField
+                            type="text"
+                            name="leCyl"
+                            value={value.leCyl}
+                            onChange={handleChange}
+                            fullWidth
+                          />
+                        </TableCell>
+                        <TableCell>
+                          <TextField
+                            type="text"
+                            name="leAxis"
+                            value={value.leAxis}
+                            onChange={handleChange}
+                            fullWidth
+                          />
+                        </TableCell>
+                        <TableCell>
+                          <TextField
+                            type="text"
+                            name="leAdd"
+                            value={value.leAdd}
+                            onChange={handleChange}
+                            fullWidth
+                          />
+                        </TableCell>
+                        <TableCell>
+                          <TextField
+                            type="text"
+                            name="leIpd"
+                            value={value.leIpd}
                             onChange={handleChange}
                             fullWidth
                           />
@@ -701,9 +706,7 @@ const handleSubmit = async (e) => {
                   Select Payment Method
                 </Typography>
                 <FormControl fullWidth>
-                  <InputLabel >
-                    Payment Method
-                  </InputLabel>
+                  <InputLabel>Payment Method</InputLabel>
                   <Select
                     value={value.payment}
                     name="payment"
@@ -717,7 +720,6 @@ const handleSubmit = async (e) => {
                   </Select>
                 </FormControl>
               </Box>
-              
 
               <DialogActions sx={{ marginTop: "50px" }}>
                 <Button onClick={handleClose} color="secondary">
@@ -728,7 +730,7 @@ const handleSubmit = async (e) => {
                   variant="contained"
                   sx={{ bgcolor: "#448EE4" }}
                 >
-                  Submit Sale 
+                  Submit Sale
                 </Button>
               </DialogActions>
             </form>

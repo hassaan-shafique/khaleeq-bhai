@@ -36,6 +36,7 @@ const InventoryList = ({ inventory = [], loading = false }) => {
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [editableItem, setEditableItem] = useState(null);
    const [refresh, setRefresh] = useState(false);
+   const [searchBarcode, setSearchBarcode] = React.useState ("")
  
   const printRef = useRef(null);
  
@@ -88,13 +89,23 @@ const InventoryList = ({ inventory = [], loading = false }) => {
       setEditDialogOpen(false);
     }
   };
+  const calculateTotalInventoryPrice = () => {
+    return filteredInventory.reduce((total, item) => {
+      const price = parseFloat(item.price) || 0;
 
-  const handleDeleteItem = async (id) => {
+      return total + price;
+    }, 0);
+  };
+
+   
+  
+    const handleDeleteItem = async (id) => {
     const itemRef = doc(db, "inventory", id);
     await deleteDoc(itemRef);
   };
 
   const filteredInventory = inventory.filter((item) => {
+
     const matchesType = selectedType === "" || item.type === selectedType;
     const matchesPriceRange = () => {
       switch (selectedPriceRange) {
@@ -125,7 +136,11 @@ const InventoryList = ({ inventory = [], loading = false }) => {
           return true;
       }
     };
-    return matchesType && matchesPriceRange();
+
+      const matchesBarcode = String(item.barcode || "")
+        .toLowerCase()
+        .includes((searchBarcode || "").toLowerCase());
+    return matchesBarcode && matchesType && matchesPriceRange();
   });
 
   const inventoryTypes = [...new Set(inventory.map((item) => item.type))];
@@ -206,43 +221,47 @@ const handlePrint = () => {
         </Box>
       ) : (
         <>
-          {userRole == "admin" && (
-            <FormControl fullWidth sx={{ marginBottom: 2 }}>
-              <InputLabel>Filter by Inventory Type</InputLabel>
-              <Select value={selectedType} onChange={handleTypeChange}>
-                <MenuItem value="">All</MenuItem>
-                {inventoryTypes.map((type, index) => (
-                  <MenuItem key={index} value={type}>
-                    {type}
-                  </MenuItem>
-                ))}
-              </Select>
-            </FormControl>
-          )}
+          <FormControl fullWidth sx={{ marginBottom: 2 }}>
+            <InputLabel>Filter by Inventory Type</InputLabel>
+            <Select value={selectedType} onChange={handleTypeChange}>
+              <MenuItem value="">All</MenuItem>
+              {inventoryTypes.map((type, index) => (
+                <MenuItem key={index} value={type}>
+                  {type}
+                </MenuItem>
+              ))}
+            </Select>
+          </FormControl>
 
-          {userRole == "admin" && (
-            <FormControl fullWidth sx={{ marginBottom: 2 }}>
-              <InputLabel>Filter by Price Range</InputLabel>
-              <Select
-                value={selectedPriceRange}
-                onChange={handlePriceRangeChange}
-              >
-                <MenuItem value="">All</MenuItem>
-                <MenuItem value="1">Rs. 350 to 600</MenuItem>
-                <MenuItem value="2">Rs. 601 to 950</MenuItem>
-                <MenuItem value="3">Rs. 951 to 1250</MenuItem>
-                <MenuItem value="4">Rs. 1251 to 1550</MenuItem>
-                <MenuItem value="5">Rs. 1551 to 1850</MenuItem>
-                <MenuItem value="6">Rs. 1851 to 2550</MenuItem>
-                <MenuItem value="7">Rs. 2551 to 3500</MenuItem>
-                <MenuItem value="8">Rs. 3501 to 6000</MenuItem>
-                <MenuItem value="9">Rs. 6001 to 10000</MenuItem>
-                <MenuItem value="10">Rs. 10001 to 30000</MenuItem>
-                <MenuItem value="11">Rs. 30001 to 50000</MenuItem>
-                {/* Add other price ranges */}
-              </Select>
-            </FormControl>
-          )}
+          <FormControl fullWidth sx={{ marginBottom: 2 }}>
+            <InputLabel>Filter by Price Range</InputLabel>
+            <Select
+              value={selectedPriceRange}
+              onChange={handlePriceRangeChange}
+            >
+              <MenuItem value="">All</MenuItem>
+              <MenuItem value="1">Rs. 350 to 600</MenuItem>
+              <MenuItem value="2">Rs. 601 to 950</MenuItem>
+              <MenuItem value="3">Rs. 951 to 1250</MenuItem>
+              <MenuItem value="4">Rs. 1251 to 1550</MenuItem>
+              <MenuItem value="5">Rs. 1551 to 1850</MenuItem>
+              <MenuItem value="6">Rs. 1851 to 2550</MenuItem>
+              <MenuItem value="7">Rs. 2551 to 3500</MenuItem>
+              <MenuItem value="8">Rs. 3501 to 6000</MenuItem>
+              <MenuItem value="9">Rs. 6001 to 10000</MenuItem>
+              <MenuItem value="10">Rs. 10001 to 30000</MenuItem>
+              <MenuItem value="11">Rs. 30001 to 50000</MenuItem>
+              {/* Add other price ranges */}
+            </Select>
+          </FormControl>
+          <TextField
+            label="Search by Barcode"
+            variant="outlined"
+            value={searchBarcode}
+            onChange={(e) => setSearchBarcode(e.target.value)}
+            fullWidth
+          />
+
           <div
             style={{
               display: "flex",
@@ -266,6 +285,17 @@ const handlePrint = () => {
               <UpdateQuantity setRefresh={setRefresh} />
             </div>
           </div>
+          <Typography
+            variant="h6"
+            sx={{
+              marginTop: 2,
+              textAlign: "left ",
+              fontWeight: "bold",
+              color :"blue"
+            }}
+          >
+           Overall KBCW Inventory Worth: Rs: {calculateTotalInventoryPrice().toFixed(2)}/-
+          </Typography>
 
           {filteredInventory.length === 0 ? (
             <Typography variant="h6" align="center" sx={{ marginTop: 4 }}>
@@ -397,7 +427,7 @@ const handlePrint = () => {
                         >
                           {item.image ? (
                             <img
-                              src={item.image}
+                              src={item.image} // Base64 image will render here
                               alt={`Image ${i + 1}`}
                               style={{
                                 width: "150px",

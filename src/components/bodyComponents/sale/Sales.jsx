@@ -9,7 +9,12 @@ const Sales = () => {
   const [sales, setSales] = useState([]);
   const [loading, setLoading] = useState(true);
   const [refresh, setRefresh] = useState(false);
-  const [error, setError] = useState(null); // To handle error in UI
+  const [error, setError] = useState(null);
+
+  
+
+  // Callback to update grand total price
+  
 
   useEffect(() => {
     const fetchSales = async () => {
@@ -66,8 +71,15 @@ const Sales = () => {
 
             {!loading && !error && (
               <>
-                <SalesForm setRefresh={setRefresh} />
-                <SaleList refresh={refresh} sales={sales} />
+                <SalesForm
+                  setRefresh={setRefresh}
+                 
+                />
+                <SaleList
+                  refresh={refresh}
+                  sales={sales}
+                 
+                />
               </>
             )}
           </Box>

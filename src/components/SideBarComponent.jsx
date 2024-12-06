@@ -28,6 +28,8 @@ export default function SideBarComponent() {
   const navigateTo = (to) => {
     navigate(to);
   };
+
+  const userRole =localStorage.getItem("userRole")
   const location = useLocation();
   const currentPage = location.pathname;
 
@@ -44,10 +46,13 @@ export default function SideBarComponent() {
       title: "Glasses",
       component: <MonetizationOnOutlined fontSize="medium" color="primary" />,
     },
+ 
+
     {
       title: "Vendors",
       component: <SettingsOutlined fontSize="medium" color="primary" />,
     },
+
     {
       title: "Daily-Activity",
       component: <TrendingUpOutlined fontSize="medium" color="primary" />,
@@ -80,11 +85,50 @@ export default function SideBarComponent() {
     setSidebarOpen(!sidebarOpen);
   };
 
-  const sidebarContent = (
-    <List>
-      {sideBarComponent.map((comp, index) => (
-        <ListItem disablePadding dense key={index}>
-          <Box width="100%">
+ // Get role from localStorage
+
+const sidebarContent = (
+  <List>
+    {sideBarComponent.map((comp, index) => (
+      <ListItem disablePadding dense key={index}>
+        <Box width="100%">
+          {/* Check if the component is 'Vendors' and if the user is not an admin */}
+          {comp.title === "Vendors" ? (
+            userRole === "admin" && (
+              <ListItemButton
+                onClick={(event) => {
+                  handleSelectedComponent(event, index);
+                  navigateTo(comp.title.toLocaleLowerCase());
+                }}
+                selected={
+                  index === selected &&
+                  currentPage === "/" + comp.title.toLowerCase()
+                }
+                sx={{
+                  mb: 3,
+                  borderLeft: 0,
+                  borderColor: "primary.main",
+                  backgroundColor:
+                    index === selected ? "darkblue" : "transparent", // Highlight selected item
+                }}
+              >
+                <ListItemIcon>
+                  <IconButton>{comp.component}</IconButton>
+                </ListItemIcon>
+
+                {!isMobile && sidebarOpen && (
+                  <ListItemText
+                    primary={comp.title}
+                    primaryTypographyProps={{
+                      fontSize: "large",
+                      fontWeight: selected === index ? "bold" : "",
+                      color: "white", // Make text white for all items
+                    }}
+                  />
+                )}
+              </ListItemButton>
+            )
+          ) : (
             <ListItemButton
               onClick={(event) => {
                 handleSelectedComponent(event, index);
@@ -117,21 +161,26 @@ export default function SideBarComponent() {
                 />
               )}
             </ListItemButton>
-          </Box>
-        </ListItem>
-      ))}
-    </List>
-  );
+          )}
+        </Box>
+      </ListItem>
+    ))}
+  </List>
+);
+
+  
 
   return (
     <>
+  
+
       {/* Mobile toggle button */}
       {isMobile && (
         <IconButton
           sx={{
             position: "fixed",
-            top: 16,
-            left: 16,
+            top: 70,
+            left: 9,
             zIndex: 11000,
             backgroundColor: "white",
             boxShadow: 3,

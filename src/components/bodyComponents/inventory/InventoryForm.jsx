@@ -15,7 +15,10 @@ import {
   Select,
   MenuItem,
   CircularProgress,
+  FormControl,
+  InputLabel
 } from "@mui/material";
+import Webcam from "react-webcam";
 import { query, where ,getDocs} from "firebase/firestore";
 import AddAPhotoIcon from "@mui/icons-material/AddAPhoto";
 import { addDoc, collection } from "firebase/firestore";
@@ -48,6 +51,7 @@ const InventoryForm = ({ setRefresh }) => {
   const [customType, setCustomType] = useState(""); // State to handle custom type
   const [errors, setErrors] = useState({});
   const [barcode, setBarcode] =useState ();
+  const [imageBlob, setImageBlob] =useState("");
 
 
   const storage = getStorage();
@@ -58,6 +62,13 @@ const InventoryForm = ({ setRefresh }) => {
     const file = e.target.files[0];
     if (file) {
       setImage(file);
+    }
+  };
+   
+  const handleRemoveImage = () => {
+    if (image) {
+      URL.revokeObjectURL(image);
+      setImage(null);
     }
   };
 
@@ -110,6 +121,47 @@ const checkBarcodeExistence = async (barcode) => {
     return false;
   }
 };
+ const startCamera = async () => {
+   try {
+     const stream = await navigator.mediaDevices.getUserMedia({
+       video: { facingMode: "environment" },
+     });
+     const videoElement = document.getElementById("camera-preview");
+     videoElement.srcObject = stream;
+     videoElement.play();
+   } catch (error) {
+     console.error("Error accessing the camera:", error);
+   }
+ };
+
+
+ const captureImage = () => {
+   const videoElement = document.getElementById("camera-preview");
+   const canvas = document.createElement("canvas");
+   canvas.width = videoElement.videoWidth;
+   canvas.height = videoElement.videoHeight;
+   const context = canvas.getContext("2d");
+   context.drawImage(videoElement, 0, 0, canvas.width, canvas.height);
+
+   // Get Base64 image data
+   const imageData = canvas.toDataURL("image/png");
+   setImage(imageData); // Save Base64 for preview
+
+   // Convert Base64 to Blob for uploading
+   const blob = base64ToBlob(imageData);
+   setImageBlob(blob); // Use this for storage upload
+ };
+
+ // Utility function to convert Base64 to Blob
+ const base64ToBlob = (base64) => {
+   const byteString = atob(base64.split(",")[1]);
+   const mimeString = base64.split(",")[0].split(":")[1].split(";")[0];
+   const arrayBuffer = new Uint8Array(byteString.length);
+   for (let i = 0; i < byteString.length; i++) {
+     arrayBuffer[i] = byteString.charCodeAt(i);
+   }
+   return new Blob([arrayBuffer], { type: mimeString });
+ };
 
 
 const handleSubmit = async (e) => {
@@ -117,32 +169,34 @@ const handleSubmit = async (e) => {
 
   if (!validateForm()) return;
 
-  // Log the barcode value to ensure it is the correct one
-  console.log("Submitted barcode:", value.barcode); // This should match the barcode in the Firestore DB
-
-  // Check if the barcode already exists
-  const barcodeExists = await checkBarcodeExistence(value.barcode);
-  console.log("Barcode exists:", barcodeExists); // This will log whether the barcode exists
-
-  if (barcodeExists) {
-    alert("The barcode is already available.");
+  if (!imageBlob) {
+    alert("Please capture an image to upload.");
     return;
   }
 
   setLoading(true);
 
   try {
-    const storageRef = ref(storage, `inventory-images/${image.name}`);
-    await uploadBytes(storageRef, image);
+    const uniqueImageName = `${Date.now()}.png`;
+    const storageRef = ref(storage, `inventory-images/${uniqueImageName}`);
 
+    // Upload the Blob
+    const snapshot = await uploadBytes(storageRef, imageBlob);
+    console.log("Upload snapshot:", snapshot);
+
+    // Get the download URL
     const imageUrl = await getDownloadURL(storageRef);
+    console.log("Image URL:", imageUrl);
 
+    // Save the data to Firestore
     const inventoryCollectionRef = collection(db, "inventory");
-    await addDoc(inventoryCollectionRef, {
+    const docRef = await addDoc(inventoryCollectionRef, {
       ...value,
-      type: value.type === "other" ? customType : value.type, // Use custom type if "Other" is selected
-      image: imageUrl,
+      type: value.type === "other" ? customType : value.type,
+      image: imageUrl, // Save the download URL in Firestore
     });
+
+    console.log("Document added with ID:", docRef.id);
 
     setOpen(false);
     setRefresh((prev) => !prev);
@@ -218,48 +272,197 @@ const handleSubmit = async (e) => {
               error={Boolean(errors.barcode)}
               helperText={errors.barcode}
             />
-            <Box sx={{ display: "flex", alignItems: "center", my: 2 }}>
-              <label htmlFor="image-upload">
-                {image ? (
-                  <img
-                    src={URL.createObjectURL(image)}
-                    alt="Product Preview"
-                    style={{ width: "100px", height: "100px" }}
-                  />
-                ) : (
-                  <AddAPhotoIcon />
-                )}
-                <Typography sx={{ ml: 1 }}>Choose Image</Typography>
-              </label>
-              <input
-                type="file"
-                id="image-upload"
-                accept="image/*" // Allow all image types
-                capture="camera" // Open the camera directly
-                style={{ display: "none" }}
-                onChange={handleImageChange}
-              />
-            </Box>
+        <Box
+  sx={{
+    display: "flex",
+    flexDirection: "column",
+    alignItems: "center",
+    gap: 2,
+    p: 2,
+    maxWidth: 500,
+    margin: "auto",
+  }}
+>
+  <Typography variant="h6" align="center">
+    Camera Preview & Image Upload
+  </Typography>
+
+  {/* Camera Preview Section */}
+  <video
+    id="camera-preview"
+    style={{
+      width: "100%",
+      maxHeight: "300px",
+      borderRadius: "8px",
+      border: "1px solid #ddd",
+    }}
+  />
+
+  <Box
+    sx={{
+      display: "flex",
+      justifyContent: "space-between",
+      gap: 2,
+      width: "100%",
+    }}
+  >
+    <Button
+      variant="contained"
+      color="primary"
+      onClick={startCamera}
+      fullWidth
+    >
+      Start Camera
+    </Button>
+    <Button
+      variant="contained"
+      color="secondary"
+      onClick={captureImage}
+      fullWidth
+    >
+      Capture Image
+    </Button>
+  </Box>
+
+  {/* Image Upload Section */}
+  <Box sx={{ display: "flex", alignItems: "center", my: 2 }}>
+    <label
+      htmlFor="image-upload"
+      style={{
+        cursor: "pointer",
+        display: "flex",
+        alignItems: "center",
+      }}
+    >
+      {image ? (
+        <img
+          src={typeof image === "string" ? image : URL.createObjectURL(image)}
+          alt="Product Preview"
+          style={{
+            width: "100px",
+            height: "100px",
+            borderRadius: "8px",
+            objectFit: "cover",
+          }}
+        />
+      ) : (
+        <AddAPhotoIcon sx={{ fontSize: "40px", color: "#555" }} />
+      )}
+      <Typography sx={{ ml: 1 }}>
+        {image ? "Change Image" : "Choose Image"}
+      </Typography>
+    </label>
+    <input
+      type="file"
+      id="image-upload"
+      accept="image/*"
+      capture="environment" // Opens back camera by default
+      style={{ display: "none" }}
+      onChange={handleImageChange}
+    />
+    {image && (
+      <Typography
+        onClick={handleRemoveImage}
+        sx={{
+          ml: 2,
+          cursor: "pointer",
+          color: "red",
+          textDecoration: "underline",
+        }}
+      >
+        Remove
+      </Typography>
+    )}
+  </Box>
+
+  {/* Captured Image Section */}
+  {image && (
+    <Box
+      sx={{
+        width: "100%",
+        mt: 2,
+        border: "1px solid #ddd",
+        borderRadius: "8px",
+        overflow: "hidden",
+      }}
+    >
+      <Typography variant="subtitle1" align="center" gutterBottom>
+        Captured/Uploaded Image
+      </Typography>
+      <img
+        src={typeof image === "string" ? image : URL.createObjectURL(image)}
+        alt="Captured/Uploaded"
+        style={{ width: "100%", height: "auto" }}
+      />
+    </Box>
+  )}
+</Box>
+
+            {/* <Box sx={{ display: "flex", alignItems: "center", my: 2 }}>
+      <label htmlFor="image-upload" style={{ cursor: "pointer", display: "flex", alignItems: "center" }}>
+        {image ? (
+          <img
+            src={URL.createObjectURL(image)}
+
+            alt="Product Preview"
+            style={{ width: "100px", height: "100px", borderRadius: "8px", objectFit: "cover" }}
+          />
+        ) : (
+          <AddAPhotoIcon sx={{ fontSize: "40px", color: "#555" }} />
+        )}
+        <Typography sx={{ ml: 1 }}>
+          {image ? "Change Image" : "Choose Image"}
+        </Typography>
+      </label>
+
+    
+      <input
+        type="file"
+        id="image-upload"
+        accept="image/*"
+        capture="environment" // Opens back camera by default
+        style={{ display: "none" }}
+        onChange={handleImageChange}
+      />
+
+     
+      {image && (
+        <Typography
+          onClick={handleRemoveImage}
+          sx={{
+            ml: 2,
+            cursor: "pointer",
+            color: "red",
+            textDecoration: "underline",
+          }}
+        >
+          Remove
+        </Typography>
+      )}
+    </Box> */}
+
             {errors.image && (
               <Typography color="error">{errors.image}</Typography>
             )}
 
-            <Select
-              label="Inventory Type"
-              name="type"
-              value={value.type}
-              onChange={handleInputChange}
-              fullWidth
-              margin="normal"
-              required
-            >
-              {INVENTORY_TYPES.map((item) => (
-                <MenuItem key={item.value} value={item.value}>
-                  {item.label}
-                </MenuItem>
-              ))}
-            </Select>
+            <FormControl fullWidth margin="normal" required>
+              <InputLabel id="inventory-type-label">Inventory Type</InputLabel>
+              <Select
+                labelId="inventory-type-label"
+                id="inventory-type"
+                name="type"
+                value={value.type}
+                onChange={handleInputChange}
+              >
+                {INVENTORY_TYPES.map((item) => (
+                  <MenuItem key={item.value} value={item.value}>
+                    {item.label}
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
 
+            {/* Show Custom Type TextField if "other" is selected */}
             {value.type === "other" && (
               <TextField
                 label="Custom Inventory Type"

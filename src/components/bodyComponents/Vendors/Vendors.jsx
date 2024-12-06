@@ -207,11 +207,11 @@ const handlePrint = () => {
             <TableBody>
               {filteredSalesData.map((sale) =>
                 sale.vendorProducts.map((product, index) => (
-                  <TableRow key={`${sale.id}-${index}`}>
-                    <TableCell>{sale.id}</TableCell>
+                  <TableRow key={`${sale.id}-${index + 1}`}>
+                    <TableCell>{index + 1}</TableCell>
                     <TableCell>{sale.customerName}</TableCell>
                     <TableCell>{sale.contactNo}</TableCell>
-                    <TableCell>{sale.vendorName || "N/A"}</TableCell>
+                    <TableCell>{product.vendorName}</TableCell>
                     <TableCell>{product.VendorItemName}</TableCell>
                     <TableCell>{product.borrowedBranch}</TableCell>
                     <TableCell>{product.quantity}</TableCell>
