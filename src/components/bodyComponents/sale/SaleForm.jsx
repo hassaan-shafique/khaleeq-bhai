@@ -22,12 +22,13 @@ FormControl,
 InputLabel,
 Select,
 MenuItem,
+
 } from "@mui/material";
 import { useMemo } from "react";
 
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
-import { addDoc, collection } from "firebase/firestore";
+import { addDoc, collection, Timestamp} from "firebase/firestore";
 import { db } from "../../../config/Firebase";
 import AddVendor from './Products/AddProduct/AddVendor';
 import AddGlasses from "./Products/AddProduct/AddGlasses";
@@ -41,9 +42,9 @@ const SalesForm = () => {
     address: "",
     salesman: "",
     doctor: "",
-    startDate: "",
-    endDate: "",
-    DeliveredDate: "",
+    // startDate: new Date(),
+    // endDate: new Date(),
+    // deliveredDate: "",
     instruction: "",
     leSph: "",
     leCyl: "",
@@ -61,23 +62,31 @@ const SalesForm = () => {
     pendingAmount: "",
     advance: "",
     discount: "",
-  
+  });
+
+  const [orderSale, setOrderSale] = useState({
+    startDate: null,
+    endDate: null,
+    deliveredDate: null,
   });
 
   const [open, setOpen] = useState(false);
-    const [showFields, setShowFields] = useState(false);
+  const [showFields, setShowFields] = useState(false);
 
- const [vendorProducts, setVendorProducts] = useState([]);
+  const [vendorProducts, setVendorProducts] = useState([]);
   const [kbcwProducts, setKbcwProducts] = useState([]);
   const [glassesProducts, setGlassesProducts] = useState([]);
 
-  const [refresh ,setRefresh] = useState (false);
+  const [refresh, setRefresh] = useState(false);
 
-     const [totalVendorPrice, setTotalVendorPrice] = useState(0);
-     const [totalKbcwPrice, setTotalKbcwPrice] = useState(0);
-     const [totalGlassesPrice, setTotalGlassesPrice] = useState(0);
+  const [totalVendorPrice, setTotalVendorPrice] = useState(0);
+  const [totalKbcwPrice, setTotalKbcwPrice] = useState(0);
+  const [totalGlassesPrice, setTotalGlassesPrice] = useState(0);
 
-    const handleVendorPriceChange = (total) => {
+
+  
+
+  const handleVendorPriceChange = (total) => {
     setTotalVendorPrice(total);
   };
 
@@ -91,8 +100,6 @@ const SalesForm = () => {
 
   // Calculate the grand total
   const grandTotal = totalVendorPrice + totalKbcwPrice + totalGlassesPrice;
-
-
 
   const handleClickOpen = () => {
     setOpen(true);
@@ -111,105 +118,82 @@ const SalesForm = () => {
   };
 
   const handleDateChange = (date, field) => {
-    setValue((prev) => ({
+    console.log(date);
+    if (!date || isNaN(new Date(date).getTime())) {
+      console.error("Invalid date:", date);
+      return;
+    }
+  
+    setOrderSale((prev) => ({
       ...prev,
-      [field]: date,
+      [field]: date, // Update the specific date field
     }));
   };
+  
 
- useEffect(() => {
-   const total = parseFloat(grandTotal) || 0;
-   const advance = parseFloat(value.advance) || 0;
-   const discount = parseFloat(value.discount) || 0; 
-   const pending = total - advance - discount;
+  useEffect(() => {
+    const total = parseFloat(grandTotal) || 0;
+    const advance = parseFloat(value.advance) || 0;
+    const discount = parseFloat(value.discount) || 0;
+    const pending = total - advance - discount;
 
-   setValue((prev) => ({
-     ...prev,
-     pendingAmount: pending >= 0 ? pending : 0, // Ensure no negative value
-   }));
- }, [grandTotal, value.advance, value.discount]);
+    setValue((prev) => ({
+      ...prev,
+      pendingAmount: pending >= 0 ? pending : 0, // Ensure no negative value
+    }));
+  }, [grandTotal, value.advance, value.discount]);
 
-const handleSubmit = async (e) => {
-  e.preventDefault();
-  console.log({
-    kbcwProducts ,glassesProducts, vendorProducts
-  })
-  try {
-    // Log the initial value to see if products are present
-    console.log("Initial value before any processing:", value);
-
-    // Reference to the sales collection
-    const salesCollectionRef = collection(db, "sales");
-
-    // Ensure product arrays are defined and empty arrays if not provided
-    value.kbcwProducts = kbcwProducts
-    value.glassesProducts = glassesProducts
-    value.vendorProducts = vendorProducts
-     
-
-    // // Convert dates to Firebase timestamps within each product array
-    // const convertDatesToTimestamps = (productsArray) => {
-    //   return productsArray.map((product) => ({
-    //     ...product,
-    //     deliveredDate:
-    //       product.deliveredDate && !isNaN(new Date(product.deliveredDate))
-    //         ? Timestamp.fromDate(new Date(product.deliveredDate))
-    //         : null,
-    //   }));
-    // };
-
-    // Update product arrays with cleaned data
-    // value.kbcwProducts = convertDatesToTimestamps(value.kbcwProducts);
-    // value.glassesProducts = convertDatesToTimestamps(value.glassesProducts);
-    // value.vendorProducts = convertDatesToTimestamps(value.vendorProducts);
-
-    // Log the cleaned data for debugging
-    // console.log(
-    //   "Value after converting dates to timestamps:",
-    //   JSON.stringify(value, null, 2)
-    // );
-
-    // Add the sale to Firestore
-    const saleDocRef = await addDoc(salesCollectionRef, value);
-    console.log("Sale successfully added with ID:", saleDocRef.id);
-
-    // Function to submit products to their respective collections
-    // const submitProducts = async (productsArray, collectionName) => {
-    //   if (productsArray.length > 0) {
-    //     console.log(`Submitting ${collectionName} products:`, productsArray); // Log products before submission
-    //     const productsCollectionRef = collection(db, collectionName);
-    //     const promises = productsArray.map(async (product) => {
-    //       const productData = {
-    //         ...product,
-    //         saleId: saleDocRef.id, // Link the product to the sale
-    //       };
-    //       await addDoc(productsCollectionRef, productData);
-    //     });
-
-    //     await Promise.all(promises); // Wait for all product additions to finish
-    //     console.log(`${collectionName} products added successfully.`);
-    //   } else {
-    //     console.log(`No products to add in ${collectionName}`);
-    //   }
-    // };
-
-    // Submit all product arrays and log data before submission
-    // console.log("KBCW Products before submission:", value.kbcwProducts);
-    // await submitProducts(kbcwProducts, "kbcwProducts");
-
-    // console.log("Glasses Products before submission:", value.glassesProducts);
-    // await submitProducts(glassesProducts, "glassesProducts");
-
-    // console.log("Vendor Products before submission:", value.vendorProducts);
-    // await submitProducts(vendorProducts, "vendorProducts");
-
-    // Reset or close modal after success
-    setOpen(false);
-  } catch (error) {
-    console.error("Error submitting sale or products:", error.message);
-  }
-};
-
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+  
+     // Start loading state
+    try {
+      
+  
+      // Convert `orderSale` dates to Firestore Timestamps
+      const orderSaleWithTimestamps = {
+        ...orderSale,
+        startDate:
+          orderSale.startDate && !isNaN(new Date(orderSale.startDate))
+            ? Timestamp.fromDate(new Date(orderSale.startDate))
+            : null,
+        endDate:
+          orderSale.endDate && !isNaN(new Date(orderSale.endDate))
+            ? Timestamp.fromDate(new Date(orderSale.endDate))
+            : null,
+        deliveredDate:
+          orderSale.deliveredDate && !isNaN(new Date(orderSale.deliveredDate))
+            ? Timestamp.fromDate(new Date(orderSale.deliveredDate))
+            : null,
+      };
+  
+      // Merge `orderSale` with other data
+      const salesData = {
+        ...value,
+        ...orderSaleWithTimestamps,
+        kbcwProducts: kbcwProducts || [],
+        glassesProducts: glassesProducts || [],
+        vendorProducts: vendorProducts || [],
+      };
+  
+      // Reference Firestore collection
+      const salesCollectionRef = collection(db, "sales");
+  
+      // Add the data to Firestore
+      const saleDocRef = await addDoc(salesCollectionRef, salesData);
+      console.log("Sale successfully added with ID:", saleDocRef.id);
+  
+      // Reset or close modal after success
+      alert("Sale successfully submitted!");
+      setOpen(false);
+    } catch (error) {
+      console.error("Error submitting sale:", error.message);
+      alert("Failed to submit the sale. Please try again.");
+    } 
+    // Stop loading state
+    
+  };
+  
 
   const handleToggleFields = () => {
     setShowFields((prev) => !prev);
@@ -224,7 +208,8 @@ const handleSubmit = async (e) => {
         quantity: "",
         borrowedBranch: "",
         vendorPrice: "",
-        vendorItemType: "",
+        vendorItemNumber: "",
+        vendorNumber:"",
         vendorGlassNumber: "",
         vendorDeliveredDate: "",
       },
@@ -302,7 +287,7 @@ const handleSubmit = async (e) => {
               >
                 <Grid item xs={4}>
                   <DatePicker
-                    selected={value.startDate}
+                    selected={orderSale.startDate}
                     onChange={(date) => handleDateChange(date, "startDate")}
                     placeholderText="Select Sales Date"
                     customInput={
@@ -310,6 +295,7 @@ const handleSubmit = async (e) => {
                         fullWidth
                         variant="outlined"
                         label="Sales Date"
+                       
                         sx={{
                           "& .MuiOutlinedInput-root": {
                             borderRadius: "8px",
@@ -331,12 +317,13 @@ const handleSubmit = async (e) => {
                 </Grid>
                 <Grid item xs={4}>
                   <DatePicker
-                    selected={value.endDate}
+                    selected={orderSale.endDate}
                     onChange={(date) => handleDateChange(date, "endDate")}
                     placeholderText="Select Delivery Date"
                     customInput={
                       <TextField
                         fullWidth
+                        
                         variant="outlined"
                         label="Delivery Date"
                         sx={{
@@ -360,12 +347,13 @@ const handleSubmit = async (e) => {
                 </Grid>
                 <Grid item xs={4}>
                   <DatePicker
-                    selected={value.DeliveredDate}
-                    onChange={(date) => handleDateChange(date, "DeliveredDate")}
+                    selected={orderSale.deliveredDate}
+                    onChange={(date) => handleDateChange(date, "deliveredDate")}
                     placeholderText="Select Delivered Date"
                     customInput={
                       <TextField
                         fullWidth
+                    
                         variant="outlined"
                         label="Delivered Date"
                         sx={{
@@ -473,56 +461,6 @@ const handleSubmit = async (e) => {
                       </TableRow>
                     </TableHead>
                     <TableBody>
-                      {/* LE Row */}
-                      <TableRow>
-                        <TableCell>LE</TableCell>
-                        <TableCell>
-                          <TextField
-                            type="text"
-                            name="leSph"
-                            value={value.leSph}
-                            onChange={handleChange}
-                            fullWidth
-                          />
-                        </TableCell>
-                        <TableCell>
-                          <TextField
-                            type="text"
-                            name="leCyl"
-                            value={value.leCyl}
-                            onChange={handleChange}
-                            fullWidth
-                          />
-                        </TableCell>
-                        <TableCell>
-                          <TextField
-                            type="text"
-                            name="leAxis"
-                            value={value.leAxis}
-                            onChange={handleChange}
-                            fullWidth
-                          />
-                        </TableCell>
-                        <TableCell>
-                          <TextField
-                            type="text"
-                            name="leAdd"
-                            value={value.leAdd}
-                            onChange={handleChange}
-                            fullWidth
-                          />
-                        </TableCell>
-                        <TableCell>
-                          <TextField
-                            type="text"
-                            name="leIpd"
-                            value={value.leIpd}
-                            onChange={handleChange}
-                            fullWidth
-                          />
-                        </TableCell>
-                      </TableRow>
-
                       {/* RE Row */}
                       <TableRow>
                         <TableCell>RE</TableCell>
@@ -567,6 +505,56 @@ const handleSubmit = async (e) => {
                             type="text"
                             name="reIpd"
                             value={value.reIpd}
+                            onChange={handleChange}
+                            fullWidth
+                          />
+                        </TableCell>
+                      </TableRow>
+
+                      {/* LE Row */}
+                      <TableRow>
+                        <TableCell>LE</TableCell>
+                        <TableCell>
+                          <TextField
+                            type="text"
+                            name="leSph"
+                            value={value.leSph}
+                            onChange={handleChange}
+                            fullWidth
+                          />
+                        </TableCell>
+                        <TableCell>
+                          <TextField
+                            type="text"
+                            name="leCyl"
+                            value={value.leCyl}
+                            onChange={handleChange}
+                            fullWidth
+                          />
+                        </TableCell>
+                        <TableCell>
+                          <TextField
+                            type="text"
+                            name="leAxis"
+                            value={value.leAxis}
+                            onChange={handleChange}
+                            fullWidth
+                          />
+                        </TableCell>
+                        <TableCell>
+                          <TextField
+                            type="text"
+                            name="leAdd"
+                            value={value.leAdd}
+                            onChange={handleChange}
+                            fullWidth
+                          />
+                        </TableCell>
+                        <TableCell>
+                          <TextField
+                            type="text"
+                            name="leIpd"
+                            value={value.leIpd}
                             onChange={handleChange}
                             fullWidth
                           />
@@ -711,9 +699,7 @@ const handleSubmit = async (e) => {
                   Select Payment Method
                 </Typography>
                 <FormControl fullWidth>
-                  <InputLabel >
-                    Payment Method
-                  </InputLabel>
+                  <InputLabel>Payment Method</InputLabel>
                   <Select
                     value={value.payment}
                     name="payment"
@@ -727,7 +713,6 @@ const handleSubmit = async (e) => {
                   </Select>
                 </FormControl>
               </Box>
-              
 
               <DialogActions sx={{ marginTop: "50px" }}>
                 <Button onClick={handleClose} color="secondary">
@@ -738,7 +723,7 @@ const handleSubmit = async (e) => {
                   variant="contained"
                   sx={{ bgcolor: "#448EE4" }}
                 >
-                  Submit Sale 
+                  Submit Sale
                 </Button>
               </DialogActions>
             </form>

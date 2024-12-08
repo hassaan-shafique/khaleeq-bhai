@@ -86,9 +86,9 @@ const EditVendorDialog = ({
             <Grid item xs={4}>
               <TextField
                 label="Item Type"
-                value={editVendorProduct.vendorItemType || ""}
+                value={editVendorProduct.vendorItemNumber || ""}
                 onChange={(e) =>
-                  handleVendorProductChange("vendorItemType", e.target.value)
+                  handleVendorProductChange("vendorItemNumber", e.target.value)
                 }
                 fullWidth
               />

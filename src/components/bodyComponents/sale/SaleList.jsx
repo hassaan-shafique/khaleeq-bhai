@@ -47,70 +47,113 @@ import { LocalGasStationRounded } from "@mui/icons-material";
 
 // Helper function to format Firestore timestamp
 const formatTimestamp = (timestamp) => {
-  if (timestamp instanceof Timestamp) {
-    return timestamp.toDate().toLocaleDateString(); // Format the date as a string
-  } else if (timestamp instanceof Date) {
-    return timestamp.toLocaleDateString(); // Format the date as a string
-  } else {
-    return "Invalid Date"; // Handle invalid or null dates
+  try {
+    const date = new Date(
+      timestamp.seconds ? timestamp.seconds * 1000 : timestamp
+    );
+    if (isNaN(date.getTime())) return "Invalid Date";
+
+    const day = date.getDate().toString().padStart(2, "0");
+    const month = (date.getMonth() + 1).toString().padStart(2, "0"); // Months are 0-based
+    const year = date.getFullYear();
+
+    // Format as "DD/MM/YYYY"
+    return `${day}/${month}/${year}`;
+  } catch (error) {
+    return "Invalid Date";
   }
 };
 
 
-const SaleList = ({ sales = [], loading = false, refresh }) => {
+
+
+
+
+
+
+const SaleList = ({ sales = [], loading = false, refresh  }) => {
   const [open, setOpen] = useState(false);
   const [DSale, setDSale] = useState(null);
   const [salesData, setSalesData] = useState(sales); // Local sales state
   const [editOpen, setEditOpen] = useState(false);
   const [editSale, setEditSale] = useState(new Date());
+  
 
   const [showFields, setShowFields] = useState(false);
   const [selectedSaleId, setSelectedSaleId] = useState(null);
   const [installmentDialogOpen, setInstallmentDialogOpen] = useState(false);
-  const [installmentViewDialogOpen, setInstallmentViewDialogOpen] =
-    useState(false);
+  const [installmentViewDialogOpen, setInstallmentViewDialogOpen] =useState(false);
   const [searchSalesman, setSearchSalesman] = React.useState("");
   const [searchContact, setSearchContact] = React.useState("");
   const [searchCustomer, setSearchCustomer] = React.useState("");
   const [searchOrder, setSearchOrder] =React.useState("");
   const [statusFilter ,setStatusFilter] =React.useState("All");
-  const [startDate, setStartDate] =useState("");
-  const [endDate,setEndDate] =useState ("");
+  const [filterStartDate, setFilterStartDate] =useState("");
+  const [filterEndDate,setFilterEndDate] =useState ("");
 
 
+const getCurrentDate = () => {
+  const today = new Date();
+  const year = today.getFullYear();
+  const month = String(today.getMonth() + 1).padStart(2, "0");
+  const day = String(today.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`; // Returns date in "YYYY-MM-DD" format
+};
+
+ const currentDate = getCurrentDate();
+ const userRole = localStorage.getItem("userRole");
+
+ 
+   
 
   const navigate = useNavigate();
 
   const printRef = useRef(null);
 
-  const filteredSalesData = salesData.filter((sale) => {
-    const matchesSalesman = sale.salesman
-      .toLowerCase()
-      .includes(searchSalesman.toLowerCase());
-    const matchesContact = sale.contactNo
-      .toLowerCase()
-      .includes(searchContact.toLowerCase());
-    const matchesCustomer = sale.customerName
-      .toLowerCase()
-      .includes(searchCustomer.toLowerCase());
-const matchesOrder = sale.orderNo
-  .toLowerCase()
-  .includes(searchOrder.toLowerCase());
-   const matchesStatus =
-     statusFilter === "All" ||
-     sale.status.toLowerCase() === statusFilter.toLowerCase();
-
-    const matchesDate =
-      (!startDate || new Date(sale.startDate) >= new Date(startDate)) &&
-      (!endDate || new Date(sale.endDate) <= new Date(endDate));
-
+  
+const filteredSalesData = salesData.filter((sale) => {
   
 
-    return (
-      matchesSalesman && matchesContact && matchesCustomer && matchesOrder && matchesStatus && matchesDate
-    );
-  });
-  
+  // Ensure the fields are strings before calling toLowerCase
+  const matchesSalesman = String(sale.salesman || "")
+    .toLowerCase()
+    .includes((searchSalesman || "").toLowerCase());
+
+  const matchesContact = String(sale.contactNo || "")
+    .toLowerCase()
+    .includes((searchContact || "").toLowerCase());
+
+  const matchesCustomer = String(sale.customerName || "")
+    .toLowerCase()
+    .includes((searchCustomer || "").toLowerCase());
+
+  const matchesOrder = String(sale.orderNo || "")
+    .toLowerCase()
+    .includes((searchOrder || "").toLowerCase());
+
+  const matchesStatus =
+    statusFilter === "All" ||
+    String(sale.status || "").toLowerCase() ===
+      (statusFilter || "").toLowerCase();
+
+  // Safely handle date comparisons
+  const matchesDate =
+    (!filterStartDate ||
+      (sale.startDate && new Date(sale.startDate.seconds * 1000) >= new Date(filterStartDate))) &&
+    (!filterEndDate ||
+      (sale.startDate && new Date(sale.startDate.seconds * 1000) <= new Date(filterEndDate)));
+
+  return (
+    matchesSalesman &&
+    matchesContact &&
+    matchesCustomer &&
+    matchesOrder &&
+    matchesStatus &&
+    matchesDate
+  );
+});
+
+
 
   const handlePrint = () => {
     // Clone the printRef content to a new window for printing
@@ -176,6 +219,18 @@ const matchesOrder = sale.orderNo
     },
   });
 
+    const calculatePendingTotal = () => {
+      return filteredSalesData.reduce((total, sale) => {
+        const price = parseFloat(sale.pendingAmount) || 0;
+
+        return total + price;
+      }, 0);
+    };
+   
+
+ 
+
+
   // Open dialog with sale details
   const handleOpenDialog = (sale) => {
     setDSale(sale);
@@ -231,6 +286,7 @@ const matchesOrder = sale.orderNo
         // Update local sales data
         const updatedSales = salesData.filter((sale) => sale.id !== saleId);
         setSalesData(updatedSales);
+        alert("Sale Deleted Successfully")
       } catch (error) {
         console.error("Error deleting sale:", error); // Log the error
         alert(`Error deleting sale: ${error.message}`); // Show alert with error message
@@ -251,36 +307,60 @@ const matchesOrder = sale.orderNo
   };
 
   // Save edited sale
-  const handleSaveEdit = async () => {
-    if (!editSale) return;
+const handleSaveEdit = async () => {
+  if (!editSale) return;
 
-    // Ensure the Delivered Date is properly formatted as a Date object
-    if (editSale.deliveredDate) {
-      editSale.deliveredDate = new Date(editSale.deliveredDate);
+  try {
+    // Create a copy of the editSale object to avoid mutating the original
+    const updatedSale = { ...editSale };
+
+    // Validate and convert deliveredDate
+    if (updatedSale.deliveredDate) {
+      let deliveredDate;
+
+      // Check if it's already a Date object
+      if (updatedSale.deliveredDate instanceof Date) {
+        deliveredDate = updatedSale.deliveredDate;
+      }
+      // Check if it's a valid date string
+      else if (typeof updatedSale.deliveredDate === "string") {
+        deliveredDate = new Date(updatedSale.deliveredDate);
+      }
+      // Check if it's a Firestore Timestamp
+      else if (updatedSale.deliveredDate.seconds) {
+        deliveredDate = new Date(updatedSale.deliveredDate.seconds * 1000);
+      }
+
+      // Ensure the date is valid
+      if (!deliveredDate || isNaN(deliveredDate.getTime())) {
+        throw new Error("Invalid deliveredDate format");
+      }
+
+      // Convert to Firestore Timestamp
+      updatedSale.deliveredDate = Timestamp.fromDate(deliveredDate);
+    } else {
+      updatedSale.deliveredDate = null; // Handle empty or missing date
     }
 
-    const saleDocRef = doc(db, "sales", editSale.id); // Ensure the saleId is valid
-    try {
-      // Update the Firestore document
-      await updateDoc(saleDocRef, {
-        ...editSale,
-        deliveredDate: editSale.deliveredDate, // Explicitly update deliveredDate as a Date
-      });
+    // Reference to the Firestore document
+    const saleDocRef = doc(db, "sales", updatedSale.id);
 
-      // Update local sales data to reflect the changes immediately
-      const updatedSales = salesData.map((sale) =>
-        sale.id === editSale.id
-          ? { ...sale, deliveredDate: editSale.deliveredDate }
-          : sale
-      );
+    // Update the Firestore document
+    await updateDoc(saleDocRef, updatedSale);
 
-      setSalesData(updatedSales); // This ensures the UI reflects the changes
-      handleCloseEditDialog(); // Close the edit dialog
-    } catch (error) {
-      console.error("Error updating sale:", error);
-      alert(`Error updating sale: ${error.message}`);
-    }
-  };
+    // Update local sales data
+    const updatedSales = salesData.map((sale) =>
+      sale.id === updatedSale.id ? { ...sale, ...updatedSale } : sale
+    );
+
+    setSalesData(updatedSales);
+    handleCloseEditDialog();
+  } catch (error) {
+    console.error("Error updating sale:", error);
+    alert(`Error updating sale: ${error.message}`);
+  }
+};
+
 
   const updatePendingAmount = async (saleId, installmentAmount) => {
     const saleDocRef = doc(db, "sales", saleId);
@@ -294,7 +374,7 @@ const matchesOrder = sale.orderNo
       alert(`Error updating sale: ${error.message}`);
     }
   };
- const userRole= localStorage.getItem("userRole")
+ 
 
   return (
     <Box>
@@ -348,15 +428,15 @@ const matchesOrder = sale.orderNo
         />
       </Box>
 
-      {userRole == "admin" && (
+     
         <div style={{ marginBottom: "1rem", display: "flex", gap: "1rem" }}>
           <TextField
             label="Start Date"
             type="date"
             variant="outlined"
             size="small"
-            value={startDate}
-            onChange={(e) => setStartDate(e.target.value)}
+            value={filterStartDate}
+            onChange={(e) => setFilterStartDate(e.target.value)}
             InputLabelProps={{
               shrink: true,
             }}
@@ -366,14 +446,14 @@ const matchesOrder = sale.orderNo
             type="date"
             variant="outlined"
             size="small"
-            value={endDate}
-            onChange={(e) => setEndDate(e.target.value)}
+            value={filterEndDate}
+            onChange={(e) => setFilterEndDate(e.target.value)}
             InputLabelProps={{
               shrink: true,
             }}
           />
         </div>
-      )}
+     
 
       {userRole == "admin" && (
         <div
@@ -388,6 +468,18 @@ const matchesOrder = sale.orderNo
           </Button>
         </div>
       )}
+      <Typography
+        variant="h6"
+        sx={{
+          fontWeight: "bold",
+
+          marginRight: "4",
+          color: "#1976d2", // Optional: Adjust color as needed
+        }}
+      >
+        Total Pending Amount: Rs: {calculatePendingTotal().toFixed(2)}
+      </Typography>
+      
 
       {loading ? (
         <Box
@@ -507,8 +599,8 @@ const matchesOrder = sale.orderNo
                               : "No Date"}
                           </TableCell>
                           <TableCell sx={{ padding: "4px" }}>
-                            {sale.DeliveredDate
-                              ? formatTimestamp(sale.DeliveredDate)
+                            {sale.deliveredDate
+                              ? formatTimestamp(sale.deliveredDate)
                               : "No Date"}
                           </TableCell>
                           {/* <TableCell>{sale.source}</TableCell>
@@ -535,6 +627,7 @@ const matchesOrder = sale.orderNo
                           <TableCell sx={{ padding: "2px" }}>
                             {sale.pendingAmount}
                           </TableCell>
+
                           {/* <TableCell>{sale.instruction}</TableCell> */}
 
                           <TableCell sx={{ padding: "20px" }}>
@@ -552,7 +645,7 @@ const matchesOrder = sale.orderNo
                           </TableCell>
 
                           {/* Status buttons with click handlers */}
-                          <TableCell sx={{ padding: "8px", padding: "40px" }}>
+                          <TableCell sx={{ padding: "8px" }}>
                             <Box sx={{ display: "flex", alignItems: "center" }}>
                               {sale.status === "Pending" && (
                                 <IconButton
@@ -576,14 +669,16 @@ const matchesOrder = sale.orderNo
                               >
                                 <EditIcon />
                               </IconButton>
-                              <IconButton
-                                variant="outlined"
-                                color="error"
-                                onClick={() => handleDeleteSale(sale.id)}
-                                sx={{ marginLeft: 1 }}
-                              >
-                                <DeleteIcon />
-                              </IconButton>
+                              {userRole == "admin" && (
+                                <IconButton
+                                  variant="outlined"
+                                  color="error"
+                                  onClick={() => handleDeleteSale(sale.id)}
+                                  sx={{ marginLeft: 1 }}
+                                >
+                                  <DeleteIcon />
+                                </IconButton>
+                              )}
                             </Box>
                           </TableCell>
 

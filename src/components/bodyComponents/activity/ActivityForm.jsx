@@ -20,6 +20,7 @@ const ActivityForm = ({ setRefresh }) => {
   const [value, setValue] = useState({
     selectedDate: new Date(),
     itemName: "",
+    refNo:"",
     vendor: "",
     price: 0,
     quantity: "",
@@ -115,6 +116,15 @@ const ActivityForm = ({ setRefresh }) => {
                 }
               />
             </div>
+            <TextField
+              label="Reference No"
+              type="text"
+              name="refNo"
+              value={value.refNo}
+              onChange={handleInputChange}
+              fullWidth
+              margin="normal"
+            />
 
             <TextField
               label="Item Name"

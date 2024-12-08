@@ -295,19 +295,17 @@ const GlassesList = ({ glasses = [], loading = false, onDelete, onEdit }) => {
           )}
 
           {userRole == "admin" && (
-
-          <div
-            style={{
-              display: "flex",
-              justifyContent: "flex-start",
-              marginBottom: "1rem",
-            }}
-          >
-            <Button variant="contained" color="primary" onClick={handlePrint}>
-              Print Glasses Inventory
-            </Button>
-          </div>
-
+            <div
+              style={{
+                display: "flex",
+                justifyContent: "flex-start",
+                marginBottom: "1rem",
+              }}
+            >
+              <Button variant="contained" color="primary" onClick={handlePrint}>
+                Print Glasses Inventory
+              </Button>
+            </div>
           )}
           <div
             style={{
@@ -433,17 +431,20 @@ const GlassesList = ({ glasses = [], loading = false, onDelete, onEdit }) => {
                           >
                             <EditIcon />
                           </IconButton>
-                          <IconButton
-                            onClick={() => handleDelete(glass.id)}
-                            color="error"
-                            sx={{
-                              "&:hover": {
-                                backgroundColor: "#ffebee", // Light hover effect for delete icon
-                              },
-                            }}
-                          >
-                            <DeleteIcon />
-                          </IconButton>
+
+                          {userRole == "admin" && (
+                            <IconButton
+                              onClick={() => handleDelete(glass.id)}
+                              color="error"
+                              sx={{
+                                "&:hover": {
+                                  backgroundColor: "#ffebee", // Light hover effect for delete icon
+                                },
+                              }}
+                            >
+                              <DeleteIcon />
+                            </IconButton>
+                          )}
                         </TableCell>
                       </TableRow>
                     ))}

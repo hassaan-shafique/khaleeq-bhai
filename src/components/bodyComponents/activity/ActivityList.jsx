@@ -175,7 +175,7 @@ const ActivityList = ({ refresh }) => {
   return (
     <div>
       {/* Search and Date Filters */}
-      {userRole == "admin" && (
+      
         <div style={{ marginBottom: "20px", display: "flex" }}>
           <TextField
             label="Search by Vendor"
@@ -214,7 +214,7 @@ const ActivityList = ({ refresh }) => {
             }}
           />
         </div>
-      )}
+      
 
       <TableContainer component={Paper} sx={{ mt: 2 }}>
         <Table>
@@ -239,6 +239,16 @@ const ActivityList = ({ refresh }) => {
                 }}
               >
                 <strong>Date</strong>
+              </TableCell>
+              <TableCell
+                sx={{
+                  backgroundColor: "#1976d2",
+                  color: "white",
+                  fontWeight: "bold",
+                  padding: "12px",
+                }}
+              >
+                <strong>Ref No</strong>
               </TableCell>
               <TableCell
                 sx={{
@@ -301,6 +311,7 @@ const ActivityList = ({ refresh }) => {
                   <TableCell>
                     {formatTimestamp(activity.selectedDate)}
                   </TableCell>
+                  <TableCell>{activity.refNo}</TableCell>
                   <TableCell>{activity.itemName}</TableCell>
                   <TableCell>{activity.vendor}</TableCell>
                   <TableCell>{activity.price}</TableCell>
@@ -314,13 +325,16 @@ const ActivityList = ({ refresh }) => {
                     >
                       Edit
                     </Button>
-                    <Button
-                      onClick={() => handleDelete(activity.id)}
-                      color="secondary"
-                      variant="contained"
-                    >
-                      Delete
-                    </Button>
+
+                    {userRole == "admin" && (
+                      <Button
+                        onClick={() => handleDelete(activity.id)}
+                        color="secondary"
+                        variant="contained"
+                      >
+                        Delete
+                      </Button>
+                    )}
                   </TableCell>
                 </TableRow>
               ))
