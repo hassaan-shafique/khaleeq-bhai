@@ -104,7 +104,7 @@ const AddVendor = ({ vendorProducts, setVendorProducts,onVendorPriceChange}) => 
             </Grid>
             <Grid item xs={4}>
               <TextField
-                label="Item Number"
+                label="Glass Number"
                 value={vendorProducts.vendorGlassNumber}
                 onChange={(e) =>
                   handleVendorProductChange(
@@ -119,12 +119,12 @@ const AddVendor = ({ vendorProducts, setVendorProducts,onVendorPriceChange}) => 
 
             <Grid item xs={4}>
               <TextField
-                label="Item Type"
-                value={vendorProducts.vendorItemType}
+                label="Item Number"
+                value={vendorProducts.vendorItemNumber}
                 onChange={(e) =>
                   handleVendorProductChange(
                     index,
-                    "vendorItemType",
+                    "vendorItemNumber",
                     e.target.value
                   )
                 }

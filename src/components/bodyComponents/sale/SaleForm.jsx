@@ -42,9 +42,9 @@ const SalesForm = () => {
     address: "",
     salesman: "",
     doctor: "",
-    startDate: new Date(),
-    endDate: new Date(),
-    deliveredDate: "",
+    // startDate: new Date(),
+    // endDate: new Date(),
+    // deliveredDate: "",
     instruction: "",
     leSph: "",
     leCyl: "",
@@ -62,6 +62,12 @@ const SalesForm = () => {
     pendingAmount: "",
     advance: "",
     discount: "",
+  });
+
+  const [orderSale, setOrderSale] = useState({
+    startDate: null,
+    endDate: null,
+    deliveredDate: null,
   });
 
   const [open, setOpen] = useState(false);
@@ -112,11 +118,18 @@ const SalesForm = () => {
   };
 
   const handleDateChange = (date, field) => {
-    setValue((prev) => ({
+    console.log(date);
+    if (!date || isNaN(new Date(date).getTime())) {
+      console.error("Invalid date:", date);
+      return;
+    }
+  
+    setOrderSale((prev) => ({
       ...prev,
-      [field]: date,
+      [field]: date, // Update the specific date field
     }));
   };
+  
 
   useEffect(() => {
     const total = parseFloat(grandTotal) || 0;
@@ -132,76 +145,55 @@ const SalesForm = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
-
-    try {
-
   
-
-
-      // Reference to the sales collection
-      const salesCollectionRef = collection(db, "sales");
-
-      // Ensure product arrays are defined and fallback to empty arrays
-      const safeValue = {
+     // Start loading state
+    try {
+      
+  
+      // Convert `orderSale` dates to Firestore Timestamps
+      const orderSaleWithTimestamps = {
+        ...orderSale,
+        startDate:
+          orderSale.startDate && !isNaN(new Date(orderSale.startDate))
+            ? Timestamp.fromDate(new Date(orderSale.startDate))
+            : null,
+        endDate:
+          orderSale.endDate && !isNaN(new Date(orderSale.endDate))
+            ? Timestamp.fromDate(new Date(orderSale.endDate))
+            : null,
+        deliveredDate:
+          orderSale.deliveredDate && !isNaN(new Date(orderSale.deliveredDate))
+            ? Timestamp.fromDate(new Date(orderSale.deliveredDate))
+            : null,
+      };
+  
+      // Merge `orderSale` with other data
+      const salesData = {
         ...value,
+        ...orderSaleWithTimestamps,
         kbcwProducts: kbcwProducts || [],
         glassesProducts: glassesProducts || [],
         vendorProducts: vendorProducts || [],
       };
-
-      // Function to convert dates to Firebase Timestamps within product arrays
-      const convertDatesToTimestamps = (productsArray) => {
-        return productsArray.map((product) => ({
-          ...product,
-          deliveredDate:
-            product.deliveredDate && !isNaN(new Date(product.deliveredDate))
-              ? Timestamp.fromDate(new Date(product.deliveredDate))
-              : null, // Ensure null if the date is invalid
-        }));
-      };
-
-      // Update product arrays with converted dates
-      safeValue.kbcwProducts = convertDatesToTimestamps(safeValue.kbcwProducts);
-      safeValue.glassesProducts = convertDatesToTimestamps(
-        safeValue.glassesProducts
-      );
-      safeValue.vendorProducts = convertDatesToTimestamps(
-        safeValue.vendorProducts
-      );
-
-      // Remove undefined or null fields (deep cleaning for nested objects)
-      const cleanData = (data) => {
-        if (Array.isArray(data)) {
-          return data.map(cleanData); // Recursively clean each item in the array
-        } else if (data && typeof data === "object") {
-          return Object.fromEntries(
-            Object.entries(data)
-              .filter(([_, v]) => v !== undefined && v !== null)
-              .map(([k, v]) => [k, cleanData(v)])
-          );
-        }
-        return data; // Return the value if it’s neither an object nor an array
-      };
-
-      const cleanedValue = cleanData(safeValue);
-
-      // Debugging: Log the cleaned data with timestamps
-      console.log(
-        "Value after converting dates to timestamps:",
-        JSON.stringify(cleanedValue, null, 2)
-      );
-
-      // Add the sale to Firestore
-      const saleDocRef = await addDoc(salesCollectionRef, cleanedValue);
+  
+      // Reference Firestore collection
+      const salesCollectionRef = collection(db, "sales");
+  
+      // Add the data to Firestore
+      const saleDocRef = await addDoc(salesCollectionRef, salesData);
       console.log("Sale successfully added with ID:", saleDocRef.id);
-
+  
       // Reset or close modal after success
+      alert("Sale successfully submitted!");
       setOpen(false);
     } catch (error) {
-      console.error("Error submitting sale or products:", error.message);
-    }
+      console.error("Error submitting sale:", error.message);
+      alert("Failed to submit the sale. Please try again.");
+    } 
+    // Stop loading state
+    
   };
+  
 
   const handleToggleFields = () => {
     setShowFields((prev) => !prev);
@@ -216,7 +208,8 @@ const SalesForm = () => {
         quantity: "",
         borrowedBranch: "",
         vendorPrice: "",
-        vendorItemType: "",
+        vendorItemNumber: "",
+        vendorNumber:"",
         vendorGlassNumber: "",
         vendorDeliveredDate: "",
       },
@@ -294,7 +287,7 @@ const SalesForm = () => {
               >
                 <Grid item xs={4}>
                   <DatePicker
-                    selected={value.startDate}
+                    selected={orderSale.startDate}
                     onChange={(date) => handleDateChange(date, "startDate")}
                     placeholderText="Select Sales Date"
                     customInput={
@@ -302,7 +295,7 @@ const SalesForm = () => {
                         fullWidth
                         variant="outlined"
                         label="Sales Date"
-                        value={value.startDate.toLocaleDateString()}
+                       
                         sx={{
                           "& .MuiOutlinedInput-root": {
                             borderRadius: "8px",
@@ -324,13 +317,13 @@ const SalesForm = () => {
                 </Grid>
                 <Grid item xs={4}>
                   <DatePicker
-                    selected={value.endDate}
+                    selected={orderSale.endDate}
                     onChange={(date) => handleDateChange(date, "endDate")}
                     placeholderText="Select Delivery Date"
                     customInput={
                       <TextField
                         fullWidth
-                        value={value.endDate.toLocaleDateString()}
+                        
                         variant="outlined"
                         label="Delivery Date"
                         sx={{
@@ -354,7 +347,7 @@ const SalesForm = () => {
                 </Grid>
                 <Grid item xs={4}>
                   <DatePicker
-                    selected={value.deliveredDate}
+                    selected={orderSale.deliveredDate}
                     onChange={(date) => handleDateChange(date, "deliveredDate")}
                     placeholderText="Select Delivered Date"
                     customInput={

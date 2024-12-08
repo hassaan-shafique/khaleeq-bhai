@@ -137,10 +137,11 @@ const filteredSalesData = salesData.filter((sale) => {
       (statusFilter || "").toLowerCase();
 
   // Safely handle date comparisons
- const matchesDate =
-   (!filterStartDate ||
-     new Date(sale.startDate) >= new Date(filterStartDate)) &&
-   (!filterEndDate || new Date(sale.startDate) <= new Date(filterEndDate));
+  const matchesDate =
+    (!filterStartDate ||
+      (sale.startDate && new Date(sale.startDate.seconds * 1000) >= new Date(filterStartDate))) &&
+    (!filterEndDate ||
+      (sale.startDate && new Date(sale.startDate.seconds * 1000) <= new Date(filterEndDate)));
 
   return (
     matchesSalesman &&
@@ -598,8 +599,8 @@ const handleSaveEdit = async () => {
                               : "No Date"}
                           </TableCell>
                           <TableCell sx={{ padding: "4px" }}>
-                            {sale.DeliveredDate
-                              ? formatTimestamp(sale.DeliveredDate)
+                            {sale.deliveredDate
+                              ? formatTimestamp(sale.deliveredDate)
                               : "No Date"}
                           </TableCell>
                           {/* <TableCell>{sale.source}</TableCell>
