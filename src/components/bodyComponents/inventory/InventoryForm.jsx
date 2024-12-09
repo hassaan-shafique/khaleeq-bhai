@@ -329,88 +329,55 @@ const handleSubmit = async (e) => {
   </Box> */}
 
   {/* Image Upload Section */}
-  <Box
-  sx={{
-    display: "flex",
-    alignItems: "center",
-    my: 2,
-    gap: 2, // Adds spacing between elements
-  }}
->
-  <label
-    htmlFor="image-upload"
-    style={{
-      cursor: "pointer",
-      display: "flex",
-      flexDirection: "column",
-      alignItems: "center",
-      justifyContent: "center",
-      width: "150px",
-      height: "80px",
-      borderRadius: "8px",
-      border: "2px solid #aaa",
-      backgroundColor: "#f9f9f9",
-      transition: "background-color 0.3s ease, transform 0.2s ease",
-      textAlign: "center",
-      backgroundColor: "#ffffff",
-    }}
-    onMouseEnter={(e) => {
-      e.target.style.backgroundColor = "#ffffff";
-      e.target.style.transform = "scale(1.05)";
-    }}
-    onMouseLeave={(e) => {
-      e.target.style.backgroundColor = "#f9f9f9";
-      e.target.style.transform = "scale(1)";
-    }}
-  >
-    {image ? (
-      <img
-        src={typeof image === "string" ? image : URL.createObjectURL(image)}
-        alt="Product Preview"
-        style={{
-          width: "100px",
-          height: "100px",
-          borderRadius: "8px",
-          objectFit: "cover",
-        }}
-      />
-    ) : (
-      <AddAPhotoIcon sx={{ fontSize: "30px", color: "black" }} />
-    )}
-    <Typography
-      sx={{
-        mt: 1,
-        fontSize: "12px",
-        fontWeight: "450",
-        color: "black",
-      }}
-    >
-      {image ? "Change Image" : "Choose Image"}
-    </Typography>
-  </label>
-  <input
-    type="file"
-    id="image-upload"
-    accept="image/*"
-    capture="environment" // Opens back camera by default
-    style={{ display: "none" }}
-    onChange={handleImageChange}
-  />
-  {image && (
-    <Typography
-      onClick={handleRemoveImage}
-      sx={{
+  <Box sx={{ display: "flex", alignItems: "center", my: 2 }}>
+    <label
+      htmlFor="image-upload"
+      style={{
         cursor: "pointer",
-        color: "red",
-        textDecoration: "underline",
-        fontSize: "14px",
+        display: "flex",
+        alignItems: "center",
       }}
     >
-      Remove
-    </Typography>
-  )}
-</Box>
-
+      {image ? (
+        <img
+          src={typeof image === "string" ? image : URL.createObjectURL(image)}
+          alt="Product Preview"
+          style={{
+            width: "100px",
+            height: "100px",
+            borderRadius: "8px",
+            objectFit: "cover",
+          }}
+        />
+      ) : (
+        <AddAPhotoIcon sx={{ fontSize: "40px", color: "#555" }} />
+      )}
+      <Typography sx={{ ml: 1 }}>
+        {image ? "Change Image" : "Choose Image"}
+      </Typography>
+    </label>
+    <input
+      type="file"
+      id="image-upload"
+      accept="image/*"
+      capture="environment" // Opens back camera by default
+      style={{ display: "none" }}
+      onChange={handleImageChange}
+    />
+    {image && (
+      <Typography
+        onClick={handleRemoveImage}
+        sx={{
+          ml: 2,
+          cursor: "pointer",
+          color: "red",
+          textDecoration: "underline",
+        }}
+      >
+        Remove
+      </Typography>
+    )}
+  </Box>
 
   {/* Captured Image Section */}
   {image && (
