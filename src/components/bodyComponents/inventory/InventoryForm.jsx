@@ -121,88 +121,55 @@ const checkBarcodeExistence = async (barcode) => {
     return false;
   }
 };
- const startCamera = async () => {
-   try {
-     const stream = await navigator.mediaDevices.getUserMedia({
-       video: { facingMode: "environment" },
-     });
-     const videoElement = document.getElementById("camera-preview");
-     videoElement.srcObject = stream;
-     videoElement.play();
-   } catch (error) {
-     console.error("Error accessing the camera:", error);
-   }
- };
 
 
- const captureImage = () => {
-   const videoElement = document.getElementById("camera-preview");
-   const canvas = document.createElement("canvas");
-   canvas.width = videoElement.videoWidth;
-   canvas.height = videoElement.videoHeight;
-   const context = canvas.getContext("2d");
-   context.drawImage(videoElement, 0, 0, canvas.width, canvas.height);
 
-   // Get Base64 image data
-   const imageData = canvas.toDataURL("image/png");
-   setImage(imageData); // Save Base64 for preview
 
-   // Convert Base64 to Blob for uploading
-   const blob = base64ToBlob(imageData);
-   setImageBlob(blob); // Use this for storage upload
- };
 
  // Utility function to convert Base64 to Blob
- const base64ToBlob = (base64) => {
-   const byteString = atob(base64.split(",")[1]);
-   const mimeString = base64.split(",")[0].split(":")[1].split(";")[0];
-   const arrayBuffer = new Uint8Array(byteString.length);
-   for (let i = 0; i < byteString.length; i++) {
-     arrayBuffer[i] = byteString.charCodeAt(i);
-   }
-   return new Blob([arrayBuffer], { type: mimeString });
- };
 
 
-const handleSubmit = async (e) => {
+
+ const handleSubmit = async (e) => {
   e.preventDefault();
 
   if (!validateForm()) return;
 
-  if (!imageBlob) {
-    alert("Please capture an image to upload.");
-    return;
-  }
-
   setLoading(true);
 
   try {
-    const uniqueImageName = `${Date.now()}.png`;
-    const storageRef = ref(storage, `inventory-images/${uniqueImageName}`);
+    // Ensure the image exists before proceeding
+    if (image) {
+      const uniqueImageName = `${Date.now()}-${image.name}`;
+      const storageRef = ref(storage, `inventory-images/${uniqueImageName}`);
 
-    // Upload the Blob
-    const snapshot = await uploadBytes(storageRef, imageBlob);
-    console.log("Upload snapshot:", snapshot);
+      // Upload the file directly
+      const snapshot = await uploadBytes(storageRef, image);
+      console.log("Upload snapshot:", snapshot);
 
-    // Get the download URL
-    const imageUrl = await getDownloadURL(storageRef);
-    console.log("Image URL:", imageUrl);
+      // Get the download URL
+      const imageUrl = await getDownloadURL(storageRef);
+      console.log("Image URL:", imageUrl);
 
-    // Save the data to Firestore
-    const inventoryCollectionRef = collection(db, "inventory");
-    const docRef = await addDoc(inventoryCollectionRef, {
-      ...value,
-      type: value.type === "other" ? customType : value.type,
-      image: imageUrl, // Save the download URL in Firestore
-    });
+      // Save the data to Firestore
+      const inventoryCollectionRef = collection(db, "inventory");
+      const docRef = await addDoc(inventoryCollectionRef, {
+        ...value,
+        type: value.type === "other" ? customType : value.type,
+        image: imageUrl, // Save the download URL in Firestore
+      });
 
-    console.log("Document added with ID:", docRef.id);
+      console.log("Document added with ID:", docRef.id);
 
-    setOpen(false);
-    setRefresh((prev) => !prev);
-    setLoading(false);
+      // Reset form and UI states
+      setOpen(false);
+      setRefresh((prev) => !prev);
+    } else {
+      console.error("No image selected for upload.");
+    }
   } catch (error) {
-    console.error("Error adding document: ", error);
+    console.error("Error adding document: ", error.message);
+  } finally {
     setLoading(false);
   }
 };
