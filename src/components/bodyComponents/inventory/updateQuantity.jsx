@@ -19,6 +19,7 @@ import {
 } from "firebase/firestore"; // For updating and fetching document
 
 const UpdateQuantity = ({ setRefresh }) => {
+
   const [open, setOpen] = useState(false); // To control dialog open/close
   const [barcode, setBarcode] = useState(""); // State for barcode input
   const [quantity, setQuantity] = useState(""); // State for quantity input
@@ -81,9 +82,11 @@ const UpdateQuantity = ({ setRefresh }) => {
       await updateDoc(inventoryDocRef, {
         quantity: newQuantity,
       });
+      setRefresh((prev) => !prev);
 
       alert("Quantity updated successfully!");
-      setRefresh((prev) => !prev); // Refresh the inventory list
+      window.location.reload(); 
+       // Refresh the inventory list
       setOpen(false); // Close the dialog after successful update
     } catch (error) {
       console.error("Error updating quantity: ", error);

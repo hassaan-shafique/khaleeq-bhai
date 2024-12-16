@@ -90,9 +90,9 @@ const EditGlassDialog = ({
             <Grid item xs={4}>
               <TextField
                 label="Quantity"
-                value={editGlassProduct.glassesQuantity}
+                value={editGlassProduct.enteredQuantity}
                 onChange={(e) =>
-                  handleGlassesProductChange("glassesQuantity", e.target.value)
+                  handleGlassesProductChange("enteredQuantity", e.target.value)
                 }
                 fullWidth
               />

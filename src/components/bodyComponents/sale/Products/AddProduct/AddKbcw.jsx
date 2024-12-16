@@ -24,6 +24,8 @@ import {
 
 function AddKbcw({ kbcwProducts, setKbcwProducts, onKbcwPriceChange }) {
 
+  const [updating, setUpdating] = useState(false);
+
   const handleKbcwProductChange = (index, field, value) => {
     const updatedProducts = [...kbcwProducts];
     updatedProducts[index][field] = value;
@@ -71,18 +73,22 @@ function AddKbcw({ kbcwProducts, setKbcwProducts, onKbcwPriceChange }) {
   };
 
   const handleQuantityChange = async (index, enteredQuantity) => {
+    if (updating) return; // Prevent multiple clicks
+    setUpdating(true); // Lock the button during update
+  
     const product = kbcwProducts[index];
     const remainingQuantity = product.inventoryQuantity - enteredQuantity;
-
-    if (remainingQuantity <= 0) {
+  
+    if (remainingQuantity < 0) {
       alert("Insufficient stock in inventory");
+      setUpdating(false); // Unlock button on error
       return;
     }
-
+  
     const updatedProducts = [...kbcwProducts];
     updatedProducts[index].inventoryQuantity = remainingQuantity;
     setKbcwProducts(updatedProducts);
-
+  
     // Update inventory quantity in Firestore
     try {
       const q = query(
@@ -90,13 +96,20 @@ function AddKbcw({ kbcwProducts, setKbcwProducts, onKbcwPriceChange }) {
         where("barcode", "==", product.kbcwBarcode)
       );
       const querySnapshot = await getDocs(q);
-
+  
       if (!querySnapshot.empty) {
         const productDocRef = doc(db, "inventory", querySnapshot.docs[0].id);
+  
+        // Ensure the update happens atomically
         await updateDoc(productDocRef, { quantity: remainingQuantity });
+  
+        alert("Quantity updated successfully");
       }
     } catch (error) {
       console.error("Error updating inventory quantity:", error);
+      alert("Error updating quantity. Please try again.");
+    } finally {
+      setUpdating(false); // Unlock button after update
     }
   };
 
@@ -278,8 +291,11 @@ function AddKbcw({ kbcwProducts, setKbcwProducts, onKbcwPriceChange }) {
                 onClick={() =>
                   handleQuantityChange(index, product.enteredQuantity)
                 }
+                disabled={updating} 
               >
+                 {updating ? "Updating..." : ""}
                 Click Here to Update Kbcw Inventory Quantity  
+
               </Button>
          
             <Button

@@ -30,93 +30,95 @@ const UpdateGlassesQuantity = ({ setRefresh }) => {
     setError(null); // Clear errors
   };
 
-const handleSubmit = async (e) => {
-  e.preventDefault();
-
-  // Validate inputs
-  if (!number || !type || !quantity) {
-    setError("Please provide the number, type, and quantity.");
-    return;
-  }
-
-  // Flexible validation for number input (allowing various formats)
-  const numberPattern = /^[-+]?\d+(\.\d+)?(\/[-+]?\d+(\.\d+)?)?$/; // Handles single numbers or "num/num"
-  if (!numberPattern.test(number)) {
-    setError(
-      "Invalid number format. Examples: '1332', '1.25/1.30', '-1.25/-1.25', '+3.4/+6.5'."
-    );
-    return;
-  }
-
-  try {
-    // Normalize number input by trimming and removing spaces
-    const formattedNumber = number
-      .trim() // Remove leading/trailing spaces
-      .replace(/\s+/g, ""); // Remove any spaces within the input
-
-    console.log("Formatted number:", formattedNumber);
-
-    // Normalize type input (convert to lowercase to avoid case-sensitivity issues)
-    const normalizedType = type.trim().toLowerCase(); // Convert to lowercase
-
-    console.log("Searching for glasses:", {
-      number: formattedNumber,
-      type: normalizedType,
-    });
-
-    // Query Firestore for the glasses document by number and type
-    const q = query(
-      collection(db, "glasses"), // Replace with your Firestore collection name
-      where("number", "==", formattedNumber), // Match the formatted number
-      where("type", "==", normalizedType) // Match the normalized type (lowercase)
-    );
-
-    // Fetch matching documents
-    const querySnapshot = await getDocs(q);
-
-    if (querySnapshot.empty) {
-      setError("No glasses found with the provided number and type.");
-      console.log("No document found with the given criteria.");
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+  
+    // Validate inputs
+    if (!number || !type || !quantity) {
+      setError("Please provide the number, type, and quantity.");
       return;
     }
-
-    // Get the first matching document
-    const docSnapshot = querySnapshot.docs[0];
-    const glassesDocRef = docSnapshot.ref;
-
-    console.log("Document found:", docSnapshot.data());
-
-    // Get the current quantity and parse it as an integer
-    const currentQuantity = parseInt(docSnapshot.data().quantity, 10);
-
-    // Parse the input quantity as an integer
-    const quantityToAdd = parseInt(quantity, 10);
-
-    if (isNaN(quantityToAdd)) {
-      setError("Invalid quantity entered. Please provide a valid number.");
+  
+    // Flexible validation for number input (allowing various formats)
+    const numberPattern = /^[-+]?\d*\.?\d+(\/[-+]?\d*\.?\d+)?$/; // Updated regex to handle negative numbers and fractions
+    if (!numberPattern.test(number)) {
+      setError(
+        "Invalid number format. Examples: '1332', '1.25/1.30', '-1.25/-1.25', '+3.4/+6.5'."
+      );
       return;
     }
-
-    // Calculate the new quantity
-    const newQuantity = currentQuantity + quantityToAdd;
-
-    // Update the Firestore document
-    await updateDoc(glassesDocRef, {
-      quantity: newQuantity,
-    });
-
-    alert("Glasses quantity updated successfully!");
-    setRefresh((prev) => !prev); // Trigger a refresh
-    setOpen(false); // Close the dialog
-  } catch (error) {
-    console.error("Error updating glasses quantity: ", error);
-    setError(
-      `Error updating quantity. ${
-        error.message || "Please check your input and try again."
-      }`
-    );
-  }
-};
+  
+    try {
+      // Normalize number input by trimming and removing spaces
+      const formattedNumber = number
+        .trim() // Remove leading/trailing spaces
+        .replace(/\s+/g, ""); // Remove any spaces within the input
+  
+      console.log("Formatted number:", formattedNumber);
+  
+      // Normalize type input (convert to lowercase to avoid case-sensitivity issues)
+      const normalizedType = type.trim().toLowerCase(); // Convert to lowercase
+  
+      console.log("Searching for glasses:", {
+        number: formattedNumber,
+        type: normalizedType,
+      });
+  
+      // Query Firestore for the glasses document by number and type
+      const q = query(
+        collection(db, "glasses"), // Replace with your Firestore collection name
+        where("number", "==", formattedNumber), // Match the formatted number
+        where("type", "==", normalizedType) // Match the normalized type (lowercase)
+      );
+  
+      // Fetch matching documents
+      const querySnapshot = await getDocs(q);
+  
+      if (querySnapshot.empty) {
+        setError("No glasses found with the provided number and type.");
+        console.log("No document found with the given criteria.");
+        return;
+      }
+  
+      // Get the first matching document
+      const docSnapshot = querySnapshot.docs[0];
+      const glassesDocRef = docSnapshot.ref;
+  
+      console.log("Document found:", docSnapshot.data());
+  
+      // Get the current quantity and parse it as an integer
+      const currentQuantity = parseInt(docSnapshot.data().quantity, 10);
+  
+      // Parse the input quantity as an integer
+      const quantityToAdd = parseInt(quantity, 10);
+  
+      if (isNaN(quantityToAdd)) {
+        setError("Invalid quantity entered. Please provide a valid number.");
+        return;
+      }
+  
+      // Calculate the new quantity
+      const newQuantity = currentQuantity + quantityToAdd;
+  
+      // Update the Firestore document
+      await updateDoc(glassesDocRef, {
+        quantity: newQuantity,
+      });
+      window.location.reload(); 
+  
+      alert("Glasses quantity updated successfully!");
+      setRefresh((prev) => !prev); // Trigger a refresh
+      setOpen(false); // Close the dialog
+    } catch (error) {
+      console.error("Error updating glasses quantity: ", error);
+      setError(
+        `Error updating quantity. ${
+          error.message || "Please check your input and try again."
+        }`
+      );
+    }
+  };
+  
 
 
 
@@ -137,7 +139,7 @@ const handleSubmit = async (e) => {
         <DialogContent>
           <form onSubmit={handleSubmit}>
             <TextField
-              label="Number (e.g., 1.25/1.30)"
+              label="Number "
               name="number"
               type="text"
               value={number}
@@ -147,7 +149,7 @@ const handleSubmit = async (e) => {
               required
             />
             <TextField
-              label="Type (e.g., ContactLenses)"
+              label="Type "
               name="type"
               type="text"
               value={type}
