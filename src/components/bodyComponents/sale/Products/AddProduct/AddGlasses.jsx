@@ -28,6 +28,7 @@ const AddGlasses = ({
   onGlassesPriceChange,
 }) => {
   const [totalGlassesPrice, setTotalGlassesPrice] = useState(0);
+    const [updating, setUpdating] = useState(false);
 
 
    const handleGlassesProductChange = (index, field, value) => {
@@ -76,11 +77,15 @@ const AddGlasses = ({
     };
 
   const handleQuantityChange = async (index, enteredQuantity) => {
+
+    if (updating) return; // Prevent multiple clicks
+    setUpdating(true);
     const product = glassesProducts[index];
     const remainingQuantity = product.inventoryQuantity - enteredQuantity;
 
     if (remainingQuantity <= 0) {
       alert("Insufficient stock in inventory");
+      setUpdating(false); 
       return;
     }
 
@@ -103,6 +108,9 @@ const AddGlasses = ({
       }
     } catch (error) {
       console.error("Error updating inventory quantity:", error);
+    }
+    finally {
+      setUpdating(false); // Unlock button after update
     }
   };
 
@@ -291,7 +299,9 @@ const AddGlasses = ({
               onClick={() =>
                 handleQuantityChange(index, glassesProducts.enteredQuantity)
               }
+              disabled={updating} 
             >
+               {updating ? "Updating..." : ""}
             Click Here To Update Glasses Inventory Quantity
             </Button>
             <Button
@@ -299,6 +309,7 @@ const AddGlasses = ({
               color="error"
               onClick={() => handleRemove(index)}
               sx={{ marginLeft: "8px" }}
+             
             >
               <DeleteIcon />
             </Button>
