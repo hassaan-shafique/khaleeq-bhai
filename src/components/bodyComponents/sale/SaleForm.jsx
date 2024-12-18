@@ -34,7 +34,9 @@ import AddVendor from './Products/AddProduct/AddVendor';
 import AddGlasses from "./Products/AddProduct/AddGlasses";
 import AddKbcw from "./Products/AddProduct/AddKbcw";
 
-const SalesForm = () => {
+const SalesForm = ({setRefresh}) => {
+
+
   const [value, setValue] = useState({
     orderNo: "",
     customerName: "",
@@ -76,9 +78,6 @@ const SalesForm = () => {
   const [vendorProducts, setVendorProducts] = useState([]);
   const [kbcwProducts, setKbcwProducts] = useState([]);
   const [glassesProducts, setGlassesProducts] = useState([]);
-
-  const [refresh, setRefresh] = useState(false);
-
   const [totalVendorPrice, setTotalVendorPrice] = useState(0);
   const [totalKbcwPrice, setTotalKbcwPrice] = useState(0);
   const [totalGlassesPrice, setTotalGlassesPrice] = useState(0);
@@ -183,6 +182,7 @@ const SalesForm = () => {
       const saleDocRef = await addDoc(salesCollectionRef, salesData);
       console.log("Sale successfully added with ID:", saleDocRef.id);
   
+      setRefresh((prev) => !prev);
       // Reset or close modal after success
       alert("Sale successfully submitted!");
       setOpen(false);
@@ -237,6 +237,7 @@ const SalesForm = () => {
       ...prev,
       {
         kbcwInventoryType: "",
+        kbcwImage:"",
         kbcwBarcode: "",
         kbcwName: "",
         kbcwQuantity: "",

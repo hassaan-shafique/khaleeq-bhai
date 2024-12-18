@@ -78,11 +78,11 @@ const GlassesForm = ({ setRefresh }) => {
       
 
     // Check if the barcode number already exists
-    const numberExists = await checkBarcodeExistence(number);
-    if (numberExists) {
-      alert("The Glasses number is already available.");
-      return; // Exit early if the barcode already exists
-    }
+    // const numberExists = await checkBarcodeExistence(number);
+    // if (numberExists) {
+    //   alert("The Glasses number is already available.");
+    //   return; // Exit early if the barcode already exists
+    // }
 
     try {
       const glassesCollectionRef = collection(db, "glasses");

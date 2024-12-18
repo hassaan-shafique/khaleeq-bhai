@@ -6,6 +6,10 @@ import {
   Box,
   Grid,
   Button,
+  FormControl,
+  InputLabel,
+  Select,
+  MenuItem,
 } from "@mui/material";
 import DeleteIcon from "@mui/icons-material/Delete";
 import DatePicker from "react-datepicker";
@@ -28,6 +32,7 @@ const AddGlasses = ({
   onGlassesPriceChange,
 }) => {
   const [totalGlassesPrice, setTotalGlassesPrice] = useState(0);
+    const [updating, setUpdating] = useState(false);
 
 
    const handleGlassesProductChange = (index, field, value) => {
@@ -44,65 +49,120 @@ const AddGlasses = ({
      }
    };
 
-    const fetchProductData = async (number, index) => {
-      if (!number) return;
-
-      try {
-        const q = query(
-          collection(db, "glasses"),
-          where("number", "==", number)
-        );
-        const querySnapshot = await getDocs(q);
-
-        if (!querySnapshot.empty) {
-          const productDoc = querySnapshot.docs[0];
-          const productData = productDoc.data();
-
-          const updatedProducts = [...glassesProducts];
-          updatedProducts[index] = {
-            ...updatedProducts[index],
-            glassesName: productData.name,
-            glassesPrice: productData.price,
-            glassesSize: productData.size,
-            glassesNumber: productData.number,
-            glassesType: productData.type,
-            inventoryQuantity: productData.quantity, // Initial inventory quantity
-          };
-          setGlassesProducts(updatedProducts);
-        }
-      } catch (error) {
-        console.error("Error fetching product:", error);
+   const fetchProductData = async (number, index) => {
+    if (!number) return;
+  
+    try {
+      const q = query(collection(db, "glasses"), where("number", "==", number));
+      const querySnapshot = await getDocs(q);
+  
+      if (!querySnapshot.empty) {
+        const availableTypes = [];
+        querySnapshot.forEach((doc) => {
+          const productData = doc.data();
+          availableTypes.push({
+            type: productData.type,
+            name: productData.name,
+            price: productData.price,
+            size: productData.size,
+            quantity: productData.quantity,
+          });
+        });
+  
+        const updatedProducts = [...glassesProducts];
+        updatedProducts[index] = {
+          ...updatedProducts[index],
+          glassesNumber: number,
+          availableTypes,
+          glassesType: "", // Reset the type selection
+        };
+        console.log("Available types:", availableTypes); // Debugging log
+        setGlassesProducts(updatedProducts);
+      } else {
+        console.log("No products found for this number.");
       }
-    };
+    } catch (error) {
+      console.error("Error fetching product:", error);
+    }
+  };
+  
 
   const handleQuantityChange = async (index, enteredQuantity) => {
-    const product = glassesProducts[index];
-    const remainingQuantity = product.inventoryQuantity - enteredQuantity;
-
-    if (remainingQuantity <= 0) {
-      alert("Insufficient stock in inventory");
+    if (updating) return; // Prevent multiple clicks
+    setUpdating(true);
+  
+    const parsedQuantity = parseInt(enteredQuantity, 10); // Convert the input to an integer
+  
+    if (isNaN(parsedQuantity) || parsedQuantity <= 0) {
+      alert("Please enter a valid quantity.");
+      setUpdating(false);
       return;
     }
-
+  
+    const product = glassesProducts[index];
+    const selectedType = product.glassesType; // Ensure you are getting the selected type
+    const remainingQuantity = product.inventoryQuantity - parsedQuantity;
+  
+    if (remainingQuantity < 0) {
+      alert("Insufficient stock in inventory");
+      setUpdating(false);
+      return;
+    }
+  
     const updatedProducts = [...glassesProducts];
-    updatedProducts[index].inventoryQuantity = remainingQuantity;
+    updatedProducts[index].enteredQuantity = parsedQuantity; // Update the entered quantity with the parsed value
+    updatedProducts[index].inventoryQuantity = remainingQuantity; // Update the remaining quantity
     setGlassesProducts(updatedProducts);
-
-    // Update inventory quantity in Firestore
+  
+    // Update inventory quantity in Firestore based on glassesNumber and glassesType
     try {
       const q = query(
         collection(db, "glasses"),
-        where("number", "==", product.glassesNumber)
-      
+        where("number", "==", product.glassesNumber), // Match the glasses number
+        where("type", "==", selectedType) // Match the selected glasses type
       );
       const querySnapshot = await getDocs(q);
-
+  
       if (!querySnapshot.empty) {
         const productDocRef = doc(db, "glasses", querySnapshot.docs[0].id);
-        await updateDoc(productDocRef, { quantity: remainingQuantity });
+  
+        console.log("Updating Firestore with remaining quantity:", remainingQuantity);
+  
+        // Update the Firestore document with the correct remaining quantity
+        await updateDoc(productDocRef, {
+          quantity: remainingQuantity, // Update the inventory quantity
+        });
+  
+        console.log("Firestore update successful");
+      } else {
+        console.log("No matching product found in Firestore");
       }
     } catch (error) {
       console.error("Error updating inventory quantity:", error);
+    } finally {
+      setUpdating(false); // Unlock button after update
+    }
+  };
+  
+  
+
+  const handleTypeChange = (index, selectedType) => {
+    const product = glassesProducts[index];
+    const selectedProduct = product.availableTypes.find(
+      (p) => p.type === selectedType
+    );
+
+    if (selectedProduct) {
+      const updatedProducts = [...glassesProducts];
+      updatedProducts[index] = {
+        ...updatedProducts[index],
+        glassesType: selectedType,
+        glassesName: selectedProduct.name,
+        glassesPrice: selectedProduct.price,
+        glassesSize: selectedProduct.size,
+        inventoryQuantity: selectedProduct.quantity,
+      };
+      setGlassesProducts(updatedProducts);
     }
   };
 
@@ -152,20 +212,35 @@ const AddGlasses = ({
                 fullWidth
               />
             </Grid>
-            <Grid item xs={4}>
-              <TextField
-                label="Glasses Type"
-                value={glassesProducts.glassesType || ""}
-                onChange={(e) =>
-                  handleGlassesProductChange(
-                    index,
-                    "glassesType",
-                    e.target.value
-                  )
-                }
-                fullWidth
-              />
-            </Grid>
+
+            {glassesProducts.availableTypes && glassesProducts.availableTypes.length > 0 ? (
+              
+  <Grid item xs={4}>
+    <FormControl fullWidth>
+      <InputLabel>Type</InputLabel>
+      <Select
+        value={glassesProducts.glassesType || ""}
+        onChange={(e) => handleTypeChange(index, e.target.value)}
+      >
+        {glassesProducts.availableTypes.map((typeData, idx) => (
+          <MenuItem key={idx} value={typeData.type}>
+            {typeData.type}
+          </MenuItem>
+        ))}
+      </Select>
+    </FormControl>
+  </Grid>
+) : (
+  <Grid item xs={4}>
+    <TextField
+      label="Type"
+      value="write Number To View Types"
+      disabled
+      fullWidth
+    />
+  </Grid>
+)}
+
             <Grid item xs={4}>
               <TextField
                 label="Name"
@@ -291,7 +366,9 @@ const AddGlasses = ({
               onClick={() =>
                 handleQuantityChange(index, glassesProducts.enteredQuantity)
               }
+              disabled={updating} 
             >
+               {updating ? "Updating..." : ""}
             Click Here To Update Glasses Inventory Quantity
             </Button>
             <Button
@@ -299,6 +376,7 @@ const AddGlasses = ({
               color="error"
               onClick={() => handleRemove(index)}
               sx={{ marginLeft: "8px" }}
+             
             >
               <DeleteIcon />
             </Button>

@@ -71,7 +71,7 @@ const formatTimestamp = (timestamp) => {
 
 
 
-const SaleList = ({ sales = [], loading = false, refresh  }) => {
+const SaleList = ({ sales = [], loading = false,  }) => {
   const [open, setOpen] = useState(false);
   const [DSale, setDSale] = useState(null);
   const [salesData, setSalesData] = useState(sales); // Local sales state

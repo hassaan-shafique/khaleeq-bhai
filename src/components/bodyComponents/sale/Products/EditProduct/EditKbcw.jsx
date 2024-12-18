@@ -96,9 +96,9 @@ const EditKbcwDialog = ({
             <Grid item xs={4}>
               <TextField
                 label="Quantity"
-                value={editKbcwProduct.kbcwQuantity}
+                value={editKbcwProduct.enteredQuantity}
                 onChange={(e) =>
-                  handleKbcwProductChange(index, "kbcwQuantity", e.target.value)
+                  handleKbcwProductChange(index, "enteredQuantity", e.target.value)
                 }
                 fullWidth
               />

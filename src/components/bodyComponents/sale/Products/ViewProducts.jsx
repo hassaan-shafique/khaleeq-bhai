@@ -73,6 +73,9 @@ const ViewProducts = () => {
     fetchSalesData();
   }, [id]);
 
+
+  
+
   if (loading) return <p>Loading...</p>;
   if (!salesData) return <p>No sales data found for this customer.</p>;
 
@@ -441,6 +444,8 @@ const handleDeleteClick = async (product, productType) => {
           <Table>
             <TableHead>
               <TableRow>
+              <TableCell style={styles.tableCell}>Sr.No</TableCell>
+              <TableCell style={styles.tableCell}>Image</TableCell>
                 <TableCell style={styles.tableCell}>Barcode</TableCell>
                 <TableCell style={styles.tableCell}>Type</TableCell>
                 <TableCell style={styles.tableCell}>Name</TableCell>
@@ -454,10 +459,30 @@ const handleDeleteClick = async (product, productType) => {
               {salesData.kbcwProducts?.map((product, index) => (
                 <TableRow key={index}>
                   <TableCell>{index + 1}</TableCell>
+                  <TableCell>{product.kbcwImage ? (
+  <img
+    src={product.kbcwImage}
+    alt="Product"
+    style={{
+      width: "100%",
+      height: "auto",
+      maxHeight: "150px",
+      objectFit: "cover",
+      borderRadius: "12px",
+      backgroundColor: "#808080",
+    }}
+  />
+) : (
+  <div style={{ width: "100%", height: "150px", backgroundColor: "#f0f0f0", textAlign: "center", lineHeight: "150px", borderRadius: "12px" }}>
+    No Image Available
+  </div>
+)}</TableCell>
+
                   <TableCell>{product.kbcwBarcode}</TableCell>
                   <TableCell>{product.kbcwType}</TableCell>
                   <TableCell>{product.kbcwName}</TableCell>
-                  <TableCell>{product.kbcwQuantity}</TableCell>
+                  <TableCell>{product.kbcwSize}</TableCell>
+                  <TableCell>{product.enteredQuantity}</TableCell>
                   <TableCell>{product.kbcwPrice}</TableCell>
 
                   <TableCell>{formatDate(product.kbcwDeliveredDate)}</TableCell>
@@ -501,7 +526,7 @@ const handleDeleteClick = async (product, productType) => {
           <Table>
             <TableHead>
               <TableRow>
-                <TableCell style={styles.tableCell}>Product</TableCell>
+                <TableCell style={styles.tableCell}>Sr.No</TableCell>
                 <TableCell style={styles.tableCell}>Type</TableCell>
                 <TableCell style={styles.tableCell}>Number</TableCell>
                 <TableCell style={styles.tableCell}>Quantity</TableCell>
@@ -515,7 +540,7 @@ const handleDeleteClick = async (product, productType) => {
                   <TableCell>{index + 1}</TableCell>
                   <TableCell>{product.glassesType}</TableCell>
                   <TableCell>{product.glassesNumber}</TableCell>
-                  <TableCell>{product.glassesQuantity}</TableCell>
+                  <TableCell>{product.enteredQuantity}</TableCell>
                   <TableCell>{product.glassesPrice}</TableCell>
                   <TableCell>
                     {formatDate(product.glassesDeliveredDate)}
