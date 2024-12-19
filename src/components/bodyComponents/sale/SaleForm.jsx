@@ -36,6 +36,8 @@ import AddKbcw from "./Products/AddProduct/AddKbcw";
 
 const SalesForm = ({setRefresh}) => {
 
+ 
+
 
   const [value, setValue] = useState({
     orderNo: "",
@@ -142,13 +144,14 @@ const SalesForm = ({setRefresh}) => {
     }));
   }, [grandTotal, value.advance, value.discount]);
 
+
+  
+
   const handleSubmit = async (e) => {
     e.preventDefault();
   
-     // Start loading state
     try {
       
-  
       // Convert `orderSale` dates to Firestore Timestamps
       const orderSaleWithTimestamps = {
         ...orderSale,
@@ -166,14 +169,42 @@ const SalesForm = ({setRefresh}) => {
             : null,
       };
   
+      // Validate glassesProducts
+
+      const validatedGlassesProducts = glassesProducts.map((product) => {
+        return {
+          glassesBarcode: product.glassesBarcode || "",
+          glassesType: product.glassesType || "",
+          glassesName: product.glassesName || "",
+          glassesSize: product.glassesSize || "",
+          glassesNumber: product.glassesNumber || "",
+          enteredQuantity: product.enteredQuantity || 0,
+          inventoryQuantity: product.inventoryQuantity || 0,
+          glassesPrice: product.glassesPrice || 0,
+          glassesDeliveredDate:
+            product.glassesDeliveredDate &&
+            !isNaN(new Date(product.glassesDeliveredDate))
+              ? Timestamp.fromDate(new Date(product.glassesDeliveredDate))
+              : null,
+        };
+      });
+
+      
+      
+  
       // Merge `orderSale` with other data
-      const salesData = {
+      let salesData = {
         ...value,
         ...orderSaleWithTimestamps,
         kbcwProducts: kbcwProducts || [],
-        glassesProducts: glassesProducts || [],
+        glassesProducts: validatedGlassesProducts,
         vendorProducts: vendorProducts || [],
       };
+  
+      // Remove undefined values
+      salesData = Object.fromEntries(
+        Object.entries(salesData).map(([key, value]) => [key, value ?? null])
+      );
   
       // Reference Firestore collection
       const salesCollectionRef = collection(db, "sales");
@@ -183,15 +214,12 @@ const SalesForm = ({setRefresh}) => {
       console.log("Sale successfully added with ID:", saleDocRef.id);
   
       setRefresh((prev) => !prev);
-      // Reset or close modal after success
       alert("Sale successfully submitted!");
       setOpen(false);
     } catch (error) {
       console.error("Error submitting sale:", error.message);
       alert("Failed to submit the sale. Please try again.");
-    } 
-    // Stop loading state
-    
+    }
   };
   
 

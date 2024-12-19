@@ -229,6 +229,7 @@ const checkBarcodeExistence = async (barcode) => {
               }
             />
             <TextField
+            type="string"
               label="Barcode"
               name="barcode"
               value={value.barcode}
