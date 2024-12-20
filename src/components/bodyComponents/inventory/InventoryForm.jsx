@@ -138,6 +138,17 @@ const checkBarcodeExistence = async (barcode) => {
   setLoading(true);
 
   try {
+
+    const isBarcodeExists = await checkBarcodeExistence(value.barcode);
+
+    if (isBarcodeExists) {
+      alert(`An item with the barcode "${value.barcode}" already exists.`);
+      setLoading(false); // Reset loading state
+      return; // Stop further processing
+    }
+
+
+
     // Ensure the image exists before proceeding
     if (image) {
       const uniqueImageName = `${Date.now()}-${image.name}`;
@@ -229,6 +240,7 @@ const checkBarcodeExistence = async (barcode) => {
               }
             />
             <TextField
+            type="string"
               label="Barcode"
               name="barcode"
               value={value.barcode}
