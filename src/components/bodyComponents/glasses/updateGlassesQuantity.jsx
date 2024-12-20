@@ -43,7 +43,7 @@ const UpdateGlassesQuantity = ({ setRefresh }) => {
     const numberPattern = /^[-+]?\d*\.?\d+(\/[-+]?\d*\.?\d+)?$/; // Updated regex to handle negative numbers and fractions
     if (!numberPattern.test(number)) {
       setError(
-        "Invalid number format. Examples: '1332', '1.25/1.30', '-1.25/-1.25', '+3.4/+6.5'."
+        "Invalid number format."
       );
       return;
     }

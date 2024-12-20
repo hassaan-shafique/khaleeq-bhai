@@ -51,14 +51,26 @@ const GlassesForm = ({ setRefresh }) => {
   };
 
   // Function to check if the barcode number already exists
-  const checkBarcodeExistence = async (number) => {
+  const checkBarcodeExistence = async (number, type) => {
     const glassesCollectionRef = collection(db, "glasses");
+  
+    // Create a query to check for both number and type
     const q = query(
       glassesCollectionRef,
-      where("number", "==", number)
+      where("number", "==", number),
+      where("type", "==", type)
     );
-    const querySnapshot = await getDocs(q);
-    return !querySnapshot.empty; // If query is not empty, the barcode exists
+  
+    try {
+      // Fetch the query snapshot
+      const querySnapshot = await getDocs(q);
+  
+      // Return true if a match is found, false otherwise
+      return !querySnapshot.empty;
+    } catch (error) {
+      console.error("Error checking barcode existence:", error);
+      return false; // Default to false if an error occurs
+    }
   };
 
 
@@ -85,6 +97,16 @@ const GlassesForm = ({ setRefresh }) => {
     // }
 
     try {
+      const isDuplicate = await checkBarcodeExistence(number, type);
+
+      if (isDuplicate) {
+        alert(
+          `The glasses with number "${number}" and type "${type}" are already available.`
+        );
+        return; // Stop further execution if duplicate found
+      }
+
+
       const glassesCollectionRef = collection(db, "glasses");
       await addDoc(glassesCollectionRef, {
         price,
