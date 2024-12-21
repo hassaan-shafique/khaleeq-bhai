@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState,useEffect } from "react";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import {
@@ -25,16 +25,22 @@ import { addDoc, collection } from "firebase/firestore";
 import { getStorage, ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import { db } from "../../../config/Firebase";
 
-const INVENTORY_TYPES = [
-  { label: "Contact Lenses", value: "ContactLenses" },
-  { label: "Covers", value: "covers" },
-  { label: "Frames", value: "Frames" },
-  { label: "Solutions", value: "solutions" },
-  { label: "Cleaners", value: "cleaners" },
-  { label: "Other", value: "other" }, // Added "Other" option
-];
+
 
 const InventoryForm = ({ setRefresh }) => {
+
+  const [inventoryTypes, setInventoryTypes] = useState([
+    { label: "Contact Lenses", value: "ContactLenses" },
+    { label: "Covers", value: "covers" },
+    { label: "Frames", value: "Frames" },
+    { label: "Solutions", value: "solutions" },
+    { label: "Cleaners", value: "cleaners" },
+    { label: "Sun Glasses", value: "sunGlasses" },
+    { label: "Other", value: "other" }, // Default "Other" option
+  ]);
+  const [formData, setFormData] = useState({
+    type: "",
+  });
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [value, setValue] = useState({
@@ -85,6 +91,41 @@ const InventoryForm = ({ setRefresh }) => {
       ...prev,
       selectedDate: date,
     }));
+  };
+
+  useEffect(() => {
+    const fetchInventoryTypes = async () => {
+      const typesCollection = collection(db, "inventoryTypes");
+      const snapshot = await getDocs(typesCollection);
+      const fetchedTypes = snapshot.docs.map((doc) => doc.data());
+      setInventoryTypes((prev) => [
+        ...prev.filter((type) => type.value === "other"), // Keep "Other" always in dropdown
+        ...fetchedTypes,
+      ]);
+    };
+    fetchInventoryTypes();
+  }, []);
+
+  const handleAddCustomType = async () => {
+    if (
+      customType.trim() &&
+      !inventoryTypes.some((type) => type.value.toLowerCase() === customType.toLowerCase())
+    ) {
+      const newType = {
+        label: customType,
+        value: customType.toLowerCase().replace(/\s+/g, "_"), // Normalize value
+      };
+
+      try {
+        const typesCollection = collection(db, "inventoryTypes");
+        await addDoc(typesCollection, newType);
+        setInventoryTypes((prev) => [...prev, newType]); // Update dropdown
+        setFormData((prev) => ({ ...prev, type: newType.value })); // Set the selected type
+        setCustomType(""); // Clear input field
+      } catch (error) {
+        console.error("Error adding custom type to Firestore:", error);
+      }
+    }
   };
 
   const validateForm = () => {
@@ -256,56 +297,14 @@ const checkBarcodeExistence = async (barcode) => {
        
        
         <Box
-  // sx={{
-  //   display: "flex",
-  //   flexDirection: "column",
-  //   alignItems: "center",
-  //   gap: 2,
-  //   p: 2,
-  //   maxWidth: 500,
-  //   margin: "auto",
-  // }}
+ 
 >
-  {/* <Typography variant="h6" align="center">
-    Camera Preview & Image Upload
-  </Typography> */}
+  
 
-  {/* Camera Preview Section */}
-  {/* <video
-    id="camera-preview"
-    style={{
-      width: "100%",
-      maxHeight: "300px",
-      borderRadius: "8px",
-      border: "1px solid #ddd",
-    }}
-  /> */}
+ 
+  
 
-  {/* <Box
-    sx={{
-      display: "flex",
-      justifyContent: "space-between",
-      gap: 2,
-      width: "100%",
-    }}
-  >
-    <Button
-      variant="contained"
-      color="primary"
-      onClick={startCamera}
-      fullWidth
-    >
-      Start Camera
-    </Button>
-    <Button
-      variant="contained"
-      color="secondary"
-      onClick={captureImage}
-      fullWidth
-    >
-      Capture Image
-    </Button>
-  </Box> */}
+  
 
   {/* Image Upload Section */}
   <Box sx={{ display: "flex", alignItems: "center", my: 2 }}>
@@ -381,88 +380,54 @@ const checkBarcodeExistence = async (barcode) => {
   )}
 </Box>
 
-            {/* <Box sx={{ display: "flex", alignItems: "center", my: 2 }}>
-      <label htmlFor="image-upload" style={{ cursor: "pointer", display: "flex", alignItems: "center" }}>
-        {image ? (
-          <img
-            src={URL.createObjectURL(image)}
-
-            alt="Product Preview"
-            style={{ width: "100px", height: "100px", borderRadius: "8px", objectFit: "cover" }}
-          />
-        ) : (
-          <AddAPhotoIcon sx={{ fontSize: "40px", color: "#555" }} />
-        )}
-        <Typography sx={{ ml: 1 }}>
-          {image ? "Change Image" : "Choose Image"}
-        </Typography>
-      </label>
-
-    
-      <input
-        type="file"
-        id="image-upload"
-        accept="image/*"
-        capture="environment" // Opens back camera by default
-        style={{ display: "none" }}
-        onChange={handleImageChange}
-      />
-
      
-      {image && (
-        <Typography
-          onClick={handleRemoveImage}
-          sx={{
-            ml: 2,
-            cursor: "pointer",
-            color: "red",
-            textDecoration: "underline",
-          }}
-        >
-          Remove
-        </Typography>
-      )}
-    </Box> */}
 
             {errors.image && (
               <Typography color="error">{errors.image}</Typography>
             )}
 
-            <FormControl fullWidth margin="normal" required>
-              <InputLabel id="inventory-type-label">Inventory Type</InputLabel>
-              <Select
-                labelId="inventory-type-label"
-                id="inventory-type"
-                name="type"
-                value={value.type}
-                onChange={handleInputChange}
-              >
-                {INVENTORY_TYPES.map((item) => (
-                  <MenuItem key={item.value} value={item.value}>
-                    {item.label}
-                  </MenuItem>
-                ))}
-              </Select>
-            </FormControl>
+<FormControl fullWidth margin="normal" required>
+        <InputLabel id="inventory-type-label">Inventory Type</InputLabel>
+        <Select
+          labelId="inventory-type-label"
+          id="inventory-type"
+          name="type"
+          value={value.type}
+          onChange={handleInputChange}
+        >
+          {inventoryTypes.map((item) => (
+            <MenuItem key={item.value} value={item.value}>
+              {item.label}
+            </MenuItem>
+          ))}
+        </Select>
+      </FormControl>
 
-            {/* Show Custom Type TextField if "other" is selected */}
-            {value.type === "other" && (
-              <TextField
-                label="Custom Inventory Type"
-                name="customType"
-                value={customType}
-                onChange={(e) => setCustomType(e.target.value)}
-                fullWidth
-                margin="normal"
-                required
-                error={Boolean(errors.customType)}
-                helperText={errors.customType}
-              />
-            )}
+      {/* Custom Type Text Field */}
+      {value.type === "other" && (
+        <div>
+          <TextField
+            label="Custom Inventory Type"
+            value={customType}
+            onChange={(e) => setCustomType(e.target.value)}
+            fullWidth
+            margin="normal"
+          />
+          <Button
+            variant="outlined"
+            color="primary"
+            onClick={handleAddCustomType}
+            disabled={!customType.trim()} // Disable if input is empty
+          >
+            Add Custom Type
+          </Button>
+        </div>
+      )}
 
             <TextField
               label="Name"
               name="name"
+              type="string"
               value={value.name}
               onChange={handleInputChange}
               fullWidth

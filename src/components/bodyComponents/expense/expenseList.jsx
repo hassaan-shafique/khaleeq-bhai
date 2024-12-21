@@ -204,7 +204,7 @@ const ExpenseList = ({ expenses = [], loading = false }) => {
                 },
               }}
             >
-              {userRole == "admin" && (
+             
                 <Table>
                   <TableHead>
                     <TableRow sx={{ bgcolor: "#0056b3" }}>
@@ -275,10 +275,11 @@ const ExpenseList = ({ expenses = [], loading = false }) => {
                       ))}
                   </TableBody>
                 </Table>
-              )}
+              
             </TableContainer>
           )}
-
+          
+            {userRole == "admin" && (
           <Typography
             variant="h5" // Larger font size for prominence
             sx={{
@@ -294,7 +295,7 @@ const ExpenseList = ({ expenses = [], loading = false }) => {
           >
             Grand Total: Rs. {calculateGrandTotal(groupedExpenses)}
           </Typography>
-
+             )}
           <TablePagination
             rowsPerPageOptions={[5, 10, 25]}
             component="div"

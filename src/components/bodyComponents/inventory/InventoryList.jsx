@@ -74,21 +74,37 @@ const InventoryList = ({ inventory = [], loading = false }) => {
     setEditableItem((prev) => ({ ...prev, [name]: value }));
   };
 
+
   const handleSaveEdit = async () => {
     if (editableItem) {
-      const itemRef = doc(db, "inventory", editableItem.id); 
-      await updateDoc(itemRef, {
-        name: editableItem.name,
-        barcode:Number(editableItem.barcode),
-        price: Number(editableItem.price),
-        quantity: Number(editableItem.quantity),
-        type: editableItem.type,
-        size: editableItem.size,
-        color: editableItem.color,
-      });
-      setEditDialogOpen(false);
+      try {
+        const itemRef = doc(db, "inventory", editableItem.id); 
+        await updateDoc(itemRef, {
+          name: editableItem.name,
+          barcode: Number(editableItem.barcode),
+          price: Number(editableItem.price),
+          quantity: Number(editableItem.quantity),
+          type: editableItem.type,
+          size: editableItem.size,
+          color: editableItem.color,
+        });
+  
+        // Close the dialog
+        setEditDialogOpen(false);
+  
+        // Trigger a refresh
+        window.location.reload();
+
+        alert("Item updated successfully!");
+      } catch (error) {
+        console.error("Error updating item:", error);
+        alert("Failed to update the item. Please try again.");
+      }
     }
   };
+  
+
+
   const calculateTotalInventoryPrice = () => {
     return filteredInventory.reduce((total, item) => {
       const price = parseFloat(item.price) || 0;
@@ -507,9 +523,13 @@ const handlePrint = () => {
                             backgroundColor: "#deeff5",
                           }}
                         >
+
+                        {userRole == "admin" && ( 
                           <Button onClick={() => openEditDialog(item)}>
                             <EditIcon />
                           </Button>
+                          )}
+
                           {userRole == "admin" && (
                             <Button
                               color="error"
@@ -519,6 +539,8 @@ const handlePrint = () => {
                             </Button>
                           )}
                         </TableCell>
+
+
                       </TableRow>
                     ))}
                   </TableBody>
@@ -526,6 +548,7 @@ const handlePrint = () => {
               </TableContainer>
             </div>
           )}
+
           {/* Image Preview Dialog */}
           <Dialog open={openDialog} onClose={handleCloseDialog} maxWidth="md">
             <DialogTitle>Image Preview</DialogTitle>

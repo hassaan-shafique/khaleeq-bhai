@@ -486,6 +486,8 @@ const handleDeleteClick = async (product, productType) => {
                   <TableCell>{product.kbcwPrice}</TableCell>
 
                   <TableCell>{formatDate(product.kbcwDeliveredDate)}</TableCell>
+
+{userRole == "admin" && (
                   <TableCell>
                     <Button onClick={() => handleKbcwEditClick(product)}>
                       Edit
@@ -497,6 +499,8 @@ const handleDeleteClick = async (product, productType) => {
                       Delete
                     </Button>
                   </TableCell>
+                  )}
+
                 </TableRow>
               ))}
             </TableBody>
@@ -545,6 +549,8 @@ const handleDeleteClick = async (product, productType) => {
                   <TableCell>
                     {formatDate(product.glassesDeliveredDate)}
                   </TableCell>
+
+                  {userRole == "admin" && (
                   <TableCell>
                     <Button onClick={() => handleGlassEditClick(product)}>
                       Edit
@@ -556,6 +562,8 @@ const handleDeleteClick = async (product, productType) => {
                       Delete
                     </Button>
                   </TableCell>
+                  )}
+
                 </TableRow>
               ))}
             </TableBody>
@@ -608,6 +616,8 @@ const handleDeleteClick = async (product, productType) => {
                   <TableCell>
                     {formatDate(product.vendorDeliveredDate)}
                   </TableCell>
+
+              {userRole == "admin" && ( 
                   <TableCell>
                     <Button onClick={() => handleVendorEditClick(product)}>
                       Edit
@@ -619,6 +629,7 @@ const handleDeleteClick = async (product, productType) => {
                       Delete
                     </Button>
                   </TableCell>
+                  )}
                 </TableRow>
               ))}
             </TableBody>
