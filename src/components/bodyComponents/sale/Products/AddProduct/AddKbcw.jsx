@@ -187,6 +187,7 @@ function AddKbcw({ kbcwProducts, setKbcwProducts, onKbcwPriceChange }) {
                   <MenuItem value="Frames">Frames</MenuItem>
                   <MenuItem value="contact Lense">Contact Lenses</MenuItem>
                   <MenuItem value="Covers">Covers</MenuItem>
+                  <MenuItem value="Covers">sun Glasses</MenuItem>
                 </Select>
               </FormControl>
             </Grid>

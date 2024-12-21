@@ -31,6 +31,7 @@ import { doc, updateDoc, deleteDoc } from "firebase/firestore";
 import { db } from "../../../config/Firebase"; // 
 import { Print } from "@mui/icons-material";
 import UpdateGlassesQuantity from "./updateGlassesQuantity";
+import { editingStateInitializer } from "@mui/x-data-grid/internals";
 
 const GlassesList = ({ glasses = [], loading = false, onDelete, onEdit }) => {
   const [editDialogOpen, setEditDialogOpen] = useState(false);
@@ -158,21 +159,29 @@ const GlassesList = ({ glasses = [], loading = false, onDelete, onEdit }) => {
   // Update the glass data in Firestore
   const handleSave = async () => {
     try {
-      const glassDocRef = doc(db, "glasses", currentGlass.id); // 'glasses' is your Firestore collection
+      console.log("Current Glass ID:", currentGlass.id);
+      console.log("Edited Glass Data:", editedGlass);
+  
+      const glassDocRef = doc(db, "glasses", currentGlass.id);
+      console.log("Firestore Document Reference:", glassDocRef);
+  
       await updateDoc(glassDocRef, {
         glass: editedGlass.glass,
         type: editedGlass.type,
         price: editedGlass.price,
-        // Add other fields you want to update
+        quantity : editedGlass.quantity,
+        barcodeNumber: editedGlass.barcodeNumber,
+        selectedDate: editedGlass.selectedDate,
+        number: editedGlass.number,
       });
-
+  
       // Update the local glasses array with the edited glass
       onEdit((prevGlasses) =>
         prevGlasses.map((glass) =>
           glass.id === currentGlass.id ? { ...glass, ...editedGlass } : glass
         )
       );
-
+  
       handleSnackbar("Successfully Updated");
       handleClose();
     } catch (error) {
@@ -180,7 +189,7 @@ const GlassesList = ({ glasses = [], loading = false, onDelete, onEdit }) => {
       handleSnackbar("Error updating document", "error");
     }
   };
-
+  
 
   // Delete functionality with Firestore
  const handleDelete = async (glassId) => {
@@ -418,7 +427,11 @@ const GlassesList = ({ glasses = [], loading = false, onDelete, onEdit }) => {
                         <TableCell align="center">
                           {formatTimestamp(glass.selectedDate)}
                         </TableCell>
+
+                         
                         <TableCell align="center">
+
+                          {userRole == "admin" && ( 
                           <IconButton
                             onClick={() => handleEdit(glass)}
                             color="primary"
@@ -431,7 +444,7 @@ const GlassesList = ({ glasses = [], loading = false, onDelete, onEdit }) => {
                           >
                             <EditIcon />
                           </IconButton>
-
+)}
                           {userRole == "admin" && (
                             <IconButton
                               onClick={() => handleDelete(glass.id)}
