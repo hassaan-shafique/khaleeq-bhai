@@ -81,7 +81,7 @@ const InventoryList = ({ inventory = [], loading = false }) => {
         const itemRef = doc(db, "inventory", editableItem.id); 
         await updateDoc(itemRef, {
           name: editableItem.name,
-          barcode: Number(editableItem.barcode),
+          barcode: editableItem.barcode,
           price: Number(editableItem.price),
           quantity: Number(editableItem.quantity),
           type: editableItem.type,
