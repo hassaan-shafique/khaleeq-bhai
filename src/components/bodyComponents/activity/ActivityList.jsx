@@ -108,6 +108,7 @@ const ActivityList = ({ refresh }) => {
         await updateDoc(activityRef, {
           selectedDate: editedActivity.selectedDate,
           itemName: editedActivity.itemName,
+          refNo:editedActivity.refNo,
           vendor: editedActivity.vendor,
           price: editedActivity.price,
           quantity: editedActivity.quantity,
@@ -372,6 +373,18 @@ const ActivityList = ({ refresh }) => {
                 setEditedActivity({
                   ...editedActivity,
                   itemName: e.target.value,
+                })
+              }
+              fullWidth
+              sx={{ mb: 2 }}
+            />
+              <TextField
+              label="Ref No"
+              value={editedActivity.refNo}
+              onChange={(e) =>
+                setEditedActivity({
+                  ...editedActivity,
+                  refNo: e.target.value,
                 })
               }
               fullWidth

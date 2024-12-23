@@ -51,13 +51,14 @@ const ActivityForm = ({ setRefresh }) => {
   // Handle form submission
   const handleSubmit = async (e) => {
     e.preventDefault();
-    const { selectedDate, itemName, vendor, price, quantity } = value;
+    const { selectedDate, itemName, refNo, vendor, price, quantity } = value;
 
     try {
       const activityCollectionRef = collection(db, "daily-activity");
       await addDoc(activityCollectionRef, {
         selectedDate,
         itemName,
+        refNo,
         vendor,
         price,
         quantity,
