@@ -28,14 +28,15 @@ import { db } from "../../../config/Firebase"; // Adjust to your Firebase setup
 import { doc, updateDoc, deleteDoc } from "firebase/firestore"; // Firestore functions
 import UpdateQuantity from "./updateQuantity";
 
-const InventoryList = ({ inventory = [], loading = false }) => {
+const InventoryList = ({ inventory = [], loading = false ,setInventoryRefresh}) => {
+ 
   const [selectedType, setSelectedType] = useState("");
   const [selectedPriceRange, setSelectedPriceRange] = useState("");
   const [openDialog, setOpenDialog] = useState(false);
   const [selectedImage, setSelectedImage] = useState("");
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [editableItem, setEditableItem] = useState(null);
-   const [refresh, setRefresh] = useState(false);
+   const [quantityRefresh, setQuantityRefresh] = useState(false);
    const [searchBarcode, setSearchBarcode] = React.useState ("")
  
   const printRef = useRef(null);
@@ -75,33 +76,41 @@ const InventoryList = ({ inventory = [], loading = false }) => {
   };
 
 
-  const handleSaveEdit = async () => {
-    if (editableItem) {
-      try {
-        const itemRef = doc(db, "inventory", editableItem.id); 
-        await updateDoc(itemRef, {
-          name: editableItem.name,
-          barcode: editableItem.barcode,
-          price: Number(editableItem.price),
-          quantity: Number(editableItem.quantity),
-          type: editableItem.type,
-          size: editableItem.size,
-          color: editableItem.color,
-        });
-  
-        // Close the dialog
-        setEditDialogOpen(false);
-  
-        // Trigger a refresh
-        window.location.reload();
+const handleSaveEdit = async () => {
+  if (editableItem) {
+    try {
+      const itemRef = doc(db, "inventory", editableItem.id);
+      await updateDoc(itemRef, {
+        name: editableItem.name,
+        barcode: editableItem.barcode,
+        price: Number(editableItem.price),
+        quantity: Number(editableItem.quantity),
+        type: editableItem.type,
+        size: editableItem.size,
+        color: editableItem.color,
+      });
 
-        alert("Item updated successfully!");
-      } catch (error) {
-        console.error("Error updating item:", error);
-        alert("Failed to update the item. Please try again.");
+      
+
+    
+     
+      // Close the dialog
+      setEditDialogOpen(false);
+
+
+      if (setInventoryRefresh) {
+        setInventoryRefresh((prev) => !prev);  // Toggle the state to trigger a re-render
       }
+
+
+      alert("Item updated successfully!");
+    } catch (error) {
+      console.error("Error updating item:", error);
+      alert("Failed to update the item. Please try again.");
     }
-  };
+  }
+};
+
   
 
 
@@ -298,7 +307,7 @@ const handlePrint = () => {
                 justifyContent: "flex-end",
               }}
             >
-              <UpdateQuantity setRefresh={setRefresh} />
+              <UpdateQuantity setRefresh={setQuantityRefresh} />
             </div>
           </div>
           <Typography
