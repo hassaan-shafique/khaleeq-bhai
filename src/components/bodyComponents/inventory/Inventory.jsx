@@ -6,11 +6,12 @@ import InventoryForm from "./InventoryForm";
 import { db } from "../../../config/Firebase";
 import { collection, getDocs } from "firebase/firestore";
 
+
 const Inventory = () => {
   const [inventory, setInventory] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [refresh, setRefresh] = useState(false);
-
+  const [inventoryRefresh, setInventoryRefresh] = useState(false);
+  const [refresh,setRefresh ] =useState (false)
   useEffect(() => {
     const fetchInventory = async () => {
       try {
@@ -27,7 +28,7 @@ const Inventory = () => {
       }
     };
     fetchInventory();
-  }, [refresh]);
+  }, [inventoryRefresh]);
 
   return (
     <>
@@ -46,8 +47,8 @@ const Inventory = () => {
                 height: "100%",
               }}
             >
-              <InventoryForm setRefresh={setRefresh} />
-              <InventoryList inventory={inventory} />
+              <InventoryForm setRefresh={setInventoryRefresh} />
+              <InventoryList inventory={inventory}  setInventoryRefresh={setInventoryRefresh} />
             </Box>
           </Grid>
         </Grid>
