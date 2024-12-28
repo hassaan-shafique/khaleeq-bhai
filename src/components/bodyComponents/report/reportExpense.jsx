@@ -55,14 +55,14 @@ const ExpenseReportCard = () => {
   }, [startDate, endDate]);
 
   return (
-    <Card sx={{ marginTop:5, margin: 9, padding: 6}}>
+    <Card sx={{ marginTop:4, margin: 6, padding: 5}}>
       <CardContent>
         <Typography variant="h6" gutterBottom>
           Expense Report
         </Typography>
 
         {/* Date Filters */}
-        <Box sx={{ display: "flex", gap: 2, marginBottom: 2 }}>
+        <Box sx={{ display: "flex", gap: 9, marginBottom: 9 }}>
           <TextField
             label="Start Date"
             type="date"

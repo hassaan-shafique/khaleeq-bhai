@@ -324,8 +324,8 @@ const handlePrint = () => {
 
           {filteredInventory.length === 0 ? (
             <Typography variant="h6" align="center" sx={{ marginTop: 4 }}>
-              No Inventory found....
-            </Typography>
+             <CircularProgress /> 
+          </Typography>
           ) : (
             <div ref={printRef}>
               <TableContainer
