@@ -188,6 +188,7 @@ const SalesForm = ({setRefresh}) => {
               : null,
         };
       });
+      
 
       
       
@@ -196,6 +197,7 @@ const SalesForm = ({setRefresh}) => {
       let salesData = {
         ...value,
         ...orderSaleWithTimestamps,
+        totalAmount: grandTotal,
         kbcwProducts: kbcwProducts || [],
         glassesProducts: validatedGlassesProducts,
         vendorProducts: vendorProducts || [],
@@ -454,17 +456,21 @@ const SalesForm = ({setRefresh}) => {
                     fullWidth
                   />
                 </Grid>
+                
                 <Grid item xs={4}>
-                  <TextField
-                    label="Salesman"
-                    name="salesman"
-                    value={value.salesman}
-                    onChange={handleChange}
-                    placeholder="Salesman"
-                    margin="normal"
-                    fullWidth
-                  />
-                </Grid>
+  <FormControl fullWidth margin="normal">
+    <InputLabel>Salesman</InputLabel>
+    <Select
+      name="salesman"
+      value={value.salesman}
+      onChange={handleChange}
+    >
+      <MenuItem value="sarfraz">Sarfraz</MenuItem>
+      <MenuItem value="khaleeq">Khaleeq</MenuItem>
+      <MenuItem value="saqlain">Saqlain</MenuItem>
+    </Select>
+  </FormControl>
+</Grid>
                 <Grid item xs={4}>
                   <TextField
                     label="Doctor"

@@ -12,67 +12,147 @@ import {
   TableRow,
   CircularProgress,
   TextField,
+  FormControl,
+  InputLabel,
+ MenuItem,
+ Select,
+ TableContainer,
 } from "@mui/material";
 import { collection, query, where, getDocs } from "firebase/firestore";
 import { db } from "../../../../config/Firebase";
+import {
+  PieChart,
+  Pie,
+  Cell,
+  Tooltip,
+  ResponsiveContainer,
+} from "recharts";
 
-const SaleStats = () => {
+
+const SaleStats = ({salesData}) => {
   const [timeframe, setTimeframe] = useState("day"); // Default to "day"
-  const [salesData, setSalesData] = useState([]);
-  const [loading, setLoading] = useState(false);
+  // const [sales, setSales] = useState([]);
+  const [loading, setLoading] = useState(false)
   const [customDate, setCustomDate] = useState({ start: "", end: "" });
+  const [saleStats, setSaleStats] = useState([])
+  const [paymentFilter, setPaymentFilter] = useState("");
 
-  const fetchSalesData = async () => {
-    setLoading(true);
-    try {
-      const salesRef = collection(db, "sales");
-      const now = new Date();
-      let startDate;
-      let endDate = new Date();
-
-      if (timeframe === "day") {
-        startDate = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-      } else if (timeframe === "week") {
-        const startOfWeek = now.getDate() - now.getDay();
-        startDate = new Date(now.getFullYear(), now.getMonth(), startOfWeek);
-      } else if (timeframe === "month") {
-        startDate = new Date(now.getFullYear(), now.getMonth(), 1);
-      } else if (timeframe === "custom" && customDate.start && customDate.end) {
-        startDate = new Date(customDate.start);
-        endDate = new Date(customDate.end);
-      }
-
-      const filters = [where("date", ">=", startDate)];
-      if (timeframe === "custom") {
-        filters.push(where("date", "<=", endDate));
-      }
-
-      const q = query(salesRef, ...filters);
-      const querySnapshot = await getDocs(q);
-      const sales = [];
-      querySnapshot.forEach((doc) => {
-        sales.push({ id: doc.id, ...doc.data() });
-      });
-
-      setSalesData(sales);
-    } catch (error) {
-      console.error("Error fetching sales data:", error);
-    } finally {
-      setLoading(false);
-    }
-  };
+  const STATUS = {
+    COMPLETED : "Completed",
+    PENDING: "PENDING"
+  }
+  const COLORS = ["#0088FE", "#00C49F", "#FFBB28", "#FF8042", "#845EC2"];
 
   useEffect(() => {
-    fetchSalesData();
-  }, [timeframe, customDate]);
+    const getSalesData = () => {
+      setSaleStats([])
+      let sales = []
+      salesData.forEach(sale => {
+        if (sale.status === STATUS.COMPLETED) {
+          if (
+            (!paymentFilter || sale.payment === paymentFilter) && // Apply payment filter
+            ((timeframe === "day" && isSameDay(sale.startDate)) ||
+              (timeframe === "week" && isSameWeek(sale.startDate)) ||
+              (timeframe === "month" && isSameMonth(sale.startDate)))
+          ) {
+            sales.push(sale);
+          }
+        }
+      });
+      setSaleStats(sales);
+    };
+    
+    if (salesData.length) {
+      getSalesData()
+    }
+   
+  }, [timeframe, salesData, paymentFilter]);
 
   const handleTimeframeChange = (newTimeframe) => {
     setTimeframe(newTimeframe);
   };
 
-  const calculateTotalSales = () => {
-    return salesData.reduce((total, sale) => total + (sale.amount || 0), 0);
+  const isSameDay = (orderDate) => {
+    const now = new Date();
+    const saleDate = new Date(orderDate.seconds * 1000);
+    return saleDate.toDateString() === now.toDateString();
   };
+
+  const isSameWeek = (orderDate) => {
+    const now = new Date();
+    const startOfWeek = new Date(now);
+    startOfWeek.setDate(now.getDate() - now.getDay() -7);
+    const endOfWeek = new Date(startOfWeek);
+    endOfWeek.setDate(startOfWeek.getDate() + 7); 
+    const saleDate = new Date(orderDate.seconds * 1000);
+    return saleDate >= startOfWeek && saleDate <= endOfWeek;
+  };
+  
+  const isSameMonth = (orderDate) => {
+    const now = new Date();
+    const saleDate = new Date(orderDate.seconds * 1000);
+    return saleDate.getMonth() === now.getMonth() && saleDate.getFullYear() === now.getFullYear();
+  };
+  const calculatePieData = () => {
+    const groupedData = {};
+
+    saleStats.forEach((sale) => {
+      const salesman = sale.salesman || "Unknown";
+      if (!groupedData[salesman]) {
+        groupedData[salesman] = 0;
+      }
+      groupedData[salesman] += sale.totalAmount;
+    });
+
+    return Object.keys(groupedData).map((salesman) => ({
+      name: salesman,
+      value: groupedData[salesman],
+    }));
+  };
+
+  const pieData = calculatePieData();
+
+ 
+  const calculateTotalSales = () => {
+    let totalSales = 0;
+    salesData.forEach((sale) => {
+      if (
+        sale.status === STATUS.COMPLETED &&
+        (!paymentFilter || sale.payment === paymentFilter) // Apply payment filter
+      ) {
+        if (
+          (timeframe === "day" && isSameDay(sale.startDate)) ||
+          (timeframe === "week" && isSameWeek(sale.startDate)) ||
+          (timeframe === "month" && isSameMonth(sale.startDate))
+        ) {
+          totalSales += sale.totalAmount;
+        }
+      }
+    });
+    return totalSales;
+  };
+  
+
+
+
+  // Helper function to format Firestore timestamp
+const formatTimestamp = (timestamp) => {
+  try {
+    const date = new Date(
+      timestamp.seconds ? timestamp.seconds * 1000 : timestamp
+    );
+    if (isNaN(date.getTime())) return "Invalid Date";
+
+    const day = date.getDate().toString().padStart(2, "0");
+    const month = (date.getMonth() + 1).toString().padStart(2, "0"); // Months are 0-based
+    const year = date.getFullYear();
+
+    // Format as "DD/MM/YYYY"
+    return `${day}/${month}/${year}`;
+  } catch (error) {
+    return "Invalid Date";
+  }
+};
 
   return (
     <Box sx={{ padding: 4 }}>
@@ -150,11 +230,26 @@ const SaleStats = () => {
         </Grid>
       )}
 
+<FormControl fullWidth sx={{ marginBottom: 4 }}>
+        <InputLabel>Payment Type</InputLabel>
+        <Select
+          value={paymentFilter}
+          onChange={(e) => setPaymentFilter(e.target.value)}
+        >
+          <MenuItem value="">All</MenuItem>
+          <MenuItem value="Cash">Cash</MenuItem>
+          <MenuItem value="Bank">Bank</MenuItem>
+          <MenuItem value="JazzCash">JazzCash</MenuItem>
+          <MenuItem value="EasyPaisa">EasyPaisa</MenuItem>
+        </Select>
+      </FormControl>
+
+
       {/* Display Total Sales */}
       <Paper elevation={3} sx={{ padding: 2, marginBottom: 4 }}>
         <Typography variant="h6">Total Sales</Typography>
         <Typography variant="h4" color="secondary">
-          {loading ? <CircularProgress size={24} /> : `$${calculateTotalSales()}`}
+          {loading ? <CircularProgress size={24} /> : `Rs ${calculateTotalSales()}/-`}
         </Typography>
       </Paper>
 
@@ -162,40 +257,143 @@ const SaleStats = () => {
       <Typography variant="h6" sx={{ marginBottom: 2 }}>
         Detailed Sales Data
       </Typography>
-      <Table>
-        <TableHead>
-          <TableRow>
-            <TableCell>Date</TableCell>
-            <TableCell>Amount</TableCell>
-            <TableCell>Payment Type</TableCell>
-          </TableRow>
-        </TableHead>
-        <TableBody>
-          {loading ? (
-            <TableRow>
-              <TableCell colSpan={3} align="center">
-                <CircularProgress />
+      
+
+<TableContainer component={Paper} sx={{ borderRadius: 2, boxShadow: 3 }}>
+  <Table>
+    <TableHead>
+      <TableRow sx={{ backgroundColor: "#f5f5f5" }}>
+      <TableCell>
+          <Typography variant="subtitle1" fontWeight="bold">
+            Sr No
+          </Typography>
+        </TableCell>
+        <TableCell>
+          <Typography variant="subtitle1" fontWeight="bold">
+            Date
+          </Typography>
+        </TableCell>
+        <TableCell>
+          <Typography variant="subtitle1" fontWeight="bold">
+            Amount
+          </Typography>
+        </TableCell>
+        <TableCell>
+          <Typography variant="subtitle1" fontWeight="bold">
+            Payment Type
+          </Typography>
+        </TableCell>
+        <TableCell>
+          <Typography variant="subtitle1" fontWeight="bold">
+           Salesman
+          </Typography>
+        </TableCell>
+      </TableRow>
+    </TableHead>
+    <TableBody>
+      {loading ? (
+        <TableRow>
+          <TableCell colSpan={3} align="center">
+            <CircularProgress />
+          </TableCell>
+        </TableRow>
+      ) : saleStats.length > 0 ? (
+        saleStats.map( (sale,index) =>
+          sale.totalAmount ? (
+            <TableRow
+              key={sale.id}
+           
+              hover
+              sx={{
+                "&:nth-of-type(odd)": {
+                  backgroundColor: "#f9f9f9",
+                },
+              }}
+            >
+              <TableCell>
+            <Typography variant="body2">{index + 1}</Typography>
+          </TableCell>
+              <TableCell>
+                <Typography variant="body2">
+                  {formatTimestamp(sale.startDate)}
+                </Typography>
               </TableCell>
-            </TableRow>
-          ) : salesData.length > 0 ? (
-            salesData.map((sale) => (
-              <TableRow key={sale.id}>
-                <TableCell>
-                  {new Date(sale.date.seconds * 1000).toLocaleDateString()}
-                </TableCell>
-                <TableCell>{`$${sale.amount}`}</TableCell>
-                <TableCell>{sale.paymentType}</TableCell>
-              </TableRow>
-            ))
-          ) : (
-            <TableRow>
-              <TableCell colSpan={3} align="center">
-                No sales data available.
+              <TableCell>
+                <Typography variant="body2" color="secondary">
+                  Rs {sale.totalAmount}
+                </Typography>
               </TableCell>
+              <TableCell>
+                <Typography variant="body2">{sale.payment}</Typography>
+              </TableCell>
+              <TableCell>
+                <Typography variant="body2">{sale.salesman}</Typography>
+              </TableCell>
+             
             </TableRow>
-          )}
-        </TableBody>
-      </Table>
+          ) : null
+        )
+      ) : (
+        <TableRow>
+          <TableCell colSpan={3} align="center">
+            <Typography variant="body2" color="textSecondary">
+              No sales data available.
+            </Typography>
+          </TableCell>
+        </TableRow>
+      )}
+    </TableBody>
+  </Table>
+</TableContainer>
+
+
+  <Typography variant="h6" gutterBottom>
+    Sales by Salesman
+  </Typography>
+  <Paper elevation={9} sx={{ padding: 2, marginBottom: 4 }}>
+  {/* Calculate and Display the Top Salesman */}
+  {pieData.length > 0 && (
+    <Typography variant="h6" color="black" sx={{ marginBottom: 2 }}>
+      <strong>Top Salesman:</strong>
+     <Typography variant="h6">
+     <strong>
+        {pieData.reduce((max, entry) =>
+          entry.value > max.value ? entry : max
+        ).name}
+      </strong>{" "}
+    
+      with Rs{" "}
+      {pieData.reduce((max, entry) =>
+        entry.value > max.value ? entry : max
+      ).value}
+    </Typography>
+    </Typography>
+  )}
+
+  <ResponsiveContainer width="70%" height={400}>
+    <PieChart>
+      <Pie
+        data={pieData}
+        dataKey="value"
+        nameKey="name"
+        cx="50%"
+        cy="50%"
+        outerRadius={150}
+        fill="#8884d8"
+        label={(entry) => `${entry.name}: Rs ${entry.value}`}
+      >
+        {pieData.map((_, index) => (
+          <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+        ))}
+      </Pie>
+      <Tooltip />
+    </PieChart>
+  </ResponsiveContainer>
+</Paper>
+
+
+
+
     </Box>
   );
 };

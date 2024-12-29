@@ -5,140 +5,114 @@ import {
   Grid,
   Typography,
   Paper,
-  CircularProgress,
   Table,
   TableBody,
   TableCell,
   TableHead,
   TableRow,
+  CircularProgress,
   TextField,
   MenuItem,
 } from "@mui/material";
-import { collection, query, where, getDocs } from "firebase/firestore";
-import { db } from "../../../../config/Firebase";
 
-const SaleByPayment = () => {
-  const [selectedPayment, setSelectedPayment] = useState("CASH"); // Default payment option
-  const [timeframe, setTimeframe] = useState("day"); // Default timeframe
-  const [salesData, setSalesData] = useState([]);
-  const [loading, setLoading] = useState(false);
-  const [customDate, setCustomDate] = useState({ start: null, end: null });
+const SaleByPayment = ({ salesData }) => {
+  const [timeframe, setTimeframe] = useState("day"); // Default to "day"
+  const [selectedPaymentType, setSelectedPaymentType] = useState("Cash");
+  const [customDate, setCustomDate] = useState({ start: "", end: "" });
 
-  const paymentOptions = ["CASH", "BANK", "EasyPaisa", "JazzCash"];
+  const paymentOptions = ["Cash", "Bank", "JazzCash", "EasyPaisa"];
 
-  const fetchSalesData = async () => {
-    setLoading(true);
-    try {
-      const salesRef = collection(db, "sales");
-      const now = new Date();
-      let startDate;
+  const STATUS = { COMPLETED: "Completed" };
 
-      if (timeframe === "day") {
-        startDate = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-      } else if (timeframe === "week") {
-        const startOfWeek = now.getDate() - now.getDay();
-        startDate = new Date(now.getFullYear(), now.getMonth(), startOfWeek);
-      } else if (timeframe === "month") {
-        startDate = new Date(now.getFullYear(), now.getMonth(), 1);
-      } else if (timeframe === "custom" && customDate.start && customDate.end) {
-        startDate = new Date(customDate.start);
+  const filterSales = () => {
+    return salesData.filter((sale) => {
+      if (sale.status === STATUS.COMPLETED && sale.payment === selectedPaymentType) {
+        const saleDate = new Date(sale.startDate.seconds * 1000);
+        if (timeframe === "day" && isSameDay(saleDate)) return true;
+        if (timeframe === "week" && isSameWeek(saleDate)) return true;
+        if (timeframe === "month" && isSameMonth(saleDate)) return true;
+        if (timeframe === "custom" && isWithinCustomRange(saleDate)) return true;
       }
-
-      const filters = [where("paymentType", "==", selectedPayment)];
-      if (startDate) {
-        filters.push(where("date", ">=", startDate));
-      }
-      if (timeframe === "custom" && customDate.end) {
-        filters.push(where("date", "<=", new Date(customDate.end)));
-      }
-
-      const q = query(salesRef, ...filters);
-      const querySnapshot = await getDocs(q);
-      const sales = [];
-      querySnapshot.forEach((doc) => {
-        sales.push({ id: doc.id, ...doc.data() });
-      });
-
-      setSalesData(sales);
-    } catch (error) {
-      console.error("Error fetching sales data:", error);
-    } finally {
-      setLoading(false);
-    }
+      return false;
+    });
   };
 
-  useEffect(() => {
-    fetchSalesData();
-  }, [timeframe, selectedPayment, customDate]);
-
-  const calculateTotalAmount = () => {
-    return salesData.reduce((total, sale) => total + (sale.amount || 0), 0);
+  const calculateTotalSales = (filteredSales) => {
+    return filteredSales.reduce((total, sale) => total + (sale.totalAmount || 0), 0);
   };
+
+  const isSameDay = (saleDate) => new Date().toDateString() === saleDate.toDateString();
+
+  const isSameWeek = (saleDate) => {
+    const now = new Date();
+    const startOfWeek = new Date(now);
+    startOfWeek.setDate(now.getDate() - now.getDay());
+    const endOfWeek = new Date(startOfWeek);
+    endOfWeek.setDate(startOfWeek.getDate() + 7);
+    return saleDate >= startOfWeek && saleDate < endOfWeek;
+  };
+
+  const isSameMonth = (saleDate) => {
+    const now = new Date();
+    return saleDate.getMonth() === now.getMonth() && saleDate.getFullYear() === now.getFullYear();
+  };
+
+  const isWithinCustomRange = (saleDate) => {
+    const { start, end } = customDate;
+    const startDate = new Date(start);
+    const endDate = new Date(end);
+    return saleDate >= startDate && saleDate <= endDate;
+  };
+
+  const formatTimestamp = (timestamp) => {
+    const date = new Date(timestamp.seconds * 1000);
+    const day = date.getDate().toString().padStart(2, "0");
+    const month = (date.getMonth() + 1).toString().padStart(2, "0");
+    const year = date.getFullYear();
+    return `${day}/${month}/${year}`;
+  };
+
+  const filteredSales = filterSales();
+  const totalSales = calculateTotalSales(filteredSales);
 
   return (
     <Box sx={{ padding: 4 }}>
       <Typography variant="h4" gutterBottom>
-        Sales by Payment Method
+        Sales by Payment Type
       </Typography>
 
-      {/* Payment Type Dropdown */}
-      <Box sx={{ marginBottom: 4 }}>
-        <TextField
-          select
-          label="Select Payment Type"
-          value={selectedPayment}
-          onChange={(e) => setSelectedPayment(e.target.value)}
-          fullWidth
-        >
-          {paymentOptions.map((option) => (
-            <MenuItem key={option} value={option}>
-              {option}
-            </MenuItem>
-          ))}
-        </TextField>
-      </Box>
+      {/* Payment Type Selection */}
+      <TextField
+        select
+        label="Select Payment Type"
+        value={selectedPaymentType}
+        onChange={(e) => setSelectedPaymentType(e.target.value)}
+        fullWidth
+        sx={{ marginBottom: 4 }}
+      >
+        {paymentOptions.map((option) => (
+          <MenuItem key={option} value={option}>
+            {option}
+          </MenuItem>
+        ))}
+      </TextField>
 
-      {/* Timeframe Selection Buttons */}
+      {/* Timeframe Buttons */}
       <Grid container spacing={2} sx={{ marginBottom: 4 }}>
-        <Grid item>
-          <Button
-            variant={timeframe === "day" ? "contained" : "outlined"}
-            color="primary"
-            onClick={() => setTimeframe("day")}
-          >
-            Day
-          </Button>
-        </Grid>
-        <Grid item>
-          <Button
-            variant={timeframe === "week" ? "contained" : "outlined"}
-            color="primary"
-            onClick={() => setTimeframe("week")}
-          >
-            Week
-          </Button>
-        </Grid>
-        <Grid item>
-          <Button
-            variant={timeframe === "month" ? "contained" : "outlined"}
-            color="primary"
-            onClick={() => setTimeframe("month")}
-          >
-            Month
-          </Button>
-        </Grid>
-        <Grid item>
-          <Button
-            variant={timeframe === "custom" ? "contained" : "outlined"}
-            color="primary"
-            onClick={() => setTimeframe("custom")}
-          >
-            Custom
-          </Button>
-        </Grid>
+        {["day", "week", "month", "custom"].map((tf) => (
+          <Grid item key={tf}>
+            <Button
+              variant={timeframe === tf ? "contained" : "outlined"}
+              color="primary"
+              onClick={() => setTimeframe(tf)}
+            >
+              {tf.charAt(0).toUpperCase() + tf.slice(1)}
+            </Button>
+          </Grid>
+        ))}
       </Grid>
 
-      {/* Custom Date Range Selection */}
+      {/* Custom Date Range */}
       {timeframe === "custom" && (
         <Grid container spacing={2} sx={{ marginBottom: 4 }}>
           <Grid item xs={6}>
@@ -147,7 +121,9 @@ const SaleByPayment = () => {
               type="date"
               fullWidth
               InputLabelProps={{ shrink: true }}
-              onChange={(e) => setCustomDate((prev) => ({ ...prev, start: e.target.value }))}
+              onChange={(e) =>
+                setCustomDate((prev) => ({ ...prev, start: e.target.value }))
+              }
             />
           </Grid>
           <Grid item xs={6}>
@@ -156,7 +132,9 @@ const SaleByPayment = () => {
               type="date"
               fullWidth
               InputLabelProps={{ shrink: true }}
-              onChange={(e) => setCustomDate((prev) => ({ ...prev, end: e.target.value }))}
+              onChange={(e) =>
+                setCustomDate((prev) => ({ ...prev, end: e.target.value }))
+              }
             />
           </Grid>
         </Grid>
@@ -164,39 +142,31 @@ const SaleByPayment = () => {
 
       {/* Total Sales */}
       <Paper elevation={3} sx={{ padding: 2, marginBottom: 4 }}>
-        <Typography variant="h6">Total Sales Amount</Typography>
+        <Typography variant="h6">Total Sales for {selectedPaymentType}</Typography>
         <Typography variant="h4" color="secondary">
-          {loading ? <CircularProgress size={24} /> : `$${calculateTotalAmount()}`}
+          Rs {totalSales}/-
         </Typography>
       </Paper>
 
       {/* Sales Table */}
       <Typography variant="h6" sx={{ marginBottom: 2 }}>
-        Sales Details
+        Detailed Sales Data
       </Typography>
       <Table>
         <TableHead>
           <TableRow>
             <TableCell>Date</TableCell>
             <TableCell>Amount</TableCell>
-            <TableCell>Customer</TableCell>
+            <TableCell>Payment Type</TableCell>
           </TableRow>
         </TableHead>
         <TableBody>
-          {loading ? (
-            <TableRow>
-              <TableCell colSpan={3} align="center">
-                <CircularProgress />
-              </TableCell>
-            </TableRow>
-          ) : salesData.length > 0 ? (
-            salesData.map((sale) => (
+          {filteredSales.length > 0 ? (
+            filteredSales.map((sale) => (
               <TableRow key={sale.id}>
-                <TableCell>
-                  {new Date(sale.date.seconds * 1000).toLocaleDateString()}
-                </TableCell>
-                <TableCell>{`$${sale.amount}`}</TableCell>
-                <TableCell>{sale.customerName || "N/A"}</TableCell>
+                <TableCell>{formatTimestamp(sale.startDate)}</TableCell>
+                <TableCell>{`Rs ${sale.totalAmount}`}</TableCell>
+                <TableCell>{sale.payment}</TableCell>
               </TableRow>
             ))
           ) : (

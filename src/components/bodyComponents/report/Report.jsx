@@ -4,9 +4,9 @@ import { collection, getDocs } from "firebase/firestore";
 import { db } from "../../../config/Firebase"; // Adjust path as per your project structure
 import SaleStats from "./modules/saleStats";
 import SaleByPayment from "./modules/saleByPayment";
-import SaleByEmployee from "./modules/saleByEmployee";
 import SaleByProduct from "./modules/saleByProduct";
 import SaleByQuantity from "./modules/saleByQuantity";
+import SaleBySalesman from "./modules/saleBySalesman";
 
 const ReportCards = () => {
   const [salesData, setSalesData] = useState([]);
@@ -61,7 +61,7 @@ const ReportCards = () => {
           <SaleByPayment salesData={salesData} />
         </Grid>
         <Grid item xs={12} md={6}>
-          <SaleByEmployee salesData={salesData} />
+          <SaleBySalesman salesData={salesData} />
         </Grid>
 
         {/* Third Row: SaleByProduct */}

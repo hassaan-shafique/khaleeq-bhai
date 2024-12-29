@@ -17,25 +17,35 @@ import {
   FormControl,
   InputLabel,
 } from "@mui/material";
-import { collection, query, where, getDocs } from "firebase/firestore";
-import { db } from "../../../../config/Firebase";
 
-const SaleByEmployee = () => {
+const SaleBySalesman = ({ salesData }) => {
   const [timeframe, setTimeframe] = useState("day");
-  const [salesData, setSalesData] = useState([]);
-  const [employeeStats, setEmployeeStats] = useState({});
+  const [salesmanStats, setSalesmanStats] = useState({});
   const [loading, setLoading] = useState(false);
   const [customDate, setCustomDate] = useState({ start: "", end: "" });
-  const [employees, setEmployees] = useState([]);
-  const [selectedEmployee, setSelectedEmployee] = useState("");
+  const [selectedSalesman, setSelectedSalesman] = useState("");
 
-  const fetchSalesData = async () => {
+  const calculateStats = (data) => {
+    const stats = {};
+    data.forEach((sale) => {
+      if (!selectedSalesman || sale.salesmanName === selectedSalesman) {
+        const salesman = sale.salesmanName || "Unknown";
+        if (!stats[salesman]) {
+          stats[salesman] = { totalSales: 0, count: 0 };
+        }
+        stats[salesman].totalSales += sale.amount || 0;
+        stats[salesman].count += 1;
+      }
+    });
+    return stats;
+  };
+
+  useEffect(() => {
     setLoading(true);
-    try {
-      const salesRef = collection(db, "sales");
+    const filteredData = salesData.filter((sale) => {
+      const saleDate = new Date(sale.date);
       const now = new Date();
       let startDate;
-      let endDate = new Date();
 
       if (timeframe === "day") {
         startDate = new Date(now.getFullYear(), now.getMonth(), now.getDate());
@@ -46,64 +56,25 @@ const SaleByEmployee = () => {
         startDate = new Date(now.getFullYear(), now.getMonth(), 1);
       } else if (timeframe === "custom" && customDate.start && customDate.end) {
         startDate = new Date(customDate.start);
-        endDate = new Date(customDate.end);
+        const endDate = new Date(customDate.end);
+        return saleDate >= startDate && saleDate <= endDate;
       }
 
-      const filters = [where("date", ">=", startDate)];
-      if (timeframe === "custom") {
-        filters.push(where("date", "<=", endDate));
-      }
+      return saleDate >= startDate;
+    });
 
-      const q = query(salesRef, ...filters);
-      const querySnapshot = await getDocs(q);
-      const sales = [];
-      const uniqueEmployees = new Set();
-      querySnapshot.forEach((doc) => {
-        const sale = { id: doc.id, ...doc.data() };
-        sales.push(sale);
-        if (sale.employeeName) uniqueEmployees.add(sale.employeeName);
-      });
-
-      setSalesData(sales);
-      setEmployees([...uniqueEmployees]);
-
-      // Calculate employee stats
-      const stats = {};
-      sales.forEach((sale) => {
-        if (
-          !selectedEmployee ||
-          sale.employeeName === selectedEmployee ||
-          !sale.employeeName
-        ) {
-          const employee = sale.employeeName || "Unknown";
-          if (!stats[employee]) {
-            stats[employee] = { totalSales: 0, count: 0 };
-          }
-          stats[employee].totalSales += sale.amount || 0;
-          stats[employee].count += 1;
-        }
-      });
-
-      setEmployeeStats(stats);
-    } catch (error) {
-      console.error("Error fetching sales data:", error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchSalesData();
-  }, [timeframe, customDate, selectedEmployee]);
+    setSalesmanStats(calculateStats(filteredData));
+    setLoading(false);
+  }, [timeframe, customDate, selectedSalesman, salesData]);
 
   const handleTimeframeChange = (newTimeframe) => {
     setTimeframe(newTimeframe);
   };
 
-  const topEmployee = Object.entries(employeeStats).reduce(
-    (top, [employee, stats]) => {
+  const topSalesman = Object.entries(salesmanStats).reduce(
+    (top, [salesman, stats]) => {
       if (stats.totalSales > (top.totalSales || 0)) {
-        return { employee, ...stats };
+        return { salesman, ...stats };
       }
       return top;
     },
@@ -113,7 +84,7 @@ const SaleByEmployee = () => {
   return (
     <Box sx={{ padding: 4 }}>
       <Typography variant="h4" gutterBottom>
-        Sales by Employee
+        Sales by Salesman
       </Typography>
 
       {/* Buttons for Timeframe Selection */}
@@ -186,36 +157,32 @@ const SaleByEmployee = () => {
         </Grid>
       )}
 
-      {/* Employee Dropdown */}
+      {/* Salesman Dropdown */}
       <FormControl fullWidth sx={{ marginBottom: 4 }}>
-        <InputLabel>Select Employee</InputLabel>
+        <InputLabel>Select Salesman</InputLabel>
         <Select
-          value={selectedEmployee}
-          onChange={(e) => setSelectedEmployee(e.target.value)}
+          value={selectedSalesman}
+          onChange={(e) => setSelectedSalesman(e.target.value)}
         >
-          <MenuItem value="">All Employees</MenuItem>
-          <MenuItem value="">Ali</MenuItem>
-          <MenuItem value="">Sarfraz</MenuItem>
-          {employees.map((employee) => (
-            <MenuItem key={employee} value={employee}>
-              {employee}
-            </MenuItem>
-          ))}
+          <MenuItem value="">All Salesmen</MenuItem>
+          <MenuItem value="Saqlain">Saqlain</MenuItem>
+          <MenuItem value="Sarfraz">Sarfraz</MenuItem>
+          <MenuItem value="Khaleeq">Khaleeq</MenuItem>
         </Select>
       </FormControl>
 
-      {/* Top Employee */}
+      {/* Top Salesman */}
       <Paper elevation={3} sx={{ padding: 2, marginBottom: 4 }}>
-        <Typography variant="h6">Top Employee</Typography>
+        <Typography variant="h6">Top Salesman</Typography>
         {loading ? (
           <CircularProgress />
-        ) : topEmployee.employee ? (
+        ) : topSalesman.salesman ? (
           <>
             <Typography variant="h5" color="secondary">
-              {topEmployee.employee}
+              {topSalesman.salesman}
             </Typography>
             <Typography>
-              Sales: {topEmployee.count}, Total: ${topEmployee.totalSales}
+              Sales: {topSalesman.count}, Total: ${topSalesman.totalSales}
             </Typography>
           </>
         ) : (
@@ -223,14 +190,14 @@ const SaleByEmployee = () => {
         )}
       </Paper>
 
-      {/* Employee Sales Data */}
+      {/* Salesman Sales Data */}
       <Typography variant="h6" sx={{ marginBottom: 2 }}>
-        Employee Sales Data
+        Salesman Sales Data
       </Typography>
       <Table>
         <TableHead>
           <TableRow>
-            <TableCell>Employee</TableCell>
+            <TableCell>Salesman</TableCell>
             <TableCell>Total Sales</TableCell>
             <TableCell>Number of Sales</TableCell>
           </TableRow>
@@ -242,10 +209,10 @@ const SaleByEmployee = () => {
                 <CircularProgress />
               </TableCell>
             </TableRow>
-          ) : Object.keys(employeeStats).length > 0 ? (
-            Object.entries(employeeStats).map(([employee, stats]) => (
-              <TableRow key={employee}>
-                <TableCell>{employee}</TableCell>
+          ) : Object.entries(salesmanStats).length > 0 ? (
+            Object.entries(salesmanStats).map(([salesman, stats]) => (
+              <TableRow key={salesman}>
+                <TableCell>{salesman}</TableCell>
                 <TableCell>${stats.totalSales}</TableCell>
                 <TableCell>{stats.count}</TableCell>
               </TableRow>
@@ -263,4 +230,4 @@ const SaleByEmployee = () => {
   );
 };
 
-export default SaleByEmployee;
+export default SaleBySalesman;
