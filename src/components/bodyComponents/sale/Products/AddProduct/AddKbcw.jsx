@@ -72,35 +72,62 @@ function AddKbcw({ kbcwProducts, setKbcwProducts, onKbcwPriceChange }) {
     }
   };
 
-  const handleQuantityChange = async (index, enteredQuantity) => {
+  const handleQuantityChange = async (index, enteredQuantity, barcode, currentQuantity) => {
     if (updating) return; // Prevent multiple clicks
     setUpdating(true); // Lock the button during update
   
-    
+    const parsedQuantity = parseInt(enteredQuantity, 10); // Ensure the entered quantity is an integer
   
-    // Update inventory quantity in Firestore
+    // Validate the input quantity
+    if (isNaN(parsedQuantity) || parsedQuantity <= 0) {
+      alert("Please enter a valid quantity.");
+      setUpdating(false);
+      return;
+    }
+  
+    const remainingQuantity = currentQuantity - parsedQuantity;
+  
+    // Ensure there is sufficient stock
+    if (remainingQuantity < 0) {
+      alert("Insufficient stock in inventory.");
+      setUpdating(false);
+      return;
+    }
+  
+    // Update the local state with the remaining quantity
+    const updatedProducts = [...kbcwProducts]; // Assuming `inventoryProducts` is your state for the product list
+    updatedProducts[index].enteredQuantity = parsedQuantity; // Store the entered quantity
+    updatedProducts[index].inventoryQuantity = remainingQuantity; // Update the inventory quantity
+    setKbcwProducts(updatedProducts); // Update the state
+  
+    // Update inventory in Firestore
     try {
-      const q = query(
-        collection(db, "inventory"),
-        where("barcode", "==", product.kbcwBarcode)
-      );
+      const q = query(collection(db, "inventory"), where("barcode", "==", barcode));
       const querySnapshot = await getDocs(q);
   
       if (!querySnapshot.empty) {
         const productDocRef = doc(db, "inventory", querySnapshot.docs[0].id);
   
-        // Ensure the update happens atomically
-        await updateDoc(productDocRef, { quantity: remainingQuantity });
+        console.log("Updating Firestore with remaining quantity:", remainingQuantity);
   
-        alert("Quantity updated successfully");
+        // Update the Firestore document with the remaining quantity
+        await updateDoc(productDocRef, {
+          quantity: remainingQuantity,
+        });
+  
+        alert("Quantity updated successfully.");
+      } else {
+        alert("Product not found in the inventory.");
       }
     } catch (error) {
       console.error("Error updating inventory quantity:", error);
       alert("Error updating quantity. Please try again.");
     } finally {
-      setUpdating(false); // Unlock button after update
+      setUpdating(false); // Unlock the button after update
     }
   };
+  
+  
 
 
 
@@ -279,7 +306,7 @@ function AddKbcw({ kbcwProducts, setKbcwProducts, onKbcwPriceChange }) {
                 variant="contained"
                 color="primary"
                 onClick={() =>
-                  handleQuantityChange(index, product.enteredQuantity)
+                  handleQuantityChange(index, kbcwProducts[index].enteredQuantity, kbcwProducts[index].kbcwBarcode, kbcwProducts[index].inventoryQuantity)
                 }
                 disabled={updating} 
               >
