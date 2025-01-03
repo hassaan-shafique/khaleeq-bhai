@@ -29,7 +29,7 @@ import {
 } from "recharts";
 
 
-const SaleStats = ({salesData}) => {
+const SaleByExpense = ({salesData}) => {
   const [timeframe, setTimeframe] = useState("day"); // Default to "day"
   // const [sales, setSales] = useState([]);
   const [loading, setLoading] = useState(false)
@@ -398,4 +398,4 @@ const formatTimestamp = (timestamp) => {
   );
 };
 
-export default SaleStats;
+export default SaleByExpense;

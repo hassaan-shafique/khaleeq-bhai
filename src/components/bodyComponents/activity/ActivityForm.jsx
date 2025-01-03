@@ -21,6 +21,7 @@ const ActivityForm = ({ setRefresh }) => {
     selectedDate: new Date(),
     itemName: "",
     refNo:"",
+    remarks: "",
     vendor: "",
     price: 0,
     quantity: "",
@@ -51,7 +52,7 @@ const ActivityForm = ({ setRefresh }) => {
   // Handle form submission
   const handleSubmit = async (e) => {
     e.preventDefault();
-    const { selectedDate, itemName, refNo, vendor, price, quantity } = value;
+    const { selectedDate, itemName, refNo, vendor, price, quantity,remarks } = value;
 
     try {
       const activityCollectionRef = collection(db, "daily-activity");
@@ -59,6 +60,7 @@ const ActivityForm = ({ setRefresh }) => {
         selectedDate,
         itemName,
         refNo,
+        remarks,
         vendor,
         price,
         quantity,
@@ -160,6 +162,15 @@ const ActivityForm = ({ setRefresh }) => {
               name="quantity"
               type="number"
               value={value.quantity}
+              onChange={handleInputChange}
+              fullWidth
+              margin="normal"
+            />
+             <TextField
+              label="Remarks"
+              name="remarks"
+              type="string"
+              value={value.remarks}
               onChange={handleInputChange}
               fullWidth
               margin="normal"
