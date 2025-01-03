@@ -457,20 +457,20 @@ const SalesForm = ({setRefresh}) => {
                   />
                 </Grid>
                 
+                
+                
                 <Grid item xs={4}>
-  <FormControl fullWidth margin="normal">
-    <InputLabel>Salesman</InputLabel>
-    <Select
-      name="salesman"
-      value={value.salesman}
-      onChange={handleChange}
-    >
-      <MenuItem value="sarfraz">Sarfraz</MenuItem>
-      <MenuItem value="khaleeq">Khaleeq</MenuItem>
-      <MenuItem value="saqlain">Saqlain</MenuItem>
-    </Select>
-  </FormControl>
+                <TextField
+                    label="Salesman"
+                    name="salesman"
+                    value={value.salesman}
+                    onChange={handleChange}
+                    placeholder="Salesman"
+                    margin="normal"
+                    fullWidth
+                  />
 </Grid>
+
                 <Grid item xs={4}>
                   <TextField
                     label="Doctor"
