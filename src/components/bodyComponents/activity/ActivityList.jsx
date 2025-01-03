@@ -112,6 +112,7 @@ const ActivityList = ({ refresh }) => {
           vendor: editedActivity.vendor,
           price: editedActivity.price,
           quantity: editedActivity.quantity,
+          remarks: editedActivity.remarks,
         });
         setEditing(false); // Exit editing mode
         fetchActivities();
@@ -299,6 +300,16 @@ const ActivityList = ({ refresh }) => {
                   padding: "12px",
                 }}
               >
+                <strong>Remarks</strong>
+              </TableCell>
+              <TableCell
+                sx={{
+                  backgroundColor: "#1976d2",
+                  color: "white",
+                  fontWeight: "bold",
+                  padding: "12px",
+                }}
+              >
                 <strong>Actions</strong>
               </TableCell>
             </TableRow>
@@ -317,6 +328,8 @@ const ActivityList = ({ refresh }) => {
                   <TableCell>{activity.vendor}</TableCell>
                   <TableCell>{activity.price}</TableCell>
                   <TableCell>{activity.quantity}</TableCell>
+                  <TableCell>{activity.remarks}</TableCell>
+
                   <TableCell>
                     <Button
                       onClick={() => handleEdit(activity)}
@@ -415,6 +428,18 @@ const ActivityList = ({ refresh }) => {
                 setEditedActivity({
                   ...editedActivity,
                   quantity: e.target.value,
+                })
+              }
+              fullWidth
+              sx={{ mb: 2 }}
+            />
+             <TextField
+              label="Remarks"
+              value={editedActivity.remarks}
+              onChange={(e) =>
+                setEditedActivity({
+                  ...editedActivity,
+                  remarks: e.target.value,
                 })
               }
               fullWidth

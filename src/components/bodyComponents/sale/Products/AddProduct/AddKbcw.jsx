@@ -76,18 +76,7 @@ function AddKbcw({ kbcwProducts, setKbcwProducts, onKbcwPriceChange }) {
     if (updating) return; // Prevent multiple clicks
     setUpdating(true); // Lock the button during update
   
-    const product = kbcwProducts[index];
-    const remainingQuantity = product.inventoryQuantity - enteredQuantity;
-  
-    if (remainingQuantity < 0) {
-      alert("Insufficient stock in inventory");
-      setUpdating(false); // Unlock button on error
-      return;
-    }
-  
-    const updatedProducts = [...kbcwProducts];
-    updatedProducts[index].inventoryQuantity = remainingQuantity;
-    setKbcwProducts(updatedProducts);
+    
   
     // Update inventory quantity in Firestore
     try {
