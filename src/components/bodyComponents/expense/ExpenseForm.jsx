@@ -222,7 +222,7 @@ const ExpenseForm = ({ setRefresh }) => {
                 />
               )}
 
-              {index > 0 && (
+              {index >= 0 && (
                 <Button
                   variant="contained"
                   color="secondary"

@@ -77,9 +77,7 @@ const ExpenseList = ({ expenses = [], loading = false }) => {
   });
 
 
- const grandTotal = () => {
-  
- }
+ 
 
 
 
@@ -88,7 +86,7 @@ const ExpenseList = ({ expenses = [], loading = false }) => {
     (a, b) => new Date(b) - new Date(a)
   );
 
-  // Calculate the total expense for each date
+  
   const calculateTotalExpense = (expenses) => {
     if (!expenses?.length) return 0; // Handle empty arrays gracefully
     return expenses.reduce(
@@ -97,11 +95,10 @@ const ExpenseList = ({ expenses = [], loading = false }) => {
     );
   };
 
-  // Calculate the grand total across all expenses (grouped by date)
+  
   const calculateGrandTotal = (groupedExpenses) => {
-    if (!Object.keys(groupedExpenses).length) return 0; // Handle empty objects
+    if (!Object.keys(groupedExpenses).length) return 0; 
 
-    // Sum all expenses from each group
     return Object.values(groupedExpenses).reduce(
       (grandTotal, expensesForDate) =>
         grandTotal +
@@ -205,76 +202,70 @@ const ExpenseList = ({ expenses = [], loading = false }) => {
               }}
             >
              
-                <Table>
-                  <TableHead>
-                    <TableRow sx={{ bgcolor: "#0056b3" }}>
-                      <TableCell sx={{ fontWeight: "bold", color: "white" }}>
-                        Date
-                      </TableCell>
-                      <TableCell sx={{ fontWeight: "bold", color: "white" }}>
-                        Expenses
-                      </TableCell>
-                      <TableCell sx={{ fontWeight: "bold", color: "white" }}>
-                        Total (Rs.)
-                      </TableCell>
-                    </TableRow>
-                  </TableHead>
-                  <TableBody>
-                    {sortedDates
-                      .slice(
-                        page * rowsPerPage,
-                        page * rowsPerPage + rowsPerPage
-                      )
-                      .map((date, index) => (
-                        <TableRow key={index}>
-                          <TableCell>{date}</TableCell>
-                          <TableCell>
-                            <Accordion>
-                              <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-                                <Typography variant="subtitle1">
-                                  View Expenses
-                                </Typography>
-                              </AccordionSummary>
-                              <AccordionDetails>
-                                {groupedExpenses[date].map((expense, i) => (
-                                  <Box
-                                    key={i}
-                                    sx={{
-                                      mb: 1,
-                                      p: 1,
-                                      bgcolor: "#f9f9f9",
-                                      borderRadius: 2,
-                                    }}
-                                  >
-                                    <Typography key={i}>
-                                      <strong> Expense {i + 1}</strong> <br />
-                                      <strong>Type:</strong>{" "}
-                                      {expense.expenseType} |{" "}
-                                      <strong>Price:</strong> Rs.{" "}
-                                      {expense.price}
-                                    </Typography>
-                                    <Typography>
-                                      <strong>Other:</strong>{" "}
-                                      {expense.otherExpense || ""}
-                                    </Typography>
-                                    <IconButton
-                                      onClick={() => handleDelete(expense.id)}
-                                      color="error"
-                                    >
-                                      <DeleteIcon />
-                                    </IconButton>
-                                  </Box>
-                                ))}
-                              </AccordionDetails>
-                            </Accordion>
-                          </TableCell>
-                          <TableCell>
-                            Rs. {calculateTotalExpense(groupedExpenses[date])}
-                          </TableCell>
-                        </TableRow>
-                      ))}
-                  </TableBody>
-                </Table>
+             <Table>
+  <TableHead>
+    <TableRow sx={{ bgcolor: "#0056b3" }}>
+      <TableCell sx={{ fontWeight: "bold", color: "white" }}>
+        Date
+      </TableCell>
+      <TableCell sx={{ fontWeight: "bold", color: "white" }}>
+        Expenses
+      </TableCell>
+      <TableCell sx={{ fontWeight: "bold", color: "white" }}>
+        Total (Rs.)
+      </TableCell>
+    </TableRow>
+  </TableHead>
+  <TableBody>
+    {sortedDates
+      .sort((a, b) => new Date(b) - new Date(a)) // Sort dates in descending order
+      .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage) // Apply pagination
+      .map((date, index) => (
+        <TableRow key={index}>
+          <TableCell>{date}</TableCell>
+          <TableCell>
+            <Accordion>
+              <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+                <Typography variant="subtitle1">View Expenses</Typography>
+              </AccordionSummary>
+              <AccordionDetails>
+                {groupedExpenses[date].map((expense, i) => (
+                  <Box
+                    key={i}
+                    sx={{
+                      mb: 1,
+                      p: 1,
+                      bgcolor: "#f9f9f9",
+                      borderRadius: 2,
+                    }}
+                  >
+                    <Typography key={i}>
+                      <strong> Expense {i + 1}</strong> <br />
+                      <strong>Type:</strong> {expense.expenseType} |{" "}
+                      <strong>Price:</strong> Rs. {expense.price}
+                    </Typography>
+                    <Typography>
+                      <strong>Other:</strong> {expense.otherExpense || ""}
+                    </Typography>
+                    <IconButton
+                      onClick={() => handleDelete(expense.id)}
+                      color="error"
+                    >
+                      <DeleteIcon />
+                    </IconButton>
+                  </Box>
+                ))}
+              </AccordionDetails>
+            </Accordion>
+          </TableCell>
+          <TableCell>
+            Rs. {calculateTotalExpense(groupedExpenses[date])}
+          </TableCell>
+        </TableRow>
+      ))}
+  </TableBody>
+</Table>
+
               
             </TableContainer>
           )}

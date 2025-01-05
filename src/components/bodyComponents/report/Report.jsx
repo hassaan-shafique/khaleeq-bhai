@@ -3,16 +3,17 @@ import { Grid, Box, CircularProgress } from "@mui/material";
 import { collection, getDocs } from "firebase/firestore";
 import { db } from "../../../config/Firebase"; // Adjust path as per your project structure
 import SaleStats from "./modules/saleStats";
-import SaleByPayment from "./modules/saleByPayment";
+
 import SaleByProduct from "./modules/saleByProduct";
 import SaleByQuantity from "./modules/saleByQuantity";
-import SaleBySalesman from "./modules/saleBySalesman";
-import SaleByExpense from "./modules/saleByExpense";
+import ExpenseStats from "./modules/ExpenseStats";
+
+
 
 const ReportCards = () => {
   const [salesData, setSalesData] = useState([]);
   const [loading, setLoading] = useState(true);
-  const[expenseData, setExpenseData] = useState ([]);
+  const [expenses, setExpenses] = useState([]);
 
   const fetchSalesData = async () => {
     setLoading(true);
@@ -36,25 +37,27 @@ const ReportCards = () => {
   }, []);
 
 
-  const fetchExpenseData = async () => {
-    setLoading(true);
-    try {
-      const expenseRef = collection(db, "expenses");
-      const querySnapshot = await getDocs(expenseRef);
-      const expense = querySnapshot.docs.map((doc) => ({
-        id: doc.id,
-        ...doc.data(),
-      }));
-      setExpenseData(expense);
-    } catch (error) {
-      console.error("Error fetching Expenses data:", error);
-    } finally {
-      setLoading(false);
-    }
-  };
+
+  
 
   useEffect(() => {
-    fetchExpenseData();
+    const fetchExpenses = async () => {
+      try {
+        const expensesCollection = collection(db, 'expenses');
+        const expensesSnapshot = await getDocs(expensesCollection);
+        const expensesList = expensesSnapshot.docs.map(doc => ({
+          id: doc.id,
+          ...doc.data(),
+        }));
+        setExpenses(expensesList);
+      } catch (error) {
+        console.error('Error fetching expenses:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchExpenses();
   }, []);
 
   if (loading) {
@@ -79,24 +82,19 @@ const ReportCards = () => {
         <Grid item xs={12}>
           <SaleStats salesData={salesData} />
         </Grid>
-        {/* <Grid item xs={12}>
-          <SaleByExpense salesData={salesData} />
-        </Grid> */}
 
-        {/* Second Row: SaleByPayment and SaleByEmployee */}
-        {/* <Grid item xs={12} md={6}>
-          <SaleByPayment salesData={salesData} />
+        <Grid item xs={12}>
+          <ExpenseStats expenses={expenses} />
         </Grid>
-        <Grid item xs={12} md={6}>
-          <SaleBySalesman salesData={salesData} />
-        </Grid> */}
 
-        {/* Third Row: SaleByProduct */}
+       
+
+     
         <Grid item xs={12}>
           <SaleByProduct salesData={salesData} />
         </Grid>
 
-        {/* Fourth Row: SaleByQuantity */}
+        
         <Grid item xs={12}>
           <SaleByQuantity salesData={salesData} />
         </Grid>
