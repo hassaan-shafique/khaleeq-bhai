@@ -20,7 +20,7 @@ const GlassesForm = ({ setRefresh }) => {
   const [value, setValue] = useState({
     price: 0,
     type: "",
-    glass: "",
+    glassesName: "",
     number: "",
     quantity: "",
     barcodeNumber: "",
@@ -80,7 +80,7 @@ const GlassesForm = ({ setRefresh }) => {
     const {
       price,
       type,
-      glass,
+      glassesName,
       selectedDate,
       number,
       quantity,
@@ -111,7 +111,7 @@ const GlassesForm = ({ setRefresh }) => {
       await addDoc(glassesCollectionRef, {
         price,
         type,
-        glass,
+        glassesName,
         barcodeNumber,
         number,
         quantity,
@@ -183,8 +183,8 @@ const GlassesForm = ({ setRefresh }) => {
             <TextField
               label="Glass Name"
               type="text"
-              name="glass"
-              value={value.glass}
+              name="glassesName"
+              value={value.glassesName}
               onChange={handleInputChange}
               fullWidth
               margin="normal"

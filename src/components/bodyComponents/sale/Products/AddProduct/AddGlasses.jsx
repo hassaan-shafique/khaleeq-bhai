@@ -57,15 +57,16 @@ const AddGlasses = ({
       const querySnapshot = await getDocs(q);
   
       if (!querySnapshot.empty) {
+        const productDoc = querySnapshot.docs[0]
+        const productData = productDoc.data()
         const availableTypes = [];
         querySnapshot.forEach((doc) => {
           const productData = doc.data();
           availableTypes.push({
             type: productData.type,
-            name: productData.name,
+            glassesName: productData.glassesName,
             price: productData.price,
-            size: productData.size,
-            quantity: productData.quantity,
+                        quantity: productData.quantity,
           });
         });
   
@@ -74,7 +75,12 @@ const AddGlasses = ({
           ...updatedProducts[index],
           glassesNumber: number,
           availableTypes,
-          glassesType: "", // Reset the type selection
+          glassesType: "",
+          glassesBarcode:productData.barcode,
+          glassesName: productData.glassesName,
+          enteredQuantity:productData.quantity,
+
+         
         };
         console.log("Available types:", availableTypes); // Debugging log
         setGlassesProducts(updatedProducts);
@@ -157,9 +163,9 @@ const AddGlasses = ({
       updatedProducts[index] = {
         ...updatedProducts[index],
         glassesType: selectedType,
-        glassesName: selectedProduct.name,
+        glassesName: selectedProduct.glassesName,
         glassesPrice: selectedProduct.price,
-        glassesSize: selectedProduct.size,
+        enteredQuantity:selectedProduct.quantity,
         inventoryQuantity: selectedProduct.quantity,
       };
       setGlassesProducts(updatedProducts);
@@ -244,6 +250,7 @@ const AddGlasses = ({
             <Grid item xs={4}>
               <TextField
                 label="Name"
+                name="glass"
                 value={glassesProducts.glassesName || ""}
                 onChange={(e) =>
                   handleGlassesProductChange(
@@ -255,20 +262,7 @@ const AddGlasses = ({
                 fullWidth
               />
             </Grid>
-            <Grid item xs={4}>
-              <TextField
-                label="Size"
-                value={glassesProducts.glassesSize || ""}
-                onChange={(e) =>
-                  handleGlassesProductChange(
-                    index,
-                    "glassesSize",
-                    e.target.value
-                  )
-                }
-                fullWidth
-              />
-            </Grid>
+            
             <Grid item xs={4}>
               <TextField
                 label="Number"
@@ -299,6 +293,11 @@ const AddGlasses = ({
                   })
                 }
               />
+                {glassesProducts.inventoryQuantity >= 0 && (
+                <span style={{ color: 'red', fontStyle: 'italic', fontSize: '14px' }}>
+                  Product in Stock: {glassesProducts.inventoryQuantity}
+                </span>
+              )}
             </Grid>
             <Grid item xs={4}>
               <TextField

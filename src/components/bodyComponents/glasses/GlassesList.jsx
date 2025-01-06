@@ -397,7 +397,7 @@ const GlassesList = ({ glasses = [], loading = false, onDelete, onEdit }) => {
                         }}
                       >
                         <TableCell align="center">{i + 1}</TableCell>
-                        <TableCell align="center">{glass.glass}</TableCell>
+                        <TableCell align="center">{glass.glassesName}</TableCell>
                         <TableCell align="center">{glass.type}</TableCell>
                         <TableCell align="center">{glass.number}</TableCell>
                         <TableCell align="center">Rs.{glass.price}</TableCell>
@@ -476,9 +476,9 @@ const GlassesList = ({ glasses = [], loading = false, onDelete, onEdit }) => {
           <TextField
             fullWidth
             label="Glass Name"
-            value={editedGlass?.glass || ""}
+            value={editedGlass?.glassesName || ""}
             onChange={(e) =>
-              setEditedGlass({ ...editedGlass, glass: e.target.value })
+              setEditedGlass({ ...editedGlass, glassesName: e.target.value })
             }
             margin="normal"
           />

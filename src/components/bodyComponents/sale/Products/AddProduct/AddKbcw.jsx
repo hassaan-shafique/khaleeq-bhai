@@ -240,6 +240,7 @@ function AddKbcw({ kbcwProducts, setKbcwProducts, onKbcwPriceChange }) {
                   Product in Stock: {product.inventoryQuantity}
                 </span>
               )}
+              
             </Grid>
             <Grid item xs={4}>
               <TextField
