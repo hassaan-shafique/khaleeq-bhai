@@ -79,6 +79,7 @@ const SalesForm = ({ setRefresh }) => {
   const [totalKbcwPrice, setTotalKbcwPrice] = useState(0)
   const [totalGlassesPrice, setTotalGlassesPrice] = useState(0)
   const errorLogs = []
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleVendorPriceChange = total => {
     setTotalVendorPrice(total)
@@ -178,6 +179,12 @@ const SalesForm = ({ setRefresh }) => {
 
   const handleSubmit = async e => {
     e.preventDefault()
+    // Prevent multiple submissions
+  if (isSubmitting) return;
+
+  setIsSubmitting(true); // Disable the button
+
+
     let errors = []
     try {
       const responses = await Promise.all(kbcwProducts.map(product => handleKbcwQuantityChange(product)))
@@ -310,7 +317,12 @@ const SalesForm = ({ setRefresh }) => {
         <DialogTitle>Add Sale</DialogTitle>
         <DialogContent>
           <Box sx={{ paddingTop: 5 }}>
-            <form onSubmit={handleSubmit}>
+            <form onSubmit={handleSubmit}
+             onKeyDown={(e) => {
+              if (e.key === "Enter" && isSubmitting) {
+                e.preventDefault();
+              }
+            }}>
               <Grid
                 container
                 spacing={3}
@@ -682,8 +694,11 @@ const SalesForm = ({ setRefresh }) => {
                 <Button onClick={handleClose} color='secondary'>
                   Cancel
                 </Button>
-                <Button type='submit' variant='contained' sx={{ bgcolor: '#448EE4' }}>
-                  Submit Sale
+                <Button 
+                type='submit' 
+                 disabled={isSubmitting}
+                 variant='contained' sx={{ bgcolor: '#448EE4' }}>
+                 {isSubmitting ? "Submitting..." : "Submit Sale"}
                 </Button>
               </DialogActions>
             </form>
