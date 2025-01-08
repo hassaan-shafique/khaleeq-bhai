@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef} from "react";
 import {
   Box,
   Button,
@@ -22,6 +22,8 @@ const ExpenseStats = ({ expenses }) => {
   const [filteredExpenses, setFilteredExpenses] = useState([]); // Filtered expense list
   const [loading, setLoading] = useState(false);
   const [totalPrice, setTotalPrice] = useState(0);
+
+  const userRole =localStorage.getItem("userRole");
 
   // Filter expenses based on the selected timeframe
   useEffect(() => {
@@ -127,6 +129,63 @@ const ExpenseStats = ({ expenses }) => {
       return "Invalid Date";
     }
   };
+  const printRef = useRef(null);
+  
+  const handlePrint = () => {
+    // Clone the printRef content to a new window for printing
+    const printContents = printRef.current.innerHTML;
+    const newWindow = window.open("", "_blank");
+  
+    // Write the content to the new window
+    newWindow.document.open();
+    newWindow.document.write(`
+      <!DOCTYPE html>
+      <html>
+        <head>
+          <title>Print</title>
+          <style>
+            /* Styling for the heading */
+            h1 {
+              text-align: center;
+              font-size: 24px;
+              margin-bottom: 20px;
+            }
+  
+            /* Ensure the table fits on the page */
+            table {
+              width: 100%;
+              border-collapse: collapse;
+            }
+            th, td {
+              border: 1px solid #ddd;
+              padding: 8px;
+              text-align: left;
+            }
+            th {
+              background-color: #f2f2f2;
+            }
+            /* Styling for large tables */
+            .print-container {
+              overflow: visible !important; /* Ensure all content is visible */
+            }
+          </style>
+        </head>
+        <body>
+          <!-- Add a title to the print view -->
+          <h1>Sales Data</h1>
+  
+          <!-- Insert the content to be printed (table data) -->
+          <div class="print-container">
+            ${printContents}
+          </div>
+        </body>
+      </html>
+    `);
+    newWindow.document.close();
+    newWindow.print();
+    newWindow.close();
+  };
+  
   
   
 
@@ -139,18 +198,26 @@ const ExpenseStats = ({ expenses }) => {
 
       
       <Grid container spacing={2} sx={{ marginBottom: 4 }}>
-        {["day", "week", "month"].map((frame) => (
-          <Grid item key={frame}>
-            <Button
-              variant={timeframe === frame ? "contained" : "outlined"}
-              color="primary"
-              onClick={() => setTimeframe(frame)}
-            >
-              {frame.charAt(0).toUpperCase() + frame.slice(1)}
-            </Button>
-          </Grid>
-        ))}
+  {[
+    "day", // Always show "day"
+    userRole === "admin" ? "week" : null,  // Show "week" only for admin
+    userRole === "admin" ? "month" : null, // Show "month" only for admin
+  ]
+    .filter(Boolean)  // Remove null values from the array
+    .map((frame) => (
+      <Grid item key={frame}>
+        <Button
+          variant={timeframe === frame ? "contained" : "outlined"}
+          color="primary"
+          onClick={() => setTimeframe(frame)}
+        >
+          {frame.charAt(0).toUpperCase() + frame.slice(1)}  {/* Capitalize the first letter */}
+        </Button>
       </Grid>
+    ))
+  }
+</Grid>
+
       <Card sx={{ marginBottom: 4, backgroundColor: "#f5f5f5", boxShadow: 3 }}>
         <CardContent>
           <Typography variant="h6" fontWeight="bold">
@@ -166,14 +233,19 @@ const ExpenseStats = ({ expenses }) => {
         </CardContent>
       </Card>
       
-
+      <div ref={printRef}> 
 
       {/* Expenses Table */}
       <TableContainer 
   component={Paper} 
   sx={{ borderRadius: 2, boxShadow: 3, maxHeight: 400 }}
 >
-  <Table stickyHeader>
+  <div style={{ display: "flex", justifyContent: "flex-end",  }}>
+          <Button onClick={handlePrint} variant="contained" color="primary">
+            Print Table
+          </Button>
+        </div>
+    <Table stickyHeader>
     <TableHead>
       <TableRow sx={{ backgroundColor: "#f5f5f5" }}>
         <TableCell>
@@ -244,6 +316,7 @@ const ExpenseStats = ({ expenses }) => {
     </TableBody>
   </Table>
 </TableContainer>
+</div>
 
     </Box>
   );

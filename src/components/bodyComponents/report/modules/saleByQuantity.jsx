@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect , useRef} from "react";
 import {
   Box,
   Button,
@@ -38,7 +38,7 @@ const [kbcwTotal, setKbcwTotal] = useState(0);
     COMPLETED : "Completed",
     PENDING: "PENDING"
   }
- 
+ const userRole = localStorage.getItem("userRole");
 
   useEffect(() => {
     const getSalesData = () => {
@@ -135,6 +135,72 @@ const formatTimestamp = (timestamp) => {
     return "Invalid Date";
   }
 };
+const printRef = useRef(null);
+
+const handlePrint = () => {
+  // Clone the printRef content to a new window for printing
+  const printContents = printRef.current.innerHTML
+  const newWindow = window.open('', '_blank')
+
+  // Write the content to the new window
+  newWindow.document.open()
+  newWindow.document.write(`
+  <!DOCTYPE html>
+  <html>
+    <head>
+      <title>Print</title>
+      <style>
+        /* Ensure the table fits on the page */
+        table {
+          width: 100%;
+          border-collapse: collapse;
+        }
+        th, td {
+          border: 1px solid #ddd;
+          padding: 8px;
+          text-align: left;
+        }
+        th {
+          background-color: #f2f2f2;
+        }
+        /* Add styling for large tables */
+        .print-container {
+          overflow: visible !important; /* Ensure all content is visible */
+        }
+        /* Ensure images are visible */
+        img {
+          max-width: 100%;
+          height: auto;
+        }
+      </style>
+    </head>
+    <body>
+      <div class="print-container">
+        ${printContents}
+      </div>
+      <script>
+        // Ensure images are fully loaded before printing
+        const images = document.querySelectorAll('img');
+        const loadPromises = Array.from(images).map(img => {
+          if (!img.complete) {
+            return new Promise(resolve => {
+              img.onload = resolve;
+              img.onerror = resolve;
+            });
+          }
+          return Promise.resolve();
+        });
+
+        Promise.all(loadPromises).then(() => {
+          window.print();
+          window.close();
+        });
+      </script>
+    </body>
+  </html>
+`)
+  newWindow.document.close()
+}
 
 
 
@@ -156,6 +222,7 @@ const formatTimestamp = (timestamp) => {
           </Button>
         </Grid>
         <Grid item>
+          {userRole === "admin" && ( 
           <Button
             variant={timeframe === "week" ? "contained" : "outlined"}
             color="primary"
@@ -163,8 +230,10 @@ const formatTimestamp = (timestamp) => {
           >
             Week
           </Button>
+          )}
         </Grid>
         <Grid item>
+        {userRole === "admin" && ( 
           <Button
             variant={timeframe === "month" ? "contained" : "outlined"}
             color="primary"
@@ -172,6 +241,7 @@ const formatTimestamp = (timestamp) => {
           >
             Month
           </Button>
+        )}
         </Grid>
        
       </Grid>
@@ -200,9 +270,14 @@ const formatTimestamp = (timestamp) => {
          Product  Quantity Data
       </Typography>
       
-
+ <div ref={printRef}> 
       <TableContainer component={Paper} sx={{ borderRadius: 2, boxShadow: 3 ,maxHeight: 600, 
     overflow: "auto",}}>
+      <div style={{ display: "flex", justifyContent: "flex-end",  }}>
+              <Button onClick={handlePrint} variant="contained" color="primary">
+                Print Table
+              </Button>
+            </div>
   <Table>
    
     
@@ -334,6 +409,7 @@ const formatTimestamp = (timestamp) => {
     </TableBody>
   </Table>
 </TableContainer>
+</div>
 
 
 

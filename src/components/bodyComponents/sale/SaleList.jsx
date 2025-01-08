@@ -85,6 +85,13 @@ const SaleList = ({ sales = [], loading = false,  }) => {
   const [statusFilter ,setStatusFilter] =React.useState("All");
   const [filterStartDate, setFilterStartDate] =useState("");
   const [filterEndDate,setFilterEndDate] =useState ("");
+  const [sortDate,setSortDate] = useState ("asc");
+  
+
+  const handleSort = () => {
+   
+    setSortDate((prevSortDate) => (prevSortDate === "asc" ? "desc" : "asc"));
+  };
 
 
 const getCurrentDate = () => {
@@ -106,10 +113,8 @@ const getCurrentDate = () => {
   const printRef = useRef(null);
 
   
+// Filtered sales data with sorting
 const filteredSalesData = salesData.filter((sale) => {
-  
-
-  // Ensure the fields are strings before calling toLowerCase
   const matchesSalesman = String(sale.salesman || "")
     .toLowerCase()
     .includes((searchSalesman || "").toLowerCase());
@@ -128,8 +133,7 @@ const filteredSalesData = salesData.filter((sale) => {
 
   const matchesStatus =
     statusFilter === "All" ||
-    String(sale.status || "").toLowerCase() ===
-      (statusFilter || "").toLowerCase();
+    String(sale.status || "").toLowerCase() === (statusFilter || "").toLowerCase();
 
   // Safely handle date comparisons
   const matchesDate =
@@ -137,6 +141,12 @@ const filteredSalesData = salesData.filter((sale) => {
       (sale.startDate && new Date(sale.startDate.seconds * 1000) >= new Date(filterStartDate))) &&
     (!filterEndDate ||
       (sale.startDate && new Date(sale.startDate.seconds * 1000) <= new Date(filterEndDate)));
+
+      const isToday = new Date(sale.startDate?.seconds * 1000).toDateString() === new Date().toDateString();
+  
+  if (userRole === "employee") {
+    return matchesSalesman && matchesContact && matchesCustomer && matchesOrder && matchesStatus && matchesDate && isToday;
+  }
 
   return (
     matchesSalesman &&
@@ -146,6 +156,20 @@ const filteredSalesData = salesData.filter((sale) => {
     matchesStatus &&
     matchesDate
   );
+});
+
+// Apply sorting after filtering
+const filteredAndSortedSalesData = filteredSalesData.sort((a, b) => {
+  const aDate = a.startDate ? new Date(a.startDate.seconds * 1000) : null;
+  const bDate = b.startDate ? new Date(b.startDate.seconds * 1000) : null;
+
+  if (!aDate || !bDate) return 0; // If either date is missing, no sorting
+
+  if (sortDate === "asc") {
+    return aDate - bDate; // Ascending order
+  } else {
+    return bDate - aDate; // Descending order
+  }
 });
 
 
@@ -490,7 +514,7 @@ const handleSaveEdit = async () => {
         </Box>
       ) : (
         <>
-          {filteredSalesData.length === 0 ? (
+          {filteredAndSortedSalesData.length === 0 ? (
             <Typography variant="h6" align="center" sx={{ marginTop: 4 }}>
               No Sales found....
             </Typography>
@@ -580,7 +604,7 @@ const handleSaveEdit = async () => {
                       </TableRow>
                     </TableHead>
                     <TableBody>
-                      {filteredSalesData.map((sale, i) => (
+                      {filteredAndSortedSalesData.map((sale, i) => (
                         <TableRow key={sale.id} sx={{ height: "40px" }}>
                           <TableCell>{i + 1}</TableCell>
                           <TableCell sx={{ padding: "4px" }}>

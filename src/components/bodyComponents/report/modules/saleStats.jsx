@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect ,useRef} from "react";
 import {
   Box,
   Button,
@@ -42,6 +42,7 @@ const SaleStats = ({salesData}) => {
     PENDING: "PENDING"
   }
   const COLORS = ["#0088FE", "#00C49F", "#FFBB28", "#FF8042", "#845EC2"];
+   const  userRole =localStorage.getItem ("userRole");
 
   useEffect(() => {
     const getSalesData = () => {
@@ -112,8 +113,59 @@ const SaleStats = ({salesData}) => {
   
 
   const pieData = calculatePieData();
+  const printRef = useRef(null);
 
- 
+  const handlePrint = () => {
+    const printContents = printRef.current.innerHTML;
+    const newWindow = window.open("", "_blank");
+
+    newWindow.document.open();
+    newWindow.document.write(`
+      <!DOCTYPE html>
+      <html>
+        <head>
+          <title>Print</title>
+          <style>
+            /* Print-specific styles */
+            table {
+              width: 100%;
+              border-collapse: collapse;
+            }
+            th, td {
+              border: 1px solid #ddd;
+              padding: 8px;
+              text-align: left;
+            }
+            th {
+              background-color: #f2f2f2;
+            }
+            @media print {
+              body {
+                font-family: Arial, sans-serif;
+                margin: 20px;
+              }
+              table {
+                width: 100%;
+              }
+              th, td {
+                font-size: 14px;
+                padding: 6px;
+              }
+            }
+          </style>
+        </head>
+        <body>
+          <div>
+            ${printContents}
+          </div>
+        </body>
+      </html>
+    `);
+    newWindow.document.close();
+    newWindow.print();
+    newWindow.close();
+  };
+
   const calculateTotalSales = () => {
     let totalSales = 0;
     salesData.forEach((sale) => {
@@ -172,7 +224,9 @@ const formatTimestamp = (timestamp) => {
             Day
           </Button>
         </Grid>
+        
         <Grid item>
+        {userRole === "admin" && ( 
           <Button
             variant={timeframe === "week" ? "contained" : "outlined"}
             color="primary"
@@ -180,8 +234,10 @@ const formatTimestamp = (timestamp) => {
           >
             Week
           </Button>
+          )}
         </Grid>
         <Grid item>
+          {userRole === "admin" && ( 
           <Button
             variant={timeframe === "month" ? "contained" : "outlined"}
             color="primary"
@@ -189,8 +245,10 @@ const formatTimestamp = (timestamp) => {
           >
             Month
           </Button>
+          )}
         </Grid>
         <Grid item>
+        {userRole === "admin" && ( 
           <Button
             variant={timeframe === "custom" ? "contained" : "outlined"}
             color="primary"
@@ -198,7 +256,10 @@ const formatTimestamp = (timestamp) => {
           >
             Custom
           </Button>
+        )}
         </Grid>
+
+
       </Grid>
 
       {/* Custom Date Range Selection */}
@@ -259,10 +320,17 @@ const formatTimestamp = (timestamp) => {
         Detailed Sales Data
       </Typography>
       
-
+<div ref={printRef}> 
 <TableContainer component={Paper} sx={{ borderRadius: 2, boxShadow: 3 }}>
-  <Table>
+<div style={{ display: "flex", justifyContent: "flex-end",  }}>
+        <Button onClick={handlePrint} variant="contained" color="primary">
+          Print Table
+        </Button>
+      </div>
+  <Table >
+  
     <TableHead>
+    
       <TableRow sx={{ backgroundColor: "#f5f5f5" }}>
       <TableCell>
           <Typography variant="subtitle1" fontWeight="bold">
@@ -291,6 +359,7 @@ const formatTimestamp = (timestamp) => {
         </TableCell>
       </TableRow>
     </TableHead>
+   
     <TableBody>
       {loading ? (
         <TableRow>
@@ -345,8 +414,10 @@ const formatTimestamp = (timestamp) => {
         </TableRow>
       )}
     </TableBody>
-  </Table>
+  </Table> 
+  
 </TableContainer>
+</div>
 
 
   <Typography variant="h6" gutterBottom>
