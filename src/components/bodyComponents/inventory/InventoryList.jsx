@@ -19,7 +19,8 @@ import {
   DialogContent,
   DialogActions,
   Button,
-  TextField
+  TextField,
+  Grid,
 } from '@mui/material'
 
 import DeleteIcon from '@mui/icons-material/Delete'
@@ -42,7 +43,7 @@ const InventoryList = ({ inventory = [], loading = false, setInventoryRefresh })
   const [quantityRefresh, setQuantityRefresh] = useState(false)
   const [searchBarcode, setSearchBarcode] = React.useState('')
   const [inventoryTypes, setInventoryTypes] = useState([])
-
+  const [searchName, setSearchName] = React.useState('')
   const printRef = useRef(null)
 
   const handleTypeChange = event => setSelectedType(event.target.value)
@@ -165,8 +166,15 @@ const InventoryList = ({ inventory = [], loading = false, setInventoryRefresh })
     const matchesBarcode = String(item.barcode || '')
       .toLowerCase()
       .includes((searchBarcode || '').toLowerCase())
-    return matchesBarcode && matchesType && matchesPriceRange()
+
+      const matchesName = String(item.name || '' ).toLocaleLowerCase().includes((searchName || '').toLowerCase())
+
+
+    return matchesBarcode && matchesName && matchesType && matchesPriceRange()
+
   })
+
+
 
   const inventoryFilterTypes = [...new Set(inventory.map(item => item.type))]
 
@@ -247,72 +255,82 @@ const InventoryList = ({ inventory = [], loading = false, setInventoryRefresh })
         </Box>
       ) : (
         <>
-          <FormControl fullWidth sx={{ marginBottom: 2 }}>
-            <InputLabel>Filter by Inventory Type</InputLabel>
-            <Select value={selectedType} onChange={handleTypeChange}>
-              <MenuItem value=''>All</MenuItem>
-              {inventoryFilterTypes.map((type, index) => (
-                <MenuItem key={index} value={type}>
-                  {type}
-                </MenuItem>
-              ))}
-            </Select>
-          </FormControl>
+        <Grid container spacing={2} sx={{ marginBottom: 2 }}>
+  <Grid item xs={3}>
+    <FormControl fullWidth>
+      <InputLabel>Filter by Inventory Type</InputLabel>
+      <Select value={selectedType} onChange={handleTypeChange}>
+        <MenuItem value=''>All</MenuItem>
+        {inventoryFilterTypes.map((type, index) => (
+          <MenuItem key={index} value={type}>
+            {type}
+          </MenuItem>
+        ))}
+      </Select>
+    </FormControl>
+  </Grid>
+  <Grid item xs={3}>
+    <FormControl fullWidth>
+      <InputLabel>Filter by Price Range</InputLabel>
+      <Select value={selectedPriceRange} onChange={handlePriceRangeChange}>
+        <MenuItem value=''>All</MenuItem>
+        <MenuItem value='1'>Rs. 350 to 600</MenuItem>
+        <MenuItem value='2'>Rs. 601 to 950</MenuItem>
+        <MenuItem value='3'>Rs. 951 to 1250</MenuItem>
+        <MenuItem value='4'>Rs. 1251 to 1550</MenuItem>
+        <MenuItem value='5'>Rs. 1551 to 1850</MenuItem>
+        <MenuItem value='6'>Rs. 1851 to 2550</MenuItem>
+        <MenuItem value='7'>Rs. 2551 to 3500</MenuItem>
+        <MenuItem value='8'>Rs. 3501 to 6000</MenuItem>
+        <MenuItem value='9'>Rs. 6001 to 10000</MenuItem>
+        <MenuItem value='10'>Rs. 10001 to 30000</MenuItem>
+        <MenuItem value='11'>Rs. 30001 to 50000</MenuItem>
+      </Select>
+    </FormControl>
+  </Grid>
+  <Grid item xs={3}>
+    <TextField
+      label='Search by Barcode'
+      variant='outlined'
+      value={searchBarcode}
+      onChange={e => setSearchBarcode(e.target.value)}
+      fullWidth
+    />
+  </Grid>
+  <Grid item xs={3}>
+    <TextField
+      label='Search by Name'
+      variant='outlined'
+      value={searchName}
+      onChange={e => setSearchName(e.target.value)}
+      fullWidth
+    />
+  </Grid>
+</Grid>
 
-          <FormControl fullWidth sx={{ marginBottom: 2 }}>
-            <InputLabel>Filter by Price Range</InputLabel>
-            <Select value={selectedPriceRange} onChange={handlePriceRangeChange}>
-              <MenuItem value=''>All</MenuItem>
-              <MenuItem value='1'>Rs. 350 to 600</MenuItem>
-              <MenuItem value='2'>Rs. 601 to 950</MenuItem>
-              <MenuItem value='3'>Rs. 951 to 1250</MenuItem>
-              <MenuItem value='4'>Rs. 1251 to 1550</MenuItem>
-              <MenuItem value='5'>Rs. 1551 to 1850</MenuItem>
-              <MenuItem value='6'>Rs. 1851 to 2550</MenuItem>
-              <MenuItem value='7'>Rs. 2551 to 3500</MenuItem>
-              <MenuItem value='8'>Rs. 3501 to 6000</MenuItem>
-              <MenuItem value='9'>Rs. 6001 to 10000</MenuItem>
-              <MenuItem value='10'>Rs. 10001 to 30000</MenuItem>
-              <MenuItem value='11'>Rs. 30001 to 50000</MenuItem>
-              {/* Add other price ranges */}
-            </Select>
-          </FormControl>
 
-          <TextField
-            label='Search by Barcode'
-            variant='outlined'
-            value={searchBarcode}
-            onChange={e => setSearchBarcode(e.target.value)}
-            fullWidth
-          />
+<Grid container direction="column" spacing={2} sx={{ marginBottom: 1 }}>
+  <Grid item container justifyContent="flex-end">
+    {userRole === 'admin' && (
+      <Button variant="contained" color="primary" onClick={handlePrint}>
+        Print Kbcw Inventory
+      </Button>
+    )}
+  </Grid>
+  
+</Grid>
+<Grid container justifyContent="flex-end">
+  <Grid item>
+    <UpdateQuantity setRefresh={setQuantityRefresh} />
+  </Grid>
+</Grid>
 
-          <div
-            style={{
-              display: 'flex',
-              justifyContent: 'flex-start',
-              marginBottom: '1rem',
-              gap: '40rem'
-            }}
-          >
-            {userRole == 'admin' && (
-              <Button variant='contained' color='primary' onClick={handlePrint}>
-                Print Kbcw Inventory
-              </Button>
-            )}
 
-            <div
-              style={{
-                display: 'flex',
-                justifyContent: 'flex-end'
-              }}
-            >
-              <UpdateQuantity setRefresh={setQuantityRefresh} />
-            </div>
-          </div>
+
           <Typography
             variant='h6'
             sx={{
-              marginTop: 2,
+              marginTop: -5,
               textAlign: 'left ',
               fontWeight: 'bold',
               color: 'blue'
@@ -543,6 +561,7 @@ const InventoryList = ({ inventory = [], loading = false, setInventoryRefresh })
                       </TableRow>
                     ))}
                   </TableBody>
+                  
                 </Table>
               </TableContainer>
             </div>
@@ -560,6 +579,8 @@ const InventoryList = ({ inventory = [], loading = false, setInventoryRefresh })
               </Button>
             </DialogActions>
           </Dialog>
+
+
           {/* Edit Item Dialog */}
 
           <Dialog open={editDialogOpen} onClose={() => setEditDialogOpen(false)} maxWidth='sm'>
