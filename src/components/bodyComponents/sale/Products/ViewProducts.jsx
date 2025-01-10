@@ -382,6 +382,10 @@ const handleDeleteClick = async (product, productType) => {
                 <TableCell style={styles.tableCell}>Payment Method</TableCell>
                 <TableCell>{salesData.payment}</TableCell>
               </TableRow>
+              <TableRow>
+                <TableCell style={styles.tableCell}>Instruction</TableCell>
+                <TableCell>{salesData.instruction}</TableCell>
+              </TableRow>
             </TableBody>
           </Table>
         </TableContainer>

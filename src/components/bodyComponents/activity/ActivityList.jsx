@@ -33,6 +33,7 @@ const ActivityList = ({ refresh }) => {
   const [itemSearch, setItemSearch] = useState(""); // Search query for item name
   const [startDate, setStartDate] = useState(""); // Start date state
   const [endDate, setEndDate] = useState(""); // End date state
+  const [refSearch, setRefSearch] = useState("");
 
   // Fetch data from Firebase
   const fetchActivities = async () => {
@@ -140,6 +141,10 @@ const ActivityList = ({ refresh }) => {
     setItemSearch(e.target.value);
   };
 
+  const handleRefSearchChange =(e) =>{
+    setRefSearch(e.target.value);
+  }
+
   // Handle start date change
   const handleStartDateChange = (e) => {
     setStartDate(e.target.value);
@@ -159,17 +164,25 @@ const ActivityList = ({ refresh }) => {
       .toLowerCase()
       .includes(itemSearch.toLowerCase());
 
+      const matchref= activity.refNo.toLowerCase().includes(refSearch.toLowerCase());
+
+
     // Convert selectedDate to date object for comparison
     const activityDate = new Date(
       activity.selectedDate.seconds
         ? activity.selectedDate.seconds * 1000
         : activity.selectedDate
     );
+      // Normalize dates for comparison
+      const start = startDate ? new Date(startDate).setHours(0, 0, 0, 0) : null;
+      const end = endDate ? new Date(endDate).setHours(23, 59, 59, 999) : null;
 
-    const matchStartDate = !startDate || activityDate >= new Date(startDate);
-    const matchEndDate = !endDate || activityDate <= new Date(endDate);
+      const matchStartDate = !start || activityDate >= start;
+      const matchEndDate = !end || activityDate <= end;
 
-    return matchVendor && matchItem && matchStartDate && matchEndDate;
+
+
+    return matchVendor && matchItem &&  matchref && matchStartDate && matchEndDate;
   });
 
   const userRole = localStorage.getItem("userRole");
@@ -190,6 +203,13 @@ const ActivityList = ({ refresh }) => {
             label="Search by Item Name"
             value={itemSearch}
             onChange={handleItemSearchChange}
+            fullWidth
+            sx={{ mb: 2, mr: 2 }}
+          />
+            <TextField
+            label="Search by Ref No"
+            value={refSearch}
+            onChange={handleRefSearchChange}
             fullWidth
             sx={{ mb: 2, mr: 2 }}
           />
@@ -218,7 +238,14 @@ const ActivityList = ({ refresh }) => {
         </div>
       
 
-      <TableContainer component={Paper} sx={{ mt: 2 }}>
+        <TableContainer 
+  component={Paper} 
+  sx={{
+    mt: 2,            // Add top margin
+    maxHeight: '450px', // Set maximum height for scrolling
+    overflowY: 'auto', // Enable vertical scrolling
+  }}
+>
         <Table>
           <TableHead>
             <TableRow>

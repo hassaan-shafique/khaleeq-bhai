@@ -24,6 +24,8 @@ import {
 } from '@mui/material'
 
 import DeleteIcon from '@mui/icons-material/Delete'
+import { LazyLoadImage } from 'react-lazy-load-image-component';
+import 'react-lazy-load-image-component/src/effects/blur.css';
 
 import EditIcon from '@mui/icons-material/Edit'
 import { db } from '../../../config/Firebase' // Adjust to your Firebase setup
@@ -33,7 +35,10 @@ import {getDocs } from 'firebase/firestore'
 
 
 
-const InventoryList = ({ inventory = [], loading = false, setInventoryRefresh }) => {
+const InventoryList = ({ inventory = [], loading = false, setInventoryRefresh,  isLoading = false,fetchInventory, handleNextPage,
+  handlePreviousPage,
+  pagination,
+   }) => {
   const [selectedType, setSelectedType] = useState('')
   const [selectedPriceRange, setSelectedPriceRange] = useState('')
   const [openDialog, setOpenDialog] = useState(false)
@@ -44,10 +49,24 @@ const InventoryList = ({ inventory = [], loading = false, setInventoryRefresh })
   const [searchBarcode, setSearchBarcode] = React.useState('')
   const [inventoryTypes, setInventoryTypes] = useState([])
   const [searchName, setSearchName] = React.useState('')
+   
   const printRef = useRef(null)
+
+  useEffect(() => {
+    
+    fetchInventory();
+  }, [pagination.pageNo, ]);
+  
+  
+ 
+  
+  
+
 
   const handleTypeChange = event => setSelectedType(event.target.value)
   const handlePriceRangeChange = event => setSelectedPriceRange(event.target.value)
+
+  
 
   const handleImageClick = image => {
     setSelectedImage(image)
@@ -309,6 +328,10 @@ const InventoryList = ({ inventory = [], loading = false, setInventoryRefresh })
 </Grid>
 
 
+    
+
+
+
 <Grid container direction="column" spacing={2} sx={{ marginBottom: 1 }}>
   <Grid item container justifyContent="flex-end">
     {userRole === 'admin' && (
@@ -465,17 +488,19 @@ const InventoryList = ({ inventory = [], loading = false, setInventoryRefresh })
                           }}
                         >
                           {item.image ? (
-                            <img
-                              src={item.image} // Base64 image will render here
-                              alt={`Image ${i + 1}`}
-                              style={{
-                                width: '150px',
-                                height: '100px',
-                                cursor: 'pointer',
-                                border: '2px #1976d2 solid'
-                              }}
-                              onClick={() => handleImageClick(item.image)}
-                            />
+
+<LazyLoadImage
+src={item.image} // Base64 image will render here
+alt={`Image ${i + 1}`}
+effect="blur" // Add a blur effect while loading
+style={{
+  width: '150px',
+  height: '100px',
+  cursor: 'pointer',
+  border: '2px #1976d2 solid'
+}}
+onClick={() => handleImageClick(item.image)}
+/>
                           ) : (
                             'No Image'
                           )}
@@ -561,11 +586,29 @@ const InventoryList = ({ inventory = [], loading = false, setInventoryRefresh })
                       </TableRow>
                     ))}
                   </TableBody>
-                  
+
                 </Table>
+                
               </TableContainer>
             </div>
           )}
+     <div>
+        <Button
+          onClick={handlePreviousPage}
+          disabled={pagination.pageNo === 0 || isLoading}
+        >
+          Previous
+        </Button>
+        <Button
+          onClick={handleNextPage}
+          disabled={isLoading}
+        >
+          Next
+        </Button>
+      </div>
+
+      {isLoading && <CircularProgress />}
+
 
           {/* Image Preview Dialog */}
           <Dialog open={openDialog} onClose={handleCloseDialog} maxWidth='md'>

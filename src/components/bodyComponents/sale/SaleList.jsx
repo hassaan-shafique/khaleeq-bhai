@@ -135,18 +135,34 @@ const filteredSalesData = salesData.filter((sale) => {
     statusFilter === "All" ||
     String(sale.status || "").toLowerCase() === (statusFilter || "").toLowerCase();
 
-  // Safely handle date comparisons
-  const matchesDate =
-    (!filterStartDate ||
-      (sale.startDate && new Date(sale.startDate.seconds * 1000) >= new Date(filterStartDate))) &&
-    (!filterEndDate ||
-      (sale.startDate && new Date(sale.startDate.seconds * 1000) <= new Date(filterEndDate)));
 
-      const isToday = new Date(sale.startDate?.seconds * 1000).toDateString() === new Date().toDateString();
+
+  // Safely handle date comparisons
+  // Normalize filter dates
+  const normalizedFilterStartDate = filterStartDate
+    ? new Date(filterStartDate).setHours(0, 0, 0, 0)
+    : null;
+
+  const normalizedFilterEndDate = filterEndDate
+    ? new Date(filterEndDate).setHours(23, 59, 59, 999)
+    : null;
+
+  // Safely handle date comparisons
+  const saleDate = sale.startDate
+    ? new Date(sale.startDate.seconds * 1000)
+    : null;
+
+  const matchesDate =
+    (!normalizedFilterStartDate || (saleDate && saleDate >= normalizedFilterStartDate)) &&
+    (!normalizedFilterEndDate || (saleDate && saleDate <= normalizedFilterEndDate));
+
+
+
+      // const isToday = new Date(sale.startDate?.seconds * 1000).toDateString() === new Date().toDateString();
   
-  if (userRole === "employee") {
-    return matchesSalesman && matchesContact && matchesCustomer && matchesOrder && matchesStatus && matchesDate && isToday;
-  }
+  // if (userRole === "employee") {
+  //   return matchesSalesman && matchesContact && matchesCustomer && matchesOrder && matchesStatus && matchesDate && isToday;
+  // }
 
   return (
     matchesSalesman &&
