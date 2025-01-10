@@ -20,7 +20,7 @@ const Inventory = () => {
   const [refresh, setRefresh] = useState(false)
   const [pagination, setPagination] = useState({
     pageNo: 0,
-    pageSize: 27,
+    pageSize: 3000,
   });
   const [lastVisible, setLastVisible] = useState(null);
 
