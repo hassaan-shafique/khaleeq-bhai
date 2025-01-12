@@ -19,14 +19,18 @@ import {
   FormControl,
   TextField,
   TablePagination,
-  Grid,
+ 
 } from "@mui/material";
+import EditIcon from "@mui/icons-material/Edit"; // Add this import
+
+import CancelIcon from "@mui/icons-material/Cancel"; 
 import DeleteIcon from "@mui/icons-material/Delete";
 import IconButton from "@mui/material/IconButton";
 import { db } from "../../../config/Firebase";// Ensure Firebase is configured
 import {
   doc,
   deleteDoc,
+  updateDoc,
   collection,
   getDocs,
   onSnapshot,
@@ -44,6 +48,9 @@ const ExpenseList = ({ expenses = [], loading = false }) => {
   const [page, setPage] = useState(0);
   const [expenseData, setExpenseData] = useState(expenses)
   const [rowsPerPage, setRowsPerPage] = useState(5);
+  const [sortOrder, setSortOrder] = useState("asc"); // "asc" or "desc"
+  const [editingExpense, setEditingExpense] = useState(null); // Track editing expense
+  const [updatedExpense, setUpdatedExpense] = useState({}); // Store updated values
 
   const userRole =localStorage.getItem("userRole");
 
@@ -130,6 +137,43 @@ const ExpenseList = ({ expenses = [], loading = false }) => {
     setRowsPerPage(parseInt(event.target.value, 10));
     setPage(0);
   };
+
+  const handleEdit = (expense) => {
+    setEditingExpense(expense.id);
+    setUpdatedExpense({
+      expenseType: expense.expenseType,
+      price: expense.price,
+      otherExpense: expense.otherExpense || "",
+    });
+  };
+  
+  const handleSave = async (id) => {
+    try {
+      const expenseRef = doc(db, "expenses", id);
+  
+      // Log updated data for debugging
+      console.log("Saving Expense:", updatedExpense);
+  
+      // Update Firestore
+      await updateDoc(expenseRef, updatedExpense);
+  
+      alert("Expense updated successfully!");
+  
+      // Update local state
+      const updatedExpenses = expenseData.map((expense) =>
+        expense.id === id ? { ...expense, ...updatedExpense } : expense
+      );
+      setExpenseData(updatedExpenses);
+  
+      // Exit editing mode
+      setEditingExpense(null);
+    } catch (error) {
+      console.error("Error updating expense:", error);
+      alert("Error saving expense. Please try again.");
+    }
+  };
+
+  const handleSortChange = (event) => setSortOrder(event.target.value);
 
   return (
     <Box>
@@ -224,39 +268,74 @@ const ExpenseList = ({ expenses = [], loading = false }) => {
         <TableRow key={index}>
           <TableCell>{date}</TableCell>
           <TableCell>
-            <Accordion>
-              <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-                <Typography variant="subtitle1">View Expenses</Typography>
-              </AccordionSummary>
-              <AccordionDetails>
-                {groupedExpenses[date].map((expense, i) => (
-                  <Box
-                    key={i}
-                    sx={{
-                      mb: 1,
-                      p: 1,
-                      bgcolor: "#f9f9f9",
-                      borderRadius: 2,
-                    }}
-                  >
-                    <Typography key={i}>
-                      <strong> Expense {i + 1}</strong> <br />
-                      <strong>Type:</strong> {expense.expenseType} |{" "}
-                      <strong>Price:</strong> Rs. {expense.price}
-                    </Typography>
-                    <Typography>
-                      <strong>Other:</strong> {expense.otherExpense || ""}
-                    </Typography>
-                    <IconButton
-                      onClick={() => handleDelete(expense.id)}
-                      color="error"
-                    >
-                      <DeleteIcon />
-                    </IconButton>
-                  </Box>
-                ))}
-              </AccordionDetails>
-            </Accordion>
+          <Accordion>
+                            <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+                              <Typography>View Expenses</Typography>
+                            </AccordionSummary>
+                            <AccordionDetails>
+                              {groupedExpenses[date].map((expense) => (
+                                <Box key={expense.id}>
+                                  {editingExpense === expense.id ? (
+                                    <Box>
+                                      <TextField
+  label="Expense Type"
+  value={updatedExpense.expenseType || ""}
+  onChange={(e) =>
+    setUpdatedExpense({ ...updatedExpense, expenseType: e.target.value })
+  }
+/>
+<TextField
+  label="Price"
+  type="number"
+  value={updatedExpense.price || ""}
+  onChange={(e) =>
+    setUpdatedExpense({ ...updatedExpense, price: e.target.value })
+  }
+/>
+<TextField
+  label="Other Expense"
+  value={updatedExpense.otherExpense || ""}
+  onChange={(e) =>
+    setUpdatedExpense({ ...updatedExpense, otherExpense: e.target.value })
+  }
+/>
+                                      <IconButton
+                                        onClick={() => handleSave(expense.id)}
+                                      >
+                                      Save
+                                      </IconButton>
+                                      <IconButton
+                                        onClick={() => setEditingExpense(null)}
+                                      >
+                                        <CancelIcon />
+                                      </IconButton>
+                                    </Box>
+                                  ) : (
+                                    <Box>
+                                      <Typography>
+                                        Type: {expense.expenseType} | Price: Rs.{" "}
+                                        {expense.price}
+                                      </Typography>
+                                      <Typography>
+                                        Other: {expense.otherExpense || ""}
+                                      </Typography>
+                                      <IconButton
+                                        onClick={() => handleEdit(expense)}
+                                      >
+                                        <EditIcon />
+                                      </IconButton>
+                                      <IconButton
+                                        onClick={() => handleDelete(expense.id)}
+                                        color="error"
+                                      >
+                                        <DeleteIcon />
+                                      </IconButton>
+                                    </Box>
+                                  )}
+                                </Box>
+                              ))}
+                            </AccordionDetails>
+                          </Accordion>
           </TableCell>
           <TableCell>
             Rs. {calculateTotalExpense(groupedExpenses[date])}

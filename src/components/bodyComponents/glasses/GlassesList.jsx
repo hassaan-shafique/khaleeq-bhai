@@ -265,7 +265,7 @@ const GlassesList = ({ glasses = [], loading = false, onDelete, onEdit }) => {
             <Box
               sx={{
                 display: "flex",
-                gap: "1rem", // Add gap property for consistent spacing
+                gap: "1rem", 
                 marginBottom: "1rem",
               }}
             >
@@ -273,14 +273,14 @@ const GlassesList = ({ glasses = [], loading = false, onDelete, onEdit }) => {
                 variant="outlined"
                 label="Search by Number"
                 value={searchNumber}
-                onChange={(e) => setSearchNumber(e.target.value)} // Update searchNumber state
+                onChange={(e) => setSearchNumber(e.target.value)} 
                 sx={{ width: "300px" }}
               />
               <TextField
                 variant="outlined"
                 label="Search by Type"
                 value={searchType}
-                onChange={(e) => setSearchType(e.target.value)} // Update searchType state
+                onChange={(e) => setSearchType(e.target.value)} 
                 sx={{ width: "300px" }}
               />
               <FormControl sx={{ width: "300px", marginBottom: "1rem" }}>
@@ -320,7 +320,7 @@ const GlassesList = ({ glasses = [], loading = false, onDelete, onEdit }) => {
             style={{
               display: "flex",
               justifyContent: "flex-end",
-              marginTop: "-2rem",
+              marginTop: "2rem",
               marginBottom: "1rem",
             }}
           >
@@ -328,7 +328,7 @@ const GlassesList = ({ glasses = [], loading = false, onDelete, onEdit }) => {
           </div>
 
           {filteredGlasses.length === 0 ? (
-            <Typography variant="h6" align="center" sx={{ marginTop: 4 }}>
+            <Typography variant="h6" align="center" sx={{ marginTop: 8 }}>
               No Glasses found....
             </Typography>
           ) : (
@@ -338,24 +338,24 @@ const GlassesList = ({ glasses = [], loading = false, onDelete, onEdit }) => {
                 sx={{
                   maxHeight: 500,
                   maxWidth: "100%",
-                  width: "98%", // Increased width to 98%
+                  width: "98%", 
                   overflowX: "auto",
-                  borderRadius: "8px", // Rounded corners for the table container
-                  boxShadow: "0px 4px 6px rgba(0, 0, 0, 0.7)", // Soft shadow for depth
+                  borderRadius: "8px", 
+                  boxShadow: "0px 4px 6px rgba(0, 0, 0, 0.7)", 
                   "&::-webkit-scrollbar": {
-                    width: "10px", // Width of the vertical scrollbar
-                    height: "10px", // Height of the horizontal scrollbar
+                    width: "10px", 
+                    height: "10px", 
                   },
                   "&::-webkit-scrollbar-track": {
-                    backgroundColor: "#f0f0f0", // Track color
-                    borderRadius: "10px", // Rounded track
+                    backgroundColor: "#f0f0f0", 
+                    borderRadius: "10px", 
                   },
                   "&::-webkit-scrollbar-thumb": {
-                    backgroundColor: "#888", // Scrollbar thumb color
-                    borderRadius: "10px", // Rounded thumb
-                    border: "2px solid #f0f0f0", // Adds spacing around the thumb
+                    backgroundColor: "#888", 
+                    borderRadius: "10px", 
+                    border: "2px solid #f0f0f0", 
                     "&:hover": {
-                      backgroundColor: "#555", // Darker on hover
+                      backgroundColor: "#555",
                     },
                   },
                 }}
@@ -364,13 +364,13 @@ const GlassesList = ({ glasses = [], loading = false, onDelete, onEdit }) => {
                   <TableHead>
                     <TableRow
                       sx={{
-                        backgroundColor: "#E0F7FA", // Light blue background for header
+                        backgroundColor: "#E0F7FA", 
                         "& th": {
                           fontWeight: "bold",
-                          color: "#black", // Darker color for text
-                          padding: "12px 16px", // Padding for header cells
-                          textAlign: "center", // Center align header text
-                          borderBottom: "2px solid #black", // Bottom border for header cells
+                          color: "#black", 
+                          padding: "12px 16px", 
+                          textAlign: "center", 
+                          borderBottom: "2px solid #black", 
                         },
                       }}
                     >
@@ -391,9 +391,9 @@ const GlassesList = ({ glasses = [], loading = false, onDelete, onEdit }) => {
                         key={glass.id}
                         sx={{
                           "&:hover": {
-                            backgroundColor: "#f1f1f1", // Subtle hover effect for rows
+                            backgroundColor: "#f1f1f1", 
                           },
-                          transition: "background-color 0.3s", // Smooth transition on hover
+                          transition: "background-color 0.3s", 
                         }}
                       >
                         <TableCell align="center">{i + 1}</TableCell>
@@ -412,14 +412,14 @@ const GlassesList = ({ glasses = [], loading = false, onDelete, onEdit }) => {
                                 ? "lightgreen"
                                 : glass.quantity <= 10
                                 ? "red"
-                                : "inherit", // Use red if less than 10, otherwise inherit background
+                                : "inherit", 
                             fontWeight:
                               glass.quantity > 10
                                 ? "bold"
                                 : glass.quantity < 10
                                 ? "bold"
-                                : "normal", // Bold if highlighted
-                            color: glass.quantity < 10 ? "#fff" : "inherit", // White text for low stock
+                                : "normal", 
+                            color: glass.quantity < 10 ? "#fff" : "inherit", 
                           }}
                         >
                           {glass.quantity}
@@ -438,7 +438,7 @@ const GlassesList = ({ glasses = [], loading = false, onDelete, onEdit }) => {
                             sx={{
                               marginRight: "8px",
                               "&:hover": {
-                                backgroundColor: "#e0f7fa", // Light hover effect for edit icon
+                                backgroundColor: "#e0f7fa", 
                               },
                             }}
                           >
@@ -451,7 +451,7 @@ const GlassesList = ({ glasses = [], loading = false, onDelete, onEdit }) => {
                               color="error"
                               sx={{
                                 "&:hover": {
-                                  backgroundColor: "#ffebee", // Light hover effect for delete icon
+                                  backgroundColor: "#ffebee",
                                 },
                               }}
                             >
