@@ -7,6 +7,7 @@ import SaleStats from "./modules/saleStats";
 import SaleByProduct from "./modules/saleByProduct";
 import SaleByQuantity from "./modules/saleByQuantity";
 import ExpenseStats from "./modules/ExpenseStats";
+import CashInHand from "./modules/CashInHand";
 
 
 
@@ -79,6 +80,10 @@ const ReportCards = () => {
     <Box sx={{ padding: 14 }}>
       <Grid container spacing={4}>
         {/* First Row: SaleStats */}
+        <Grid item xs={12}>
+          <CashInHand salesData={salesData} expenses={expenses}/>
+        </Grid>
+        
         <Grid item xs={12}>
           <SaleStats salesData={salesData} />
         </Grid>

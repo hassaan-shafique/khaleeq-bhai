@@ -4,8 +4,9 @@ import DialogActions from "@mui/material/DialogActions";
 import DialogContent from "@mui/material/DialogContent";
 import DialogContentText from "@mui/material/DialogContentText";
 import DialogTitle from "@mui/material/DialogTitle";
-import TextField from "@mui/material/TextField";
+
 import Button from "@mui/material/Button";
+import { TextField, MenuItem, Select, InputLabel, FormControl } from "@mui/material";
 import { doc, updateDoc, deleteDoc ,addDoc,collection,query,getDocs,where,} from "firebase/firestore"; // Firestore functions
 import { db } from "../../../../config/Firebase"; // Ensure db is correctly imported
 
@@ -13,6 +14,7 @@ const AddInstallment = ({ saleId, open, handleClose, updatePendingAmount=()=>{} 
   const [formData, setFormData] = useState({
     date: "",
     amount: "",
+    payment: "",
     saleId,
   });
 
@@ -63,6 +65,20 @@ const AddInstallment = ({ saleId, open, handleClose, updatePendingAmount=()=>{} 
           value={formData.amount}
           onChange={handleChange}
         />
+       <FormControl fullWidth margin="dense">
+  <InputLabel>Payment Method</InputLabel>
+  <Select
+    name="payment"
+    value={formData.payment}
+    onChange={handleChange}
+    label="Payment Method"
+  >
+    <MenuItem value="Cash">Cash</MenuItem>
+    <MenuItem value="Bank">Bank</MenuItem>
+    <MenuItem value="JazzCash">JazzCash</MenuItem>
+    <MenuItem value="EasyPaisa">EasyPaisa</MenuItem>
+  </Select>
+</FormControl>
       </DialogContent>
       <DialogActions>
         <Button onClick={handleClose} color="secondary">

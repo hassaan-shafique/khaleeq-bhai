@@ -72,6 +72,12 @@ export const ViewInstallment = ({ id, open, handleClose }) => {
                     align="left"
                     sx={{ fontWeight: "bold", backgroundColor: "#f5f5f5" }}
                   >
+                    Payment Method
+                  </TableCell>
+                  <TableCell
+                    align="left"
+                    sx={{ fontWeight: "bold", backgroundColor: "#f5f5f5" }}
+                  >
                     Date
                   </TableCell>
                 </TableRow>
@@ -85,6 +91,9 @@ export const ViewInstallment = ({ id, open, handleClose }) => {
                     >
                       <TableCell align="left">
                         Rs. {installment.amount}
+                      </TableCell>
+                      <TableCell align="left">
+                         {installment.payment}
                       </TableCell>
                       <TableCell align="left">
                         {new Date(installment.date).toLocaleDateString()}

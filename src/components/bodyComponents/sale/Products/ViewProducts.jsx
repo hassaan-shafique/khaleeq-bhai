@@ -599,11 +599,14 @@ const handleDeleteClick = async (product, productType) => {
               <TableRow>
                 <TableCell style={styles.tableCell}>Sr. No</TableCell>
                 <TableCell style={styles.tableCell}>Order No</TableCell>
-                <TableCell style={styles.tableCell}>Vendor Name</TableCell>
                 <TableCell style={styles.tableCell}>Borrowed Branch</TableCell>
-                <TableCell style={styles.tableCell}>Quantity</TableCell>
+                <TableCell style={styles.tableCell}>Vendor Name</TableCell>
+                <TableCell style={styles.tableCell}>Glass Number</TableCell>
+                <TableCell style={styles.tableCell}>Item Number</TableCell>
                 <TableCell style={styles.tableCell}>Price</TableCell>
-                <TableCell style={styles.tableCell}>Item Name</TableCell>
+                <TableCell style={styles.tableCell}>Quantity</TableCell>
+
+               
                 <TableCell style={styles.tableCell}>Delivered Date</TableCell>
               </TableRow>
             </TableHead>
@@ -612,11 +615,14 @@ const handleDeleteClick = async (product, productType) => {
                 <TableRow key={index}>
                   <TableCell>{index + 1}</TableCell>
                   <TableCell>{product.orderNumber}</TableCell>
-                  <TableCell>{product.vendorName}</TableCell>
                   <TableCell>{product.borrowedBranch}</TableCell>
-                  <TableCell>{product.quantity}</TableCell>
+                  <TableCell>{product.vendorName}</TableCell>
+                  <TableCell>{product.vendorGlassNumber}</TableCell>
+                  <TableCell>{product.vendorItemNumber}</TableCell>
                   <TableCell>{product.vendorPrice}</TableCell>
-                  <TableCell>{product.VendorItemName}</TableCell>
+                  <TableCell>{product.quantity}</TableCell>
+                  
+                  
                   <TableCell>
                     {formatDate(product.vendorDeliveredDate)}
                   </TableCell>
