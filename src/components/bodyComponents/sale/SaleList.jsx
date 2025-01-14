@@ -36,7 +36,7 @@ import EyeIcon from '@mui/icons-material/Visibility';
 import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 import DatePicker from "react-datepicker";
 import { doc, updateDoc, deleteDoc ,addDoc,collection,query,getDocs,where,} from "firebase/firestore"; // Firestore functions
-import { db } from "../../../config/Firebase"; // Ensure db is correctly imported
+import { db } from "../../../config/Firebase"; 
 import AddInstallment from "./Installments/addInstallment";
 import ViewInstallment from "./Installments/viewInstallments";
 import { useNavigate } from "react-router-dom";

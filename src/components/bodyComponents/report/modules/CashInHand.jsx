@@ -1,10 +1,17 @@
 import React, { useState, useEffect } from "react";
-import { Grid, Card, CardContent, Typography, Box, Button, TextField } from "@mui/material";
+import { Grid, Card, CardContent, Typography, Box, Button, TextField,
+  
+  MenuItem,
+  FormControl,
+  Select,
+  InputLabel,
+ } from "@mui/material";
+import ChartComponent from "./ChartComponent";
 
 const CashInHand = ({ salesData, expenses }) => {
   const [timeframe, setTimeframe] = useState("day"); // Default to "day"
   const [customDate, setCustomDate] = useState({ start: "", end: "" });
-  const [paymentFilter ,setPaymentFilter] = useState ( "");
+  const [paymentFilter ,setPaymentFilter] = useState ( "Cash");
 
   const STATUS = {
     COMPLETED : "Completed",
@@ -73,7 +80,7 @@ const CashInHand = ({ salesData, expenses }) => {
   
     expenses.forEach((expense) => {
       if (
-        (!paymentFilter || expense.payment === paymentFilter) && // Apply payment filter if set
+      // Apply payment filter if set
         (!timeframe || (
           (timeframe === "day" && isSameDay(expense.selectedDate)) ||
           (timeframe === "week" && isSameWeek(expense.selectedDate)) ||
@@ -160,6 +167,19 @@ const CashInHand = ({ salesData, expenses }) => {
           </Grid>
         </Grid>
       )}
+      <FormControl fullWidth sx={{ marginBottom: 4 }}>
+        <InputLabel>Payment Type</InputLabel>
+        <Select
+          value={paymentFilter}
+          onChange={(e) => setPaymentFilter(e.target.value)}
+        >
+          <MenuItem value="">All</MenuItem>
+          <MenuItem value="Cash">Cash</MenuItem>
+          <MenuItem value="Bank">Bank</MenuItem>
+          <MenuItem value="JazzCash">JazzCash</MenuItem>
+          <MenuItem value="EasyPaisa">EasyPaisa</MenuItem>
+        </Select>
+      </FormControl>
 
       {/* Cash In Hand Summary */}
       <Grid container spacing={3}>
@@ -213,6 +233,17 @@ const CashInHand = ({ salesData, expenses }) => {
           </Card>
         </Grid>
       </Grid>
+      <Box sx = {{marginTop: 8}} >
+      <Grid>
+      <ChartComponent
+        totalSales={totalSales}
+        totalExpenses={totalExpenses}
+        remainingCash={remainingCash}
+      />
+      </Grid>
+      </Box>
+
+
     </Box>
   );
 };

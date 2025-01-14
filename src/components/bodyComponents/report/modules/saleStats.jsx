@@ -44,33 +44,69 @@ const SaleStats = ({salesData}) => {
   const COLORS = ["#0088FE", "#00C49F", "#FFBB28", "#FF8042", "#845EC2"];
    const  userRole =localStorage.getItem ("userRole");
 
-  useEffect(() => {
+   useEffect(() => {
     const getSalesData = () => {
-      setSaleStats([])
-      let sales = []
-      salesData.forEach(sale => {
+      setSaleStats([]);
+      let filteredSales = [];
+  
+      salesData.forEach((sale) => {
         if (sale.status === STATUS.COMPLETED) {
-          if (
-            (!paymentFilter || sale.payment === paymentFilter) && // Apply payment filter
+          const saleDate = new Date(sale.startDate.seconds * 1000);
+  
+          // Single-day logic
+          if (timeframe === "custom" && customDate.start === customDate.end) {
+            const selectedDate = new Date(customDate.start);
+            if (
+              saleDate.toDateString() === selectedDate.toDateString() &&
+              (!paymentFilter || sale.payment === paymentFilter)
+            ) {
+              filteredSales.push(sale);
+            }
+          }
+          // Date-range logic
+          else if (timeframe === "custom" && customDate.start && customDate.end) {
+            const startDate = new Date(customDate.start);
+            const endDate = new Date(customDate.end);
+            endDate.setHours(23, 59, 59, 999); // Include the full end day
+            if (
+              saleDate >= startDate &&
+              saleDate <= endDate &&
+              (!paymentFilter || sale.payment === paymentFilter)
+            ) {
+              filteredSales.push(sale);
+            }
+          }
+          // Non-custom logic (day, week, month)
+          else if (
+            (!paymentFilter || sale.payment === paymentFilter) &&
             ((timeframe === "day" && isSameDay(sale.startDate)) ||
               (timeframe === "week" && isSameWeek(sale.startDate)) ||
               (timeframe === "month" && isSameMonth(sale.startDate)))
           ) {
-            sales.push(sale);
+            filteredSales.push(sale);
           }
         }
       });
-      setSaleStats(sales);
+  
+      setSaleStats(filteredSales);
     };
-    
+  
     if (salesData.length) {
-      getSalesData()
+      getSalesData();
     }
-   
-  }, [timeframe, salesData, paymentFilter]);
+  }, [timeframe, salesData, paymentFilter, customDate]);
+  
+  // useEffect(() => {
+  //   if (timeframe === "custom" && (!customDate.start || !customDate.end)) {
+  //     setSaleStats([]); // Clear sales stats if dates are missing
+  //   }
+  // }, [timeframe, customDate]);
 
   const handleTimeframeChange = (newTimeframe) => {
     setTimeframe(newTimeframe);
+    if (newTimeframe === "custom" && (!customDate.start || !customDate.end)) {
+      alert("Please select both start and end dates for the custom range.");
+    }
   };
 
   const isSameDay = (orderDate) => {
@@ -94,6 +130,17 @@ const SaleStats = ({salesData}) => {
     const saleDate = new Date(orderDate.seconds * 1000);
     return saleDate.getMonth() === now.getMonth() && saleDate.getFullYear() === now.getFullYear();
   };
+
+  const isInCustomRange = (orderDate) => {
+    if (!customDate.start || !customDate.end) return false;
+
+    const startDate = new Date(customDate.start);
+    const endDate = new Date(customDate.end);
+    const saleDate = new Date(orderDate.seconds * 1000);
+
+    return saleDate >= startDate && saleDate <= endDate;
+  };
+
   const calculatePieData = () => {
     const groupedData = {};
 
@@ -168,22 +215,43 @@ const SaleStats = ({salesData}) => {
 
   const calculateTotalSales = () => {
     let totalSales = 0;
+  
     salesData.forEach((sale) => {
       if (
         sale.status === STATUS.COMPLETED &&
         (!paymentFilter || sale.payment === paymentFilter) // Apply payment filter
       ) {
+        const saleDate = new Date(sale.startDate.seconds * 1000); // Convert Firestore timestamp
+        const startDate = customDate.start ? new Date(customDate.start) : null;
+        const endDate = customDate.end ? new Date(customDate.end) : null;
+  
+        // Ensure the end date includes the entire day
+        if (endDate) {
+          endDate.setHours(23, 59, 59, 999);
+        }
+  
+        const withinCustomRange =
+          timeframe === "custom" &&
+          startDate &&
+          endDate &&
+          saleDate >= startDate &&
+          saleDate <= endDate;
+  
         if (
           (timeframe === "day" && isSameDay(sale.startDate)) ||
           (timeframe === "week" && isSameWeek(sale.startDate)) ||
-          (timeframe === "month" && isSameMonth(sale.startDate))
+          (timeframe === "month" && isSameMonth(sale.startDate)) ||
+          withinCustomRange
         ) {
           totalSales += sale.totalAmount;
         }
       }
     });
+  
     return totalSales;
   };
+  
+  
   
 
 
@@ -249,13 +317,12 @@ const formatTimestamp = (timestamp) => {
         </Grid>
         <Grid item>
         {userRole === "admin" && ( 
-          <Button
-            variant={timeframe === "custom" ? "contained" : "outlined"}
-            color="primary"
-            onClick={() => handleTimeframeChange("custom")}
-          >
-            Custom
-          </Button>
+           <Button
+                variant={timeframe === "custom" ? "contained" : "outlined"}
+                onClick={() => handleTimeframeChange("custom")}
+              >
+                Custom
+              </Button>
         )}
         </Grid>
 
@@ -264,33 +331,33 @@ const formatTimestamp = (timestamp) => {
 
       {/* Custom Date Range Selection */}
       {timeframe === "custom" && (
-        <Grid container spacing={2} sx={{ marginBottom: 4 }}>
-          <Grid item xs={6}>
-            <TextField
-              label="Start Date"
-              type="date"
-              fullWidth
-              InputLabelProps={{ shrink: true }}
-              value={customDate.start}
-              onChange={(e) =>
-                setCustomDate((prev) => ({ ...prev, start: e.target.value }))
-              }
-            />
-          </Grid>
-          <Grid item xs={6}>
-            <TextField
-              label="End Date"
-              type="date"
-              fullWidth
-              InputLabelProps={{ shrink: true }}
-              value={customDate.end}
-              onChange={(e) =>
-                setCustomDate((prev) => ({ ...prev, end: e.target.value }))
-              }
-            />
-          </Grid>
-        </Grid>
-      )}
+  <Grid container spacing={2} sx={{ marginBottom: 4 }}>
+    <Grid item xs={6} md={6}>
+      <TextField
+        label="Start Date"
+        type="date"
+        fullWidth
+        InputLabelProps={{ shrink: true }}
+        value={customDate.start}
+        onChange={(e) =>
+          setCustomDate((prev) => ({ ...prev, start: e.target.value }))
+        }
+      />
+    </Grid>
+    <Grid item xs={6} md={6}>
+      <TextField
+        label="End Date"
+        type="date"
+        fullWidth
+        InputLabelProps={{ shrink: true }}
+        value={customDate.end}
+        onChange={(e) =>
+          setCustomDate((prev) => ({ ...prev, end: e.target.value }))
+        }
+      />
+    </Grid>
+  </Grid>
+)}
 
 <FormControl fullWidth sx={{ marginBottom: 4 }}>
         <InputLabel>Payment Type</InputLabel>
