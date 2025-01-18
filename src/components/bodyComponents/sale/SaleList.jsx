@@ -86,9 +86,8 @@ const SaleList = ({ sales = [], loading = false,  }) => {
   const [filterStartDate, setFilterStartDate] =useState("");
   const [filterEndDate,setFilterEndDate] =useState ("");
   const [sortDate,setSortDate] = useState ("asc");
-  
 
-  const handleSort = () => {
+    const handleSort = () => {
    
     setSortDate((prevSortDate) => (prevSortDate === "asc" ? "desc" : "asc"));
   };
@@ -514,6 +513,7 @@ const handleSaveEdit = async () => {
       >
         Total Pending Amount: Rs: {calculatePendingTotal().toFixed(2)}
       </Typography>
+
       
 
       {loading ? (
@@ -599,8 +599,8 @@ const handleSaveEdit = async () => {
 
                         {/* <TableCell sx={{ fontWeight: "bold" }}>
                       Total Amount
-                    </TableCell>
-                    <TableCell sx={{ fontWeight: "bold" }}>Advance</TableCell> */}
+                    </TableCell> */}
+                    {/* <TableCell sx={{ fontWeight: "bold" }}>Advance</TableCell> */}
                         <TableCell sx={{ fontWeight: "bold" }}>
                           Pending Amount
                         </TableCell>
@@ -657,8 +657,8 @@ const handleSaveEdit = async () => {
                             {sale.doctor}
                           </TableCell>
 
-                          {/* <TableCell>{sale.totalAmount}</TableCell>
-                      <TableCell>{sale.advance}</TableCell> */}
+                          {/* <TableCell>{sale.totalAmount}</TableCell> */}
+                      {/* <TableCell>{sale.advance}</TableCell> */}
                           <TableCell sx={{ padding: "2px" }}>
                             {sale.pendingAmount}
                           </TableCell>
@@ -716,6 +716,7 @@ const handleSaveEdit = async () => {
                               )}
                             </Box>
                           </TableCell>
+                         
 
                           <TableCell
                             sx={{
@@ -789,6 +790,7 @@ const handleSaveEdit = async () => {
             setInstallmentViewDialogOpen(false);
             setSelectedSaleId(null);
           }}
+        
         />
       )}
 

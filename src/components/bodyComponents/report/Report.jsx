@@ -1,20 +1,23 @@
 import React, { useEffect, useState } from "react";
-import { Grid, Box, CircularProgress } from "@mui/material";
+import { Grid, Box, CircularProgress, Button, Table, Tab, TableCell } from "@mui/material";
 import { collection, getDocs } from "firebase/firestore";
 import { db } from "../../../config/Firebase"; // Adjust path as per your project structure
 import SaleStats from "./modules/saleStats";
-
 import SaleByProduct from "./modules/saleByProduct";
 import SaleByQuantity from "./modules/saleByQuantity";
 import ExpenseStats from "./modules/ExpenseStats";
 import CashInHand from "./modules/CashInHand";
 
-
-
 const ReportCards = () => {
   const [salesData, setSalesData] = useState([]);
   const [loading, setLoading] = useState(true);
   const [expenses, setExpenses] = useState([]);
+  
+  const [selectedComponent, setSelectedComponent] = useState("CashInHand");
+  
+
+ 
+ 
 
   const fetchSalesData = async () => {
     setLoading(true);
@@ -36,10 +39,6 @@ const ReportCards = () => {
   useEffect(() => {
     fetchSalesData();
   }, []);
-
-
-
-  
 
   useEffect(() => {
     const fetchExpenses = async () => {
@@ -76,34 +75,77 @@ const ReportCards = () => {
     );
   }
 
+
   return (
     <Box sx={{ padding: 14 }}>
-      <Grid container spacing={4}>
-        {/* First Row: SaleStats */}
-        <Grid item xs={12}>
-          <CashInHand salesData={salesData} expenses={expenses}/>
-        </Grid>
-        
-        <Grid item xs={12}>
-          <SaleStats salesData={salesData} />
-        </Grid>
+      {/* Button to switch between components */}
+    
 
-        <Grid item xs={12}>
-          <ExpenseStats expenses={expenses} />
+      {/* Cash In Hand Component (Always visible) */}
+      <Grid item xs={12}>
+        <CashInHand   salesData={salesData} expenses={expenses} />
+      </Grid>
+      <Grid container spacing={2} sx={{ marginBottom: 4 }}>
+        <Grid item>
+          <Button
+            variant={selectedComponent === "SaleStats" ? "contained" : "outlined"}
+            onClick={() => setSelectedComponent("SaleStats")}
+          >
+          Show Detail Sales Report
+          </Button>
         </Grid>
-
-       
-
-     
-        <Grid item xs={12}>
-          <SaleByProduct salesData={salesData} />
+        <Grid item>
+          <Button
+            variant={selectedComponent === "ExpenseStats" ? "contained" : "outlined"}
+            onClick={() => setSelectedComponent("ExpenseStats")}
+          >
+           Show Expense Report
+          </Button>
         </Grid>
-
-        
-        <Grid item xs={12}>
-          <SaleByQuantity salesData={salesData} />
+        <Grid item>
+          <Button
+            variant={selectedComponent === "SaleByProduct" ? "contained" : "outlined"}
+            onClick={() => setSelectedComponent("SaleByProduct")}
+          >
+            Sale Detail Product Report
+          </Button>
+        </Grid>
+        <Grid item>
+          <Button
+            variant={selectedComponent === "SaleByQuantity" ? "contained" : "outlined"}
+            onClick={() => setSelectedComponent("SaleByQuantity")}
+          >
+            show Product Quantity Report
+          </Button>
         </Grid>
       </Grid>
+      
+
+      {/* Render Selected Component */}
+      <Grid container spacing={4}>
+        {selectedComponent === "SaleStats" && (
+          <Grid item xs={12}>
+            <SaleStats salesData={salesData} />
+          </Grid>
+        )}
+        {selectedComponent === "ExpenseStats" && (
+          <Grid item xs={12}>
+            <ExpenseStats expenses={expenses} />
+          </Grid>
+        )}
+        {selectedComponent === "SaleByProduct" && (
+          <Grid item xs={12}>
+            <SaleByProduct salesData={salesData} />
+          </Grid>
+        )}
+        {selectedComponent === "SaleByQuantity" && (
+          <Grid item xs={12}>
+            <SaleByQuantity salesData={salesData} />
+          </Grid>
+        )}
+      </Grid>
+
+      
     </Box>
   );
 };

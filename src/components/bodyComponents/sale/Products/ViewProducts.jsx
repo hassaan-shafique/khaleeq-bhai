@@ -200,13 +200,6 @@ const handleDeleteClick = async (product, productType) => {
 };
 
 
-
-
-
-
-
-
-
   const handleSaveProduct = async () => {
     try {
       const updatedSalesData = { ...salesData };

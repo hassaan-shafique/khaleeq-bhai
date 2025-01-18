@@ -106,7 +106,8 @@ const ExpenseForm = ({ setRefresh }) => {
       }
 
       setOpen(false);
-      setRefresh((prev) => !prev); // Trigger refresh
+      setRefresh((prev) => !prev);
+      setExpenses([]); // Trigger refresh
     } catch (error) {
       console.error("Error adding document: ", error);
     }

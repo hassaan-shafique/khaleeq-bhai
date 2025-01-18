@@ -18,7 +18,7 @@ import {
 import { collection, getDocs } from "firebase/firestore";
 import { db } from "../../../../config/Firebase";
 
-export const ViewInstallment = ({ id, open, handleClose }) => {
+export const ViewInstallment = ({ id, open, handleClose}) => {
   const [installments, setInstallments] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -33,6 +33,8 @@ export const ViewInstallment = ({ id, open, handleClose }) => {
         ...doc.data(),
       }));
       setInstallments(data.filter((f) => f.saleId === id));
+
+     
     } catch (error) {
       console.error("Error fetching installments:", error);
       setError("Failed to fetch installments. Please try again later."); // Set error message
@@ -44,6 +46,12 @@ export const ViewInstallment = ({ id, open, handleClose }) => {
   useEffect(() => {
     fetchInstallments();
   }, [id]); // Fetch installments whenever the `id` changes
+
+  // Calculate the total amount
+  const totalAmount = installments.reduce(
+    (sum, installment) => sum + Number(installment.amount || 0),
+    0
+  );
 
   return (
     <Dialog open={open} onClose={handleClose} maxWidth="md" fullWidth>
@@ -59,56 +67,56 @@ export const ViewInstallment = ({ id, open, handleClose }) => {
           ) : error ? (
             <p>{error}</p> // Display error message if there is an error
           ) : installments.length ? (
-            <Table stickyHeader>
-              <TableHead>
-                <TableRow>
-                  <TableCell
-                    align="left"
-                    sx={{ fontWeight: "bold", backgroundColor: "#f5f5f5" }}
-                  >
-                    Amount
-                  </TableCell>
-                  <TableCell
-                    align="left"
-                    sx={{ fontWeight: "bold", backgroundColor: "#f5f5f5" }}
-                  >
-                    Payment Method
-                  </TableCell>
-                  <TableCell
-                    align="left"
-                    sx={{ fontWeight: "bold", backgroundColor: "#f5f5f5" }}
-                  >
-                    Date
-                  </TableCell>
-                </TableRow>
-              </TableHead>
-              <TableBody>
-                {installments.length ? (
-                  installments.map((installment) => (
+            <>
+              <Table stickyHeader>
+                <TableHead>
+                  <TableRow>
+                    <TableCell
+                      align="left"
+                      sx={{ fontWeight: "bold", backgroundColor: "#f5f5f5" }}
+                    >
+                      Amount
+                    </TableCell>
+                    <TableCell
+                      align="left"
+                      sx={{ fontWeight: "bold", backgroundColor: "#f5f5f5" }}
+                    >
+                      Payment Method
+                    </TableCell>
+                    <TableCell
+                      align="left"
+                      sx={{ fontWeight: "bold", backgroundColor: "#f5f5f5" }}
+                    >
+                      Date
+                    </TableCell>
+                  </TableRow>
+                </TableHead>
+                <TableBody>
+                  {installments.map((installment) => (
                     <TableRow
                       key={installment.id}
                       sx={{ "&:hover": { backgroundColor: "#f0f0f0" } }}
                     >
-                      <TableCell align="left">
-                        Rs. {installment.amount}
-                      </TableCell>
-                      <TableCell align="left">
-                         {installment.payment}
-                      </TableCell>
+                      <TableCell align="left">Rs. {installment.amount}</TableCell>
+                      <TableCell align="left">{installment.payment}</TableCell>
                       <TableCell align="left">
                         {new Date(installment.date).toLocaleDateString()}
                       </TableCell>
                     </TableRow>
-                  ))
-                ) : (
-                  <TableRow>
-                    <TableCell colSpan={2} align="center">
-                      <Typography>No installments available.</Typography>
-                    </TableCell>
-                  </TableRow>
-                )}
-              </TableBody>
-            </Table>
+                  ))}
+                </TableBody>
+              </Table>
+              <Typography
+                variant="h6"
+                sx={{
+                  textAlign: "right",
+                  marginTop: 2,
+                  fontWeight: "bold",
+                }}
+              >
+                Total: Rs. {totalAmount}
+              </Typography>
+            </>
           ) : (
             <p>No installments available.</p>
           )}

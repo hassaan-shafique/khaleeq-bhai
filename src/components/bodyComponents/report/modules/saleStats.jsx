@@ -251,6 +251,117 @@ const SaleStats = ({salesData}) => {
     return totalSales;
   };
   
+  const calculateInHandSales = () => {
+    let totalInHand = 0;
+  
+    salesData.forEach((sale) => {
+      if (
+        sale.status === STATUS.COMPLETED &&
+        (!paymentFilter || sale.payment === paymentFilter) // Apply payment filter
+      ) {
+        const saleDate = new Date(sale.startDate.seconds * 1000); // Convert Firestore timestamp
+        const startDate = customDate.start ? new Date(customDate.start) : null;
+        const endDate = customDate.end ? new Date(customDate.end) : null;
+  
+        // Ensure the end date includes the entire day
+        if (endDate) {
+          endDate.setHours(23, 59, 59, 999);
+        }
+  
+        const withinCustomRange =
+          timeframe === "custom" &&
+          startDate &&
+          endDate &&
+          saleDate >= startDate &&
+          saleDate <= endDate;
+  
+        if (
+          (timeframe === "day" && isSameDay(sale.startDate)) ||
+          (timeframe === "week" && isSameWeek(sale.startDate)) ||
+          (timeframe === "month" && isSameMonth(sale.startDate)) ||
+          withinCustomRange
+        ) {
+          totalInHand += Number(sale.advance);
+        }
+      }
+    });
+  
+    return totalInHand;
+  };
+  const calculateDiscountSales = () => {
+    let totalDiscount = 0;
+  
+    salesData.forEach((sale) => {
+      if (
+        sale.status === STATUS.COMPLETED &&
+        (!paymentFilter || sale.payment === paymentFilter) // Apply payment filter
+      ) {
+        const saleDate = new Date(sale.startDate.seconds * 1000); // Convert Firestore timestamp
+        const startDate = customDate.start ? new Date(customDate.start) : null;
+        const endDate = customDate.end ? new Date(customDate.end) : null;
+  
+        // Ensure the end date includes the entire day
+        if (endDate) {
+          endDate.setHours(23, 59, 59, 999);
+        }
+  
+        const withinCustomRange =
+          timeframe === "custom" &&
+          startDate &&
+          endDate &&
+          saleDate >= startDate &&
+          saleDate <= endDate;
+  
+        if (
+          (timeframe === "day" && isSameDay(sale.startDate)) ||
+          (timeframe === "week" && isSameWeek(sale.startDate)) ||
+          (timeframe === "month" && isSameMonth(sale.startDate)) ||
+          withinCustomRange
+        ) {
+          totalDiscount += Number(sale.discount);
+        }
+      }
+    });
+  
+    return totalDiscount;
+  };
+  const calculatePendingSales = () => {
+    let totalPending = 0;
+  
+    salesData.forEach((sale) => {
+      if (
+        
+        (!paymentFilter || sale.payment === paymentFilter) // Apply payment filter
+      ) {
+        const saleDate = new Date(sale.startDate.seconds * 1000); // Convert Firestore timestamp
+        const startDate = customDate.start ? new Date(customDate.start) : null;
+        const endDate = customDate.end ? new Date(customDate.end) : null;
+  
+        // Ensure the end date includes the entire day
+        if (endDate) {
+          endDate.setHours(23, 59, 59, 999);
+        }
+  
+        const withinCustomRange =
+          timeframe === "custom" &&
+          startDate &&
+          endDate &&
+          saleDate >= startDate &&
+          saleDate <= endDate;
+  
+        if (
+          (timeframe === "day" && isSameDay(sale.startDate)) ||
+          (timeframe === "week" && isSameWeek(sale.startDate)) ||
+          (timeframe === "month" && isSameMonth(sale.startDate)) ||
+          withinCustomRange
+        ) {
+          totalPending += Number(sale.pendingAmount);
+        }
+      }
+    });
+  
+    return totalPending;
+  };
   
   
 
@@ -375,12 +486,49 @@ const formatTimestamp = (timestamp) => {
 
 
       {/* Display Total Sales */}
-      <Paper elevation={3} sx={{ padding: 2, marginBottom: 4 }}>
-        <Typography variant="h6">Total Sales</Typography>
-        <Typography variant="h4" color="secondary">
-          {loading ? <CircularProgress size={24} /> : `Rs ${calculateTotalSales()}/-`}
-        </Typography>
-      </Paper>
+      <Box
+  sx={{
+    display: "flex",
+    flexWrap: "wrap",
+    gap: 2, // Add spacing between items
+    justifyContent: "space-between", // Adjust alignment
+    alignItems: "center", // Align vertically
+    marginBottom: 4, // Add spacing at the bottom of the row
+  }}
+>
+  {/* Total Completed Sales */}
+  <Paper elevation={3} sx={{ padding: 2, flex: "1 1 calc(25% - 16px)", minWidth: "200px" }}>
+    <Typography variant="h6">Total Completed Sales Amount</Typography>
+    <Typography variant="h4" color="secondary">
+      {loading ? <CircularProgress size={24} /> : `Rs ${calculateTotalSales()}/-`}
+    </Typography>
+  </Paper>
+
+  {/* Total Advance */}
+  <Paper elevation={3} sx={{ padding: 2, flex: "1 1 calc(25% - 16px)", minWidth: "200px" }}>
+    <Typography variant="h6">Total Advance Amount</Typography>
+    <Typography variant="h4" color="secondary">
+      {loading ? <CircularProgress size={24} /> : `Rs ${calculateInHandSales()}/-`}
+    </Typography>
+  </Paper>
+
+  {/* Total Discount */}
+  <Paper elevation={3} sx={{ padding: 2, flex: "1 1 calc(25% - 16px)", minWidth: "200px" }}>
+    <Typography variant="h6">Total Discount Amount</Typography>
+    <Typography variant="h4" color="secondary">
+      {loading ? <CircularProgress size={24} /> : `Rs ${calculateDiscountSales()}/-`}
+    </Typography>
+  </Paper>
+
+  {/* Total Pending */}
+  <Paper elevation={3} sx={{ padding: 2, flex: "1 1 calc(25% - 16px)", minWidth: "200px" }}>
+    <Typography variant="h6">Total Pending Amount</Typography>
+    <Typography variant="h4" color="secondary">
+      {loading ? <CircularProgress size={24} /> : `Rs ${calculatePendingSales()}/-`}
+    </Typography>
+  </Paper>
+</Box>
+
 
       {/* Display Sales Data in a Table */}
       <Typography variant="h6" sx={{ marginBottom: 2 }}>
@@ -388,13 +536,21 @@ const formatTimestamp = (timestamp) => {
       </Typography>
       
 <div ref={printRef}> 
-<TableContainer component={Paper} sx={{ borderRadius: 2, boxShadow: 3 }}>
+<TableContainer
+  component={Paper}
+  sx={{
+    borderRadius: 2,
+    boxShadow: 3,
+    maxHeight: 400, // Set the maximum height for the table
+    overflowY: "auto", // Enable vertical scrolling
+  }}
+>
 <div style={{ display: "flex", justifyContent: "flex-end",  }}>
         <Button onClick={handlePrint} variant="contained" color="primary">
           Print Table
         </Button>
       </div>
-  <Table >
+  <Table stickyHeader>
   
     <TableHead>
     
@@ -411,7 +567,27 @@ const formatTimestamp = (timestamp) => {
         </TableCell>
         <TableCell>
           <Typography variant="subtitle1" fontWeight="bold">
+            Order No
+          </Typography>
+        </TableCell>
+        <TableCell>
+          <Typography variant="subtitle1" fontWeight="bold">
             Amount
+          </Typography>
+        </TableCell>
+        <TableCell>
+          <Typography variant="subtitle1" fontWeight="bold">
+            Advance
+          </Typography>
+        </TableCell>
+        <TableCell>
+          <Typography variant="subtitle1" fontWeight="bold">
+            Discount
+          </Typography>
+        </TableCell>
+        <TableCell>
+          <Typography variant="subtitle1" fontWeight="bold">
+            Pending Amount
           </Typography>
         </TableCell>
         <TableCell>
@@ -456,8 +632,28 @@ const formatTimestamp = (timestamp) => {
                 </Typography>
               </TableCell>
               <TableCell>
+                <Typography variant="body2" color="primary">
+                   {sale.orderNo}
+                </Typography>
+              </TableCell>
+              <TableCell>
                 <Typography variant="body2" color="secondary">
                   Rs {sale.totalAmount}
+                </Typography>
+              </TableCell>
+              <TableCell>
+                <Typography variant="body2" color="secondary">
+                  Rs {sale.advance}
+                </Typography>
+              </TableCell>
+              <TableCell>
+                <Typography variant="body2" color="secondary">
+                  Rs {sale.discount}
+                </Typography>
+              </TableCell>
+              <TableCell>
+                <Typography variant="body2" color="secondary">
+                  Rs {sale.pendingAmount}
                 </Typography>
               </TableCell>
               <TableCell>

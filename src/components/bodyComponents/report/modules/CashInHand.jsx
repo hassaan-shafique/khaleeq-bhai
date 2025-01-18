@@ -5,18 +5,55 @@ import { Grid, Card, CardContent, Typography, Box, Button, TextField,
   FormControl,
   Select,
   InputLabel,
+  Paper,
+  CircularProgress,
  } from "@mui/material";
+ import { collection, getDocs } from "firebase/firestore";
+ import { db } from "../../../../config/Firebase"; // Adjust the import path if necessary
 import ChartComponent from "./ChartComponent";
+import ShowInstallments from "./showInstallments";
 
-const CashInHand = ({ salesData, expenses }) => {
+const CashInHand = ({ id, salesData, expenses,  }) => {
   const [timeframe, setTimeframe] = useState("day"); // Default to "day"
   const [customDate, setCustomDate] = useState({ start: "", end: "" });
   const [paymentFilter ,setPaymentFilter] = useState ( "Cash");
+  const [loading, setLoading] = useState(false)
+  const [installments, setInstallments] =useState ([]);
+  const [error, setError] = useState(null);
+  
+ // Fetch installments from Firebase
+ useEffect(() => {
+  const fetchInstallments = async () => {
+    setLoading(true);
+    try {
+      const querySnapshot = await getDocs(collection(db, "salesInstallments"));
+      const data = querySnapshot.docs.map((doc) => ({
+        id: doc.id,
+        ...doc.data(),
+      }));
+      setInstallments(data);
+    } catch (err) {
+      console.error("Error fetching installments:", err);
+      setError("Failed to fetch installments.");
+    } finally {
+      setLoading(false);
+    }
+  };
 
+  fetchInstallments();
+}, []);
+
+const handleTimeframeChange = (newTimeframe) => {
+  setTimeframe(newTimeframe);
+  if (newTimeframe !== "custom") {
+    setCustomDate({ start: null, end: null });
+  }
+};
   const STATUS = {
     COMPLETED : "Completed",
     PENDING: "PENDING"
   }
+  
 
   const isSameDay = (orderDate) => {
     const now = new Date();
@@ -55,6 +92,12 @@ const CashInHand = ({ salesData, expenses }) => {
     });
   };
 
+
+ 
+  
+  
+  
+  
   const calculateTotalSales = () => {
     let totalSales = 0;
     salesData.forEach((sale) => {
@@ -93,12 +136,99 @@ const CashInHand = ({ salesData, expenses }) => {
   
     return totalExpenses;
   };
+  const calculateInHandSales = () => {
+    let totalInHand = 0;
+  
+    salesData.forEach((sale) => {
+      // Ensure sale.startDate is not null or undefined
+      if (sale.startDate && sale.startDate.seconds) {
+        if (
+          (!paymentFilter || sale.payment === paymentFilter) // Apply payment filter
+        ) {
+          const saleDate = new Date(sale.startDate.seconds * 1000); // Convert Firestore timestamp
+          const startDate = customDate.start ? new Date(customDate.start) : null;
+          const endDate = customDate.end ? new Date(customDate.end) : null;
+  
+          // Ensure the end date includes the entire day
+          if (endDate) {
+            endDate.setHours(23, 59, 59, 999);
+          }
+  
+          const withinCustomRange =
+            timeframe === "custom" &&
+            startDate &&
+            endDate &&
+            saleDate >= startDate &&
+            saleDate <= endDate;
+  
+          if (
+            (timeframe === "day" && isSameDay(sale.startDate)) ||
+            (timeframe === "week" && isSameWeek(sale.startDate)) ||
+            (timeframe === "month" && isSameMonth(sale.startDate)) ||
+            withinCustomRange
+          ) {
+            totalInHand += Number(sale.advance);
+          }
+        }
+      }
+    });
+  
+    return totalInHand;
+  };
+  
 
   const totalSales = calculateTotalSales();
   const totalExpenses = calculateTotalExpenses();
   const remainingCash = totalSales - totalExpenses;
 
+
+  const totalInHand = calculateInHandSales();
+  const totalExpense = calculateTotalExpenses ();
+  const Balance = totalInHand - totalExpense;
+  
+  const calculatePendingSales = () => {
+    let totalPending = 0;
+  
+    salesData.forEach((sale) => {
+      // Ensure sale.startDate is not null or undefined
+      if (sale.startDate && sale.startDate.seconds) {
+        if (
+          (!paymentFilter || sale.payment === paymentFilter) // Apply payment filter
+        ) {
+          const saleDate = new Date(sale.startDate.seconds * 1000); // Convert Firestore timestamp
+          const startDate = customDate.start ? new Date(customDate.start) : null;
+          const endDate = customDate.end ? new Date(customDate.end) : null;
+  
+          // Ensure the end date includes the entire day
+          if (endDate) {
+            endDate.setHours(23, 59, 59, 999);
+          }
+  
+          const withinCustomRange =
+            timeframe === "custom" &&
+            startDate &&
+            endDate &&
+            saleDate >= startDate &&
+            saleDate <= endDate;
+  
+          if (
+            (timeframe === "day" && isSameDay(sale.startDate)) ||
+            (timeframe === "week" && isSameWeek(sale.startDate)) ||
+            (timeframe === "month" && isSameMonth(sale.startDate)) ||
+            withinCustomRange
+          ) {
+            totalPending += Number(sale.pendingAmount);
+          }
+        }
+      }
+    });
+  
+    return totalPending;
+  };
+  
   return (
+
+    
     <Box sx={{ padding: 4 }}>
       <Typography variant="h4" gutterBottom>
         Cash In Hand
@@ -188,7 +318,7 @@ const CashInHand = ({ salesData, expenses }) => {
           <Card elevation={3} sx={{ backgroundColor: "#f5f5f5" }}>
             <CardContent>
               <Typography variant="h6" color="primary">
-                Total Sales
+                Total Completed Sales
               </Typography>
               <Typography variant="h4" color="secondary">
                 Rs {totalSales.toLocaleString()}
@@ -233,12 +363,75 @@ const CashInHand = ({ salesData, expenses }) => {
           </Card>
         </Grid>
       </Grid>
+
+<Grid container spacing={1} sx={{marginTop: 7}} >
+      <Paper elevation={3} sx={{ padding: 2, flex: "1 1 calc(25% - 16px)", minWidth: "200px" }}>
+    <Typography variant="h6" color= "primary">Total Advance</Typography>
+    <Typography variant="h4" color="secondary">
+      {loading ? <CircularProgress size={24} /> : `Rs ${calculateInHandSales()}/-`}
+    </Typography>
+  </Paper>
+
+       <Grid item xs={12} sm={6} md={4}>
+          <Card elevation={3} sx={{ backgroundColor: "#f5f5f5" }}>
+            <CardContent>
+              <Typography variant="h6" color="error">
+                Total Expenses
+              </Typography>
+              <Typography variant="h4" color="secondary">
+                Rs {totalExpenses.toLocaleString()}
+              </Typography>
+            </CardContent>
+          </Card>
+        </Grid>
+
+        <Grid item xs={12} sm={6} md={4}>
+          <Card
+            elevation={3}
+            sx={{
+              backgroundColor: remainingCash >= 0 ? "#e8f5e9" : "#ffebee",
+            }}
+          >
+            <CardContent>
+              <Typography
+                variant="h6"
+                color={remainingCash >= 0 ? "success.main" : "error"}
+              >
+             Balance Amount
+              </Typography>
+              <Typography variant="h4" color="secondary">
+                Rs {Balance.toLocaleString()}
+              </Typography>
+            </CardContent>
+          </Card>
+        </Grid>
+        </Grid>
+       
+
+
+         <Paper elevation={3} sx={{ padding: 2, flex: "1 1 calc(25% - 16px)", minWidth: "200px" }}>
+            <Typography variant="h6">Total Pending Amount</Typography>
+            <Typography variant="h4" color="secondary">
+              {loading ? <CircularProgress size={24} /> : `Rs ${calculatePendingSales()}/-`}
+            </Typography>
+          </Paper>
+
+        
+        {/* <ShowInstallments
+         installments={installments} 
+         timeframe={timeframe}
+         customDate={customDate}
+        /> */}
+
       <Box sx = {{marginTop: 8}} >
       <Grid>
       <ChartComponent
         totalSales={totalSales}
         totalExpenses={totalExpenses}
         remainingCash={remainingCash}
+        totalInHand={totalInHand}
+        pendingAmount={calculatePendingSales()}
+        Balance={Balance}
       />
       </Grid>
       </Box>

@@ -71,18 +71,29 @@ const ExpenseList = ({ expenses = [], loading = false }) => {
       return acc;
     }, {});
 
-  const filteredExpenses = selectedType
+    const filteredExpenses = selectedType
     ? expenses.filter((e) => e.expenseType === selectedType)
     : expenses;
-
-  const dateFilteredExpenses = filteredExpenses.filter((item) => {
-    const itemDate = item.selectedDate ? item.selectedDate.toDate() : null;
-    return (
-      (!startDate || itemDate >= new Date(startDate)) &&
-      (!endDate || itemDate <= new Date(endDate))
-    );
-  });
-
+  
+    const dateFilteredExpenses = filteredExpenses.filter((item) => {
+      // Convert selectedDate to date object for comparison
+      const activityDate = new Date(
+        item.selectedDate.seconds ? item.selectedDate.seconds * 1000 : item.selectedDate
+      );
+    
+      // Normalize dates for comparison
+      const start = startDate ? new Date(startDate).setHours(0, 0, 0, 0) : null;
+      const end = endDate ? new Date(endDate).setHours(23, 59, 59, 999) : null;
+    
+      // Check if activityDate falls within the start and end range
+      const matchStartDate = !start || activityDate >= start;
+      const matchEndDate = !end || activityDate <= end;
+    
+      // Return true if the activityDate is within the date range or if there's no date filtering
+      return matchStartDate && matchEndDate;
+    });
+  
+  
 
  
 
