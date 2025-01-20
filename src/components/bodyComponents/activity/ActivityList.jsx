@@ -367,7 +367,7 @@ const ActivityList = ({ refresh }) => {
                       Edit
                     </Button>
 
-                    {userRole == "admin" && (
+                    
                       <Button
                         onClick={() => handleDelete(activity.id)}
                         color="secondary"
@@ -375,7 +375,7 @@ const ActivityList = ({ refresh }) => {
                       >
                         Delete
                       </Button>
-                    )}
+                   
                   </TableCell>
                 </TableRow>
               ))

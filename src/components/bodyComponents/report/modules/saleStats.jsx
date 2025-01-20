@@ -29,7 +29,7 @@ import {
 } from "recharts";
 
 
-const SaleStats = ({salesData}) => {
+const SaleStats = ({id , salesData}) => {
   const [timeframe, setTimeframe] = useState("day"); // Default to "day"
   // const [sales, setSales] = useState([]);
   const [loading, setLoading] = useState(false)
@@ -37,6 +37,7 @@ const SaleStats = ({salesData}) => {
   const [saleStats, setSaleStats] = useState([])
   const [paymentFilter, setPaymentFilter] = useState("");
   const [showChart, setShowChart] = useState(false);
+  const [installments, setInstallments] = useState([]);
   const STATUS = {
     COMPLETED : "Completed",
     PENDING: "PENDING"
@@ -95,13 +96,39 @@ const SaleStats = ({salesData}) => {
       getSalesData();
     }
   }, [timeframe, salesData, paymentFilter, customDate]);
-  
-  // useEffect(() => {
-  //   if (timeframe === "custom" && (!customDate.start || !customDate.end)) {
-  //     setSaleStats([]); // Clear sales stats if dates are missing
-  //   }
-  // }, [timeframe, customDate]);
 
+  useEffect(() => {
+    const fetchInstallments = async () => {
+      try {
+        const querySnapshot = await getDocs(collection(db, "salesInstallments"));
+        const fetchedInstallments = querySnapshot.docs.map((doc) => ({
+          id: doc.id,
+          ...doc.data(),
+        }));
+        console.log("Fetched Installments:", fetchedInstallments); // Log fetched data
+        setInstallments(fetchedInstallments); // Update state
+      } catch (error) {
+        console.error("Error fetching installments:", error);
+      }
+    };
+  
+    fetchInstallments();
+  }, []);
+  
+  const calculateInstallmentsById = (installments) => {
+    const totals = {};
+    installments.forEach(({ saleId, amount }) => {
+      console.log("Processing Installment:", saleId, amount); // Debug each installment
+      if (!totals[saleId]) totals[saleId] = 0;
+      totals[saleId] += Number(amount || 0);
+    });
+    return totals;
+  };
+  
+  const installmentTotals = calculateInstallmentsById(installments);
+  
+
+ 
   const handleTimeframeChange = (newTimeframe) => {
     setTimeframe(newTimeframe);
     if (newTimeframe === "custom" && (!customDate.start || !customDate.end)) {
@@ -329,6 +356,7 @@ const SaleStats = ({salesData}) => {
     let totalPending = 0;
   
     salesData.forEach((sale) => {
+      if (sale.startDate && sale.startDate.seconds) {
       if (
         
         (!paymentFilter || sale.payment === paymentFilter) // Apply payment filter
@@ -358,6 +386,8 @@ const SaleStats = ({salesData}) => {
           totalPending += Number(sale.pendingAmount);
         }
       }
+    }
+    
     });
   
     return totalPending;
@@ -484,8 +514,7 @@ const formatTimestamp = (timestamp) => {
         </Select>
       </FormControl>
 
-
-      {/* Display Total Sales */}
+        
       <Box
   sx={{
     display: "flex",
@@ -587,9 +616,11 @@ const formatTimestamp = (timestamp) => {
         </TableCell>
         <TableCell>
           <Typography variant="subtitle1" fontWeight="bold">
-            Pending Amount
+            installment Amount 
           </Typography>
         </TableCell>
+       
+       
         <TableCell>
           <Typography variant="subtitle1" fontWeight="bold">
             Payment Type
@@ -602,81 +633,79 @@ const formatTimestamp = (timestamp) => {
         </TableCell>
       </TableRow>
     </TableHead>
-   
+    
     <TableBody>
-      {loading ? (
-        <TableRow>
-          <TableCell colSpan={3} align="center">
-            <CircularProgress />
-          </TableCell>
-        </TableRow>
-      ) : saleStats.length > 0 ? (
-        saleStats.map( (sale,index) =>
-          sale.totalAmount ? (
-            <TableRow
-              key={sale.id}
-           
-              hover
-              sx={{
-                "&:nth-of-type(odd)": {
-                  backgroundColor: "#f9f9f9",
-                },
-              }}
-            >
-              <TableCell>
+  {loading ? (
+    <TableRow>
+      <TableCell colSpan={3} align="center">
+        <CircularProgress />
+      </TableCell>
+    </TableRow>
+  ) : saleStats.length > 0 ? (
+    saleStats.map((sale, index) =>
+      sale.totalAmount ? (
+        <TableRow
+          key={sale.id}
+          hover
+          sx={{
+            "&:nth-of-type(odd)": {
+              backgroundColor: "#f9f9f9",
+            },
+          }}
+        >
+          <TableCell>
             <Typography variant="body2">{index + 1}</Typography>
           </TableCell>
-              <TableCell>
-                <Typography variant="body2">
-                  {formatTimestamp(sale.startDate)}
-                </Typography>
-              </TableCell>
-              <TableCell>
-                <Typography variant="body2" color="primary">
-                   {sale.orderNo}
-                </Typography>
-              </TableCell>
-              <TableCell>
-                <Typography variant="body2" color="secondary">
-                  Rs {sale.totalAmount}
-                </Typography>
-              </TableCell>
-              <TableCell>
-                <Typography variant="body2" color="secondary">
-                  Rs {sale.advance}
-                </Typography>
-              </TableCell>
-              <TableCell>
-                <Typography variant="body2" color="secondary">
-                  Rs {sale.discount}
-                </Typography>
-              </TableCell>
-              <TableCell>
-                <Typography variant="body2" color="secondary">
-                  Rs {sale.pendingAmount}
-                </Typography>
-              </TableCell>
-              <TableCell>
-                <Typography variant="body2">{sale.payment}</Typography>
-              </TableCell>
-              <TableCell>
-                <Typography variant="body2">{sale.salesman}</Typography>
-              </TableCell>
-              
-             
-            </TableRow>
-          ) : null
-        )
-      ) : (
-        <TableRow>
-          <TableCell colSpan={3} align="center">
-            <Typography variant="body2" color="textSecondary">
-              No sales data available.
+          <TableCell>
+            <Typography variant="body2">
+              {formatTimestamp(sale.startDate)}
             </Typography>
           </TableCell>
+          <TableCell>
+            <Typography variant="body2" color="primary">
+              {sale.orderNo}
+            </Typography>
+          </TableCell>
+          <TableCell>
+            <Typography variant="body2" color="secondary">
+              Rs {sale.totalAmount}
+            </Typography>
+          </TableCell>
+          <TableCell>
+            <Typography variant="body2" color="secondary">
+              Rs {sale.advance}
+            </Typography>
+          </TableCell>
+          <TableCell>
+            <Typography variant="body2" color="secondary">
+              Rs {sale.discount}
+            </Typography>
+          </TableCell>
+          <TableCell>
+            <Typography variant="body2" color="secondary">
+              Rs {installmentTotals[sale.id] || 0} 
+            </Typography>
+          </TableCell>
+        
+          <TableCell>
+            <Typography variant="body2">{sale.payment}</Typography>
+          </TableCell>
+          <TableCell>
+            <Typography variant="body2">{sale.salesman}</Typography>
+          </TableCell>
         </TableRow>
-      )}
-    </TableBody>
+      ) : null
+    )
+  ) : (
+    <TableRow>
+      <TableCell colSpan={3} align="center">
+        <Typography variant="body2" color="textSecondary">
+          No sales data available.
+        </Typography>
+      </TableCell>
+    </TableRow>
+  )}
+</TableBody>
   </Table> 
   
 </TableContainer>

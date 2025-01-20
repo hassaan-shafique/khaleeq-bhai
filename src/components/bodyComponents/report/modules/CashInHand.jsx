@@ -16,7 +16,7 @@ import ShowInstallments from "./showInstallments";
 const CashInHand = ({ id, salesData, expenses,  }) => {
   const [timeframe, setTimeframe] = useState("day"); // Default to "day"
   const [customDate, setCustomDate] = useState({ start: "", end: "" });
-  const [paymentFilter ,setPaymentFilter] = useState ( "Cash");
+  const [paymentFilter ,setPaymentFilter] = useState ( "");
   const [loading, setLoading] = useState(false)
   const [installments, setInstallments] =useState ([]);
   const [error, setError] = useState(null);
@@ -175,7 +175,204 @@ const handleTimeframeChange = (newTimeframe) => {
   
     return totalInHand;
   };
+  const calculateTotalWorth = () => {
+    let totalWorth = 0;
   
+    salesData.forEach((sale) => {
+      // Ensure sale.startDate is not null or undefined
+      if (sale.startDate && sale.startDate.seconds) {
+        if (
+          (!paymentFilter || sale.payment === paymentFilter) // Apply payment filter
+        ) {
+          const saleDate = new Date(sale.startDate.seconds * 1000); // Convert Firestore timestamp
+          const startDate = customDate.start ? new Date(customDate.start) : null;
+          const endDate = customDate.end ? new Date(customDate.end) : null;
+  
+          // Ensure the end date includes the entire day
+          if (endDate) {
+            endDate.setHours(23, 59, 59, 999);
+          }
+  
+          const withinCustomRange =
+            timeframe === "custom" &&
+            startDate &&
+            endDate &&
+            saleDate >= startDate &&
+            saleDate <= endDate;
+  
+          if (
+            (timeframe === "day" && isSameDay(sale.startDate)) ||
+            (timeframe === "week" && isSameWeek(sale.startDate)) ||
+            (timeframe === "month" && isSameMonth(sale.startDate)) ||
+            withinCustomRange
+          ) {
+            totalWorth += Number(sale.totalAmount);
+          }
+        }
+      }
+    });
+  
+    return totalWorth;
+  };
+  const calculateInCash = () => {
+    let totalInCash = 0;
+  
+    salesData.forEach((sale) => {
+      // Ensure sale.startDate is not null or undefined
+      if (sale.startDate && sale.startDate.seconds) {
+        const saleDate = new Date(sale.startDate.seconds * 1000); // Convert Firestore timestamp
+        const startDate = customDate.start ? new Date(customDate.start) : null;
+        const endDate = customDate.end ? new Date(customDate.end) : null;
+  
+        // Ensure the end date includes the entire day
+        if (endDate) {
+          endDate.setHours(23, 59, 59, 999);
+        }
+  
+        const withinCustomRange =
+          timeframe === "custom" &&
+          startDate &&
+          endDate &&
+          saleDate >= startDate &&
+          saleDate <= endDate;
+  
+        if (
+          (timeframe === "day" && isSameDay(sale.startDate)) ||
+          (timeframe === "week" && isSameWeek(sale.startDate)) ||
+          (timeframe === "month" && isSameMonth(sale.startDate)) ||
+          withinCustomRange
+        ) {
+          console.log(sale.payment);
+          if (sale.payment && sale.payment.trim() === "Cash") {
+            totalInCash += Number(sale.advance);
+          }
+        }
+      }
+    });
+  
+    return totalInCash;
+  };
+  
+  
+  const calculateSalesInBank = () => {
+    let totalInBank = 0;
+  
+    salesData.forEach((sale) => {
+      // Ensure sale.startDate is not null or undefined
+      if (sale.startDate && sale.startDate.seconds) {
+        
+          const saleDate = new Date(sale.startDate.seconds * 1000); // Convert Firestore timestamp
+          const startDate = customDate.start ? new Date(customDate.start) : null;
+          const endDate = customDate.end ? new Date(customDate.end) : null;
+  
+          // Ensure the end date includes the entire day
+          if (endDate) {
+            endDate.setHours(23, 59, 59, 999);
+          }
+  
+          const withinCustomRange =
+            timeframe === "custom" &&
+            startDate &&
+            endDate &&
+            saleDate >= startDate &&
+            saleDate <= endDate;
+  
+          if (
+            (timeframe === "day" && isSameDay(sale.startDate)) ||
+            (timeframe === "week" && isSameWeek(sale.startDate)) ||
+            (timeframe === "month" && isSameMonth(sale.startDate)) ||
+            withinCustomRange
+          ) {
+            console.log(sale.payment);
+            if (sale.payment && sale.payment.trim() === "Bank") {
+              totalInBank += Number(sale.advance);
+            }
+          }
+        
+      }
+    });
+  
+    return totalInBank;
+  };
+  const calculateSalesInJazzCash = () => {
+    let totalInJazzCash = 0;
+  
+    salesData.forEach((sale) => {
+      // Ensure sale.startDate is not null or undefined
+      if (sale.startDate && sale.startDate.seconds) {
+        
+          const saleDate = new Date(sale.startDate.seconds * 1000); // Convert Firestore timestamp
+          const startDate = customDate.start ? new Date(customDate.start) : null;
+          const endDate = customDate.end ? new Date(customDate.end) : null;
+  
+          // Ensure the end date includes the entire day
+          if (endDate) {
+            endDate.setHours(23, 59, 59, 999);
+          }
+  
+          const withinCustomRange =
+            timeframe === "custom" &&
+            startDate &&
+            endDate &&
+            saleDate >= startDate &&
+            saleDate <= endDate;
+  
+          if (
+            (timeframe === "day" && isSameDay(sale.startDate)) ||
+            (timeframe === "week" && isSameWeek(sale.startDate)) ||
+            (timeframe === "month" && isSameMonth(sale.startDate)) ||
+            withinCustomRange
+          ) {
+            console.log(sale.payment);
+            if (sale.payment && sale.payment.trim() === "JazzCash") {
+              totalInJazzCash += Number(sale.advance);
+            }
+          }
+        
+      }
+    });
+  
+    return totalInJazzCash;
+  };
+  const calculateSalesInEasypaisa = () => {
+    let totalInEasyPaisa = 0;
+  
+    salesData.forEach((sale) => {
+      // Ensure sale.startDate is not null or undefined
+      if (sale.startDate && sale.startDate.seconds) {
+        
+          const saleDate = new Date(sale.startDate.seconds * 1000); // Convert Firestore timestamp
+          const startDate = customDate.start ? new Date(customDate.start) : null;
+          const endDate = customDate.end ? new Date(customDate.end) : null;
+  
+          // Ensure the end date includes the entire day
+          if (endDate) {
+            endDate.setHours(23, 59, 59, 999);
+          }
+  
+          const withinCustomRange =
+            timeframe === "custom" &&
+            startDate &&
+            endDate &&
+            saleDate >= startDate &&
+            saleDate <= endDate;
+  
+          if (
+            (timeframe === "day" && isSameDay(sale.startDate)) ||
+            (timeframe === "week" && isSameWeek(sale.startDate)) ||
+            (timeframe === "month" && isSameMonth(sale.startDate)) ||
+            withinCustomRange
+          ) {
+            console.log(sale.payment);
+            if (sale.payment && sale.payment.trim() === "EasyPaisa") {
+              totalInEasyPaisa += Number(sale.advance);
+          }
+          }
+      }
+    });
+  
+    return totalInEasyPaisa;
+  };
 
   const totalSales = calculateTotalSales();
   const totalExpenses = calculateTotalExpenses();
@@ -310,6 +507,8 @@ const handleTimeframeChange = (newTimeframe) => {
           <MenuItem value="EasyPaisa">EasyPaisa</MenuItem>
         </Select>
       </FormControl>
+      <Typography sx ={{fontSize: 18, textAlign: "center"}}>
+          Completed Sales Report </Typography>
 
       {/* Cash In Hand Summary */}
       <Grid container spacing={3}>
@@ -364,64 +563,189 @@ const handleTimeframeChange = (newTimeframe) => {
         </Grid>
       </Grid>
 
-<Grid container spacing={1} sx={{marginTop: 7}} >
-      <Paper elevation={3} sx={{ padding: 2, flex: "1 1 calc(25% - 16px)", minWidth: "200px" }}>
-    <Typography variant="h6" color= "primary">Total Advance</Typography>
-    <Typography variant="h4" color="secondary">
-      {loading ? <CircularProgress size={24} /> : `Rs ${calculateInHandSales()}/-`}
-    </Typography>
-  </Paper>
+      <Typography sx ={{fontSize: 18, textAlign: "center"}}>
+      Pending Sales Report </Typography>
 
-       <Grid item xs={12} sm={6} md={4}>
-          <Card elevation={3} sx={{ backgroundColor: "#f5f5f5" }}>
-            <CardContent>
-              <Typography variant="h6" color="error">
-                Total Expenses
-              </Typography>
-              <Typography variant="h4" color="secondary">
-                Rs {totalExpenses.toLocaleString()}
-              </Typography>
-            </CardContent>
-          </Card>
-        </Grid>
+<Grid container spacing={7} sx={{ marginTop: 7 }}>
+  {/* First Column: Total Order Worth, Total Advance, Pending Amount */}
+  <Grid item xs={12} sm={6} md={4}>
+    <Grid container spacing={2}>
+      {/* Total Order Worth */}
+      <Grid item xs={12}>
+        <Paper elevation={3} sx={{ padding: 10 }}>
+          <Typography variant="h5" color="primary">
+            Total Order Worth
+          </Typography>
+          <Typography variant="h4" color="secondary">
+            {loading ? <CircularProgress size={24} /> : `Rs ${calculateTotalWorth()}/-`}
+          </Typography>
+        </Paper>
+      </Grid>
 
-        <Grid item xs={12} sm={6} md={4}>
-          <Card
-            elevation={3}
-            sx={{
-              backgroundColor: remainingCash >= 0 ? "#e8f5e9" : "#ffebee",
-            }}
-          >
-            <CardContent>
-              <Typography
-                variant="h6"
-                color={remainingCash >= 0 ? "success.main" : "error"}
-              >
-             Balance Amount
-              </Typography>
-              <Typography variant="h4" color="secondary">
-                Rs {Balance.toLocaleString()}
-              </Typography>
-            </CardContent>
-          </Card>
-        </Grid>
-        </Grid>
+      {/* Total Advance */}
+      <Grid item xs={12}>
+        <Paper elevation={3} sx={{ padding: 11}}>
+          <Typography variant="h6" color="primary">
+            Total Advance
+          </Typography>
+          <Typography variant="h4" color="secondary">
+            {loading ? <CircularProgress size={24} /> : `Rs ${calculateInHandSales()}/-`}
+          </Typography>
+        </Paper>
+      </Grid>
+
+      {/* Total Pending Amount */}
+      <Grid item xs={12}>
+        <Paper elevation={3} sx={{ padding: 10 }}>
+          <Typography variant="h6">
+            Total Pending Amount
+          </Typography>
+          <Typography variant="h4" color="secondary">
+            {loading ? <CircularProgress size={24} /> : `Rs ${calculatePendingSales()}/-`}
+          </Typography>
+        </Paper>
+      </Grid>
+    </Grid>
+  </Grid>
+
+  {/* Second Column: Cash Information (Cash in Bank, Cash, JazzCash, EasyPaisa) */}
+  <Grid item xs={12} sm={6} md={3}>
+    <Grid container spacing={2}>
+
+    <Grid item xs={12}>
+        <Card elevation={3} sx={{ backgroundColor: "#f5f5f5" }}>
+          <CardContent>
+            <Typography variant="h6" color="error">
+              Cash
+            </Typography>
+            <Typography variant="h4" color="secondary">
+            {loading ? <CircularProgress size={24} /> : `Rs ${calculateInCash()}/-`}
+          </Typography>
+          </CardContent>
+        </Card>
+      </Grid>
+
+      {/* Cash in Bank */}
+      <Grid item xs={12}>
+        <Card elevation={3} sx={{ backgroundColor: "#f5f5f5" }}>
+          <CardContent>
+            <Typography variant="h6" color="error">
+              Cash in Bank
+            </Typography>
+            <Typography variant="h4" color="secondary">
+            {loading ? <CircularProgress size={24} /> : `Rs ${calculateSalesInBank()}/-`}
+          </Typography>
+          </CardContent>
+        </Card>
+      </Grid>
+
+      {/* Cash */}
+    
+
+      {/* Cash in JazzCash */}
+      <Grid item xs={12}>
+        <Card elevation={3} sx={{ backgroundColor: "#f5f5f5" }}>
+          <CardContent>
+            <Typography variant="h6" color="error">
+              Cash in JazzCash
+            </Typography>
+            <Typography variant="h4" color="secondary">
+            {loading ? <CircularProgress size={24} /> : `Rs ${calculateSalesInJazzCash()}/-`}
+          </Typography>
+          </CardContent>
+        </Card>
+      </Grid>
+
+      {/* Cash in EasyPaisa */}
+      <Grid item xs={12}>
+        <Card elevation={3} sx={{ backgroundColor: "#f5f5f5" }}>
+          <CardContent>
+            <Typography variant="h6" color="error">
+              Cash in EasyPaisa
+            </Typography>
+            <Typography variant="h4" color="secondary">
+            {loading ? <CircularProgress size={24} /> : `Rs ${calculateSalesInEasypaisa()}/-`}
+          </Typography>
+          </CardContent>
+        </Card>
+        
+      </Grid>
+      
+    </Grid>
+   
+  </Grid>
+  
+
+  {/* Third Column: Balance Amount and Total Expenses */}
+  <Grid item xs={12} sm={6} md={5}>
+  <ShowInstallments
+         installments={installments} 
+         timeframe={timeframe} 
+         customDate={customDate}
+        />
+   
+  </Grid>
+  <Grid container spacing={3}>
+
+
+
+     {/* Total Expenses */}
+     <Grid  item xs={12} sx={{marginTop: 4}}>
+        <Card elevation={3} sx={{ backgroundColor: "#f5f5f5" , }}>
+          <CardContent>
+            <Typography variant="h6" color="error">
+              Total Expenses
+            </Typography>
+            <Typography variant="h4" color="secondary">
+              Rs {totalExpenses.toLocaleString()}
+            </Typography>
+          </CardContent>
+        </Card>
+      </Grid>
+      {/* Balance Amount */}
+      <Grid item xs={12}>
+        <Card
+          elevation={3}
+          sx={{
+            backgroundColor: remainingCash >= 0 ? "#e8f5e9" : "#ffebee", 
+          }}
+        >
+          <CardContent>
+            <Typography
+              variant="h6"
+              color={remainingCash >= 0 ? "success.main" : "error"}
+            >
+              Balance Amount
+            </Typography>
+            <Typography variant="h4" color="secondary">
+              Rs {Balance.toLocaleString()}
+            </Typography>
+          </CardContent>
+        </Card>
+      </Grid>
+     
+
+
+     
+    </Grid>
+  {/* Fourth Column: Empty for future content or adjustments */}
+  <Grid item xs={12} sm={6} md={3}>
+  
+    {/* Add additional items here if needed */}
+  </Grid>
+</Grid>
+
+
+
+
+       
+    
+
+
        
 
-
-         <Paper elevation={3} sx={{ padding: 2, flex: "1 1 calc(25% - 16px)", minWidth: "200px" }}>
-            <Typography variant="h6">Total Pending Amount</Typography>
-            <Typography variant="h4" color="secondary">
-              {loading ? <CircularProgress size={24} /> : `Rs ${calculatePendingSales()}/-`}
-            </Typography>
-          </Paper>
-
         
-        {/* <ShowInstallments
-         installments={installments} 
-         timeframe={timeframe}
-         customDate={customDate}
-        /> */}
+       
 
       <Box sx = {{marginTop: 8}} >
       <Grid>
