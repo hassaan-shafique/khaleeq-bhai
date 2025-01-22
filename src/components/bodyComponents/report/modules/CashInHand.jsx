@@ -20,6 +20,8 @@ const CashInHand = ({ id, salesData, expenses,  }) => {
   const [loading, setLoading] = useState(false)
   const [installments, setInstallments] =useState ([]);
   const [error, setError] = useState(null);
+
+  const userRole = localStorage.getItem('userRole')
   
  // Fetch installments from Firebase
  useEffect(() => {
@@ -442,28 +444,34 @@ const handleTimeframeChange = (newTimeframe) => {
           </Button>
         </Grid>
         <Grid item>
+         {userRole === "admin" && ( 
           <Button
             variant={timeframe === "week" ? "contained" : "outlined"}
             onClick={() => setTimeframe("week")}
           >
             Week
           </Button>
+ )}
         </Grid>
         <Grid item>
+        {userRole === "admin" && ( 
           <Button
             variant={timeframe === "month" ? "contained" : "outlined"}
             onClick={() => setTimeframe("month")}
           >
             Month
           </Button>
+          )}
         </Grid>
         <Grid item>
+        {userRole === "admin" && ( 
           <Button
             variant={timeframe === "custom" ? "contained" : "outlined"}
             onClick={() => setTimeframe("custom")}
           >
             Custom
           </Button>
+          )}
         </Grid>
       </Grid>
 
