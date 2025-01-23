@@ -1,4 +1,4 @@
-import React, { useState ,useEffect  } from "react";
+import React, { useState, useEffect } from 'react'
 import {
   TableContainer,
   Table,
@@ -18,217 +18,208 @@ import {
   InputLabel,
   FormControl,
   TextField,
-  TablePagination,
- 
-} from "@mui/material";
-import EditIcon from "@mui/icons-material/Edit"; // Add this import
+  TablePagination
+} from '@mui/material'
+import EditIcon from '@mui/icons-material/Edit' // Add this import
 
-import CancelIcon from "@mui/icons-material/Cancel"; 
-import DeleteIcon from "@mui/icons-material/Delete";
-import IconButton from "@mui/material/IconButton";
-import { db } from "../../../config/Firebase";// Ensure Firebase is configured
-import {
-  doc,
-  deleteDoc,
-  updateDoc,
-  collection,
-  getDocs,
-  onSnapshot,
-  query,
-  where,
-} from "firebase/firestore";
-import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
-import { Timestamp } from "firebase/firestore";
-
+import CancelIcon from '@mui/icons-material/Cancel'
+import DeleteIcon from '@mui/icons-material/Delete'
+import IconButton from '@mui/material/IconButton'
+import { db } from '../../../config/Firebase' // Ensure Firebase is configured
+import { doc, deleteDoc, updateDoc, collection, getDocs, onSnapshot, query, where } from 'firebase/firestore'
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
 
 const ExpenseList = ({ expenses = [], loading = false }) => {
-  const [selectedType, setSelectedType] = useState("");
-  const [startDate, setStartDate] = useState("");
-  const [endDate, setEndDate] = useState("");
-  const [page, setPage] = useState(0);
+  const [selectedType, setSelectedType] = useState('')
+  const [startDate, setStartDate] = useState('')
+  const [endDate, setEndDate] = useState('')
+  const [page, setPage] = useState(0)
   const [expenseData, setExpenseData] = useState(expenses)
-  const [rowsPerPage, setRowsPerPage] = useState(5);
-  const [sortOrder, setSortOrder] = useState("asc"); // "asc" or "desc"
-  const [editingExpense, setEditingExpense] = useState(null); // Track editing expense
-  const [updatedExpense, setUpdatedExpense] = useState({}); // Store updated values
+  const [rowsPerPage, setRowsPerPage] = useState(10)
+  const [sortOrder, setSortOrder] = useState('asc') // "asc" or "desc"
+  const [editingExpense, setEditingExpense] = useState(null) // Track editing expense
+  const [updatedExpense, setUpdatedExpense] = useState({}) // Store updated values
+  const [editingDate, setEditingDate] = useState(null); // Track date being edited
+  const [newDate, setNewDate] = useState(""); 
 
-  const userRole =localStorage.getItem("userRole");
 
-  const formatTimestamp = (timestamp) =>
-    timestamp ? timestamp.toDate().toLocaleDateString("en-GB") : "";
+  const userRole = localStorage.getItem('userRole')
+
+  const formatTimestamp = timestamp => (timestamp ? timestamp.toDate().toLocaleDateString('en-GB') : '')
   // where("selectedDate", "==", new Date(date));
   // const q = query(
   //   collection(db, "expenses"),
   //   where("selectedDate", "==", Timestamp.fromDate(new Date(date)))
   // );
 
-  const groupExpensesByDate = (expenses) =>
+  const groupExpensesByDate = expenses =>
     expenses.reduce((acc, expense) => {
-      const date = expense.selectedDate
-        ? formatTimestamp(expense.selectedDate)
-        : "No Date";
-      acc[date] = acc[date] ? [...acc[date], expense] : [expense];
-      return acc;
-    }, {});
+      const date = expense.selectedDate ? formatTimestamp(expense.selectedDate) : 'No Date'
+      acc[date] = acc[date] ? [...acc[date], expense] : [expense]
+      return acc
+    }, {})
 
-    const filteredExpenses = selectedType
-    ? expenses.filter((e) => e.expenseType === selectedType)
-    : expenses;
-  
-    const dateFilteredExpenses = filteredExpenses.filter((item) => {
-      // Convert selectedDate to date object for comparison
-      const activityDate = new Date(
-        item.selectedDate.seconds ? item.selectedDate.seconds * 1000 : item.selectedDate
-      );
-    
-      // Normalize dates for comparison
-      const start = startDate ? new Date(startDate).setHours(0, 0, 0, 0) : null;
-      const end = endDate ? new Date(endDate).setHours(23, 59, 59, 999) : null;
-    
-      // Check if activityDate falls within the start and end range
-      const matchStartDate = !start || activityDate >= start;
-      const matchEndDate = !end || activityDate <= end;
-    
-      // Return true if the activityDate is within the date range or if there's no date filtering
-      return matchStartDate && matchEndDate;
-    });
-  
-  
+  const filteredExpenses = selectedType ? expenses.filter(e => e.expenseType === selectedType) : expenses
 
- 
+  const dateFilteredExpenses = filteredExpenses.filter(item => {
+    // Convert selectedDate to date object for comparison
+    const activityDate = new Date(item.selectedDate.seconds ? item.selectedDate.seconds * 1000 : item.selectedDate)
 
+    // Normalize dates for comparison
+    const start = startDate ? new Date(startDate).setHours(0, 0, 0, 0) : null
+    const end = endDate ? new Date(endDate).setHours(23, 59, 59, 999) : null
 
+    // Check if activityDate falls within the start and end range
+    const matchStartDate = !start || activityDate >= start
+    const matchEndDate = !end || activityDate <= end
 
-  const groupedExpenses = groupExpensesByDate(dateFilteredExpenses);
-  const sortedDates = Object.keys(groupedExpenses).sort(
-    (a, b) => new Date(b) - new Date(a)
-  );
+    // Return true if the activityDate is within the date range or if there's no date filtering
+    return matchStartDate && matchEndDate
+  })
 
-  
-  const calculateTotalExpense = (expenses) => {
-    if (!expenses?.length) return 0; // Handle empty arrays gracefully
-    return expenses.reduce(
-      (accumulator, expense) => accumulator + Number(expense.price),
-      0
-    );
-  };
+  const groupedExpenses = groupExpensesByDate(dateFilteredExpenses)
 
-  
-  const calculateGrandTotal = (groupedExpenses) => {
-    if (!Object.keys(groupedExpenses).length) return 0; 
+  const sortedDates = Object.keys(groupedExpenses).sort((a, b) => new Date(b) - new Date(a))
+
+  const calculateTotalExpense = expenses => {
+    if (!expenses?.length) return 0 // Handle empty arrays gracefully
+    return expenses.reduce((accumulator, expense) => accumulator + Number(expense.price), 0)
+  }
+
+  const calculateGrandTotal = groupedExpenses => {
+    if (!Object.keys(groupedExpenses).length) return 0
 
     return Object.values(groupedExpenses).reduce(
       (grandTotal, expensesForDate) =>
-        grandTotal +
-        expensesForDate.reduce(
-          (total, expense) => total + Number(expense.price),
-          0
-        ),
+        grandTotal + expensesForDate.reduce((total, expense) => total + Number(expense.price), 0),
       0
-    );
-  };
- const handleDelete = async (id) => {
-   try {
-     // Optimistically update the state
-     const updatedExpenses = expenseData.filter((expense) => expense.id !== id);
-     setExpenseData(updatedExpenses);
-       alert(" Successfull");
-
-     // Delete from Firebase
-     await deleteDoc(doc(db, "expenses", id));
-   } catch (error) {
-     console.error("Failed to delete expense:", error);
-   
-   }
- };
-
-
-  const handleChangePage = (event, newPage) => setPage(newPage);
-  const handleChangeRowsPerPage = (event) => {
-    setRowsPerPage(parseInt(event.target.value, 10));
-    setPage(0);
-  };
-
-  const handleEdit = (expense) => {
-    setEditingExpense(expense.id);
-    setUpdatedExpense({
-      expenseType: expense.expenseType,
-      price: expense.price,
-      otherExpense: expense.otherExpense || "",
-    });
-  };
+    )
+  }
+  const handleSaveDate = async (oldDate) => {
+    if (!newDate) {
+      alert("Please select a valid date.");
+      return;
+    }
   
-  const handleSave = async (id) => {
     try {
-      const expenseRef = doc(db, "expenses", id);
+      // Find all expenses for the old date
+      const expensesToUpdate = groupedExpenses[oldDate];
   
-      // Log updated data for debugging
-      console.log("Saving Expense:", updatedExpense);
+      // Update each expense's selectedDate in Firestore
+      const promises = expensesToUpdate.map((expense) => {
+        const expenseRef = doc(db, "expenses", expense.id);
+        return updateDoc(expenseRef, { selectedDate: new Date(newDate) });
+      });
   
-      // Update Firestore
-      await updateDoc(expenseRef, updatedExpense);
+      await Promise.all(promises);
   
-      alert("Expense updated successfully!");
+      alert("Date updated successfully!");
   
       // Update local state
       const updatedExpenses = expenseData.map((expense) =>
-        expense.id === id ? { ...expense, ...updatedExpense } : expense
+        expensesToUpdate.includes(expense)
+          ? { ...expense, selectedDate: new Date(newDate) }
+          : expense
       );
-      setExpenseData(updatedExpenses);
   
-      // Exit editing mode
-      setEditingExpense(null);
+      setExpenseData(updatedExpenses);
+      setEditingDate(null); // Exit edit mode
+      setNewDate(""); // Clear new date input
     } catch (error) {
-      console.error("Error updating expense:", error);
-      alert("Error saving expense. Please try again.");
+      console.error("Error updating date:", error);
+      alert("Failed to update date. Please try again.");
     }
   };
+  
+  const handleDelete = async id => {
+    try {
+      // Optimistically update the state
+      const updatedExpenses = expenseData.filter(expense => expense.id !== id)
+      setExpenseData(updatedExpenses)
+      alert(' Successfull')
 
-  const handleSortChange = (event) => setSortOrder(event.target.value);
+      // Delete from Firebase
+      await deleteDoc(doc(db, 'expenses', id))
+    } catch (error) {
+      console.error('Failed to delete expense:', error)
+    }
+  }
+
+  const handleChangePage = (event, newPage) => setPage(newPage)
+  const handleChangeRowsPerPage = event => {
+    setRowsPerPage(parseInt(event.target.value, 10))
+    setPage(0)
+  }
+
+  const handleEdit = expense => {
+    setEditingExpense(expense.id)
+    setUpdatedExpense({
+      expenseType: expense.expenseType,
+      price: expense.price,
+      otherExpense: expense.otherExpense || ''
+    })
+  }
+
+  const handleSave = async id => {
+    try {
+      const expenseRef = doc(db, 'expenses', id)
+
+      // Log updated data for debugging
+      console.log('Saving Expense:', updatedExpense)
+
+      // Update Firestore
+      await updateDoc(expenseRef, updatedExpense)
+
+      alert('Expense updated successfully!')
+
+      // Update local state
+      const updatedExpenses = expenseData.map(expense =>
+        expense.id === id ? { ...expense, ...updatedExpense } : expense
+      )
+      setExpenseData(updatedExpenses)
+
+      // Exit editing mode
+      setEditingExpense(null)
+    } catch (error) {
+      console.error('Error updating expense:', error)
+      alert('Error saving expense. Please try again.')
+    }
+  }
+
+  const handleSortChange = event => setSortOrder(event.target.value)
 
   return (
     <Box>
       {loading ? (
-        <Box sx={{ display: "flex", justifyContent: "center", mt: 4 }}>
+        <Box sx={{ display: 'flex', justifyContent: 'center', mt: 4 }}>
           <CircularProgress />
         </Box>
       ) : (
         <>
-          {userRole == "admin" && (
-            <Box sx={{ display: "flex", justifyContent: "center", mb: 3 }}>
+          <Box sx={{ display: 'flex', justifyContent: 'center', mb: 3 }}>
+            {userRole == 'admin' && (
               <FormControl sx={{ minWidth: 200, mr: 2 }}>
                 <InputLabel>Filter by Expense Type</InputLabel>
                 <Select
                   value={selectedType}
-                  onChange={(e) => setSelectedType(e.target.value)}
-                  label="Filter by Expense Type"
+                  onChange={e => setSelectedType(e.target.value)}
+                  label='Filter by Expense Type'
                 >
-                  <MenuItem value="">All</MenuItem>
-                  {[...new Set(expenses.map((e) => e.expenseType))].map(
-                    (type, index) => (
-                      <MenuItem key={index} value={type}>
-                        {type}
-                      </MenuItem>
-                    )
-                  )}
+                  <MenuItem value=''>All</MenuItem>
+                  {[...new Set(expenses.map(e => e.expenseType))].map((type, index) => (
+                    <MenuItem key={index} value={type}>
+                      {type}
+                    </MenuItem>
+                  ))}
                 </Select>
               </FormControl>
-              <TextField
-                type="date"
-                value={startDate}
-                onChange={(e) => setStartDate(e.target.value)}
-                sx={{ mr: 2 }}
-              />
-              <TextField
-                type="date"
-                value={endDate}
-                onChange={(e) => setEndDate(e.target.value)}
-              />
-            </Box>
-          )}
+            )}
+            <TextField type='date' value={startDate} onChange={e => setStartDate(e.target.value)} sx={{ mr: 2 }} />
+            <TextField type='date' value={endDate} onChange={e => setEndDate(e.target.value)} />
+          </Box>
 
           {sortedDates.length === 0 ? (
-            <Typography variant="h6" align="center" sx={{ mt: 4 }}>
+            <Typography variant='h6' align='center' sx={{ mt: 4 }}>
               No Expenses found....
             </Typography>
           ) : (
@@ -236,109 +227,112 @@ const ExpenseList = ({ expenses = [], loading = false }) => {
               component={Paper}
               sx={{
                 maxHeight: 500,
-                maxWidth: "100%",
-                overflowX: "auto",
-                "&::-webkit-scrollbar": {
-                  width: "10px",
-                  height: "10px",
+                maxWidth: '100%',
+                overflowX: 'auto',
+                '&::-webkit-scrollbar': {
+                  width: '10px',
+                  height: '10px'
                 },
-                "&::-webkit-scrollbar-track": {
-                  backgroundColor: "#f0f0f0",
-                  borderRadius: "10px",
+                '&::-webkit-scrollbar-track': {
+                  backgroundColor: '#f0f0f0',
+                  borderRadius: '10px'
                 },
-                "&::-webkit-scrollbar-thumb": {
-                  backgroundColor: "#888",
-                  borderRadius: "10px",
-                  border: "1px solid #f0f0f0",
-                  "&:hover": {
-                    backgroundColor: "#555",
-                  },
-                },
+                '&::-webkit-scrollbar-thumb': {
+                  backgroundColor: '#888',
+                  borderRadius: '10px',
+                  border: '1px solid #f0f0f0',
+                  '&:hover': {
+                    backgroundColor: '#555'
+                  }
+                }
               }}
             >
-             
-             <Table>
-  <TableHead>
-    <TableRow sx={{ bgcolor: "#0056b3" }}>
-      <TableCell sx={{ fontWeight: "bold", color: "white" }}>
-        Date
-      </TableCell>
-      <TableCell sx={{ fontWeight: "bold", color: "white" }}>
-        Expenses
-      </TableCell>
-      <TableCell sx={{ fontWeight: "bold", color: "white" }}>
-        Total (Rs.)
-      </TableCell>
-    </TableRow>
-  </TableHead>
-  <TableBody>
-    {sortedDates
-      .sort((a, b) => new Date(b) - new Date(a)) // Sort dates in descending order
-      .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage) // Apply pagination
-      .map((date, index) => (
-        <TableRow key={index}>
-          <TableCell>{date}</TableCell>
-          <TableCell>
-          <Accordion>
+              <Table>
+                <TableHead>
+                  <TableRow sx={{ bgcolor: '#0056b3' }}>
+                    <TableCell sx={{ fontWeight: 'bold', color: 'white' }}>Date</TableCell>
+                    <TableCell sx={{ fontWeight: 'bold', color: 'white' }}>Expenses</TableCell>
+                    <TableCell sx={{ fontWeight: 'bold', color: 'white' }}>Total (Rs.)</TableCell>
+                  </TableRow>
+                </TableHead>
+                <TableBody>
+                  {sortedDates
+                    .sort((a, b) => new Date(b) - new Date(a)) // Sort dates in descending order
+                    .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage) // Apply pagination
+                    .map((date, index) => (
+                      <TableRow key={index}>
+
+                        {/* <TableCell>{date} </TableCell> */}
+                        <TableCell>
+  {editingDate === date ? (
+    <Box>
+      <TextField
+        type="date"
+        value={newDate}
+        onChange={(e) => setNewDate(e.target.value)}
+      />
+      <IconButton onClick={() => handleSaveDate(date)}>
+        Save
+      </IconButton>
+      <IconButton onClick={() => setEditingDate(null)}>
+        <CancelIcon />
+      </IconButton>
+    </Box>
+  ) : (
+    <Box>
+      {date}
+      <IconButton onClick={() => setEditingDate(date)}>
+        <EditIcon />
+      </IconButton>
+    </Box>
+  )}
+</TableCell>
+                        
+                        <TableCell>
+                          <Accordion>
                             <AccordionSummary expandIcon={<ExpandMoreIcon />}>
                               <Typography>View Expenses</Typography>
                             </AccordionSummary>
                             <AccordionDetails>
-                              {groupedExpenses[date].map((expense) => (
+                              {groupedExpenses[date].map(expense => (
                                 <Box key={expense.id}>
                                   {editingExpense === expense.id ? (
                                     <Box>
                                       <TextField
-  label="Expense Type"
-  value={updatedExpense.expenseType || ""}
-  onChange={(e) =>
-    setUpdatedExpense({ ...updatedExpense, expenseType: e.target.value })
-  }
-/>
-<TextField
-  label="Price"
-  type="number"
-  value={updatedExpense.price || ""}
-  onChange={(e) =>
-    setUpdatedExpense({ ...updatedExpense, price: e.target.value })
-  }
-/>
-<TextField
-  label="Other Expense"
-  value={updatedExpense.otherExpense || ""}
-  onChange={(e) =>
-    setUpdatedExpense({ ...updatedExpense, otherExpense: e.target.value })
-  }
-/>
-                                      <IconButton
-                                        onClick={() => handleSave(expense.id)}
-                                      >
-                                      Save
-                                      </IconButton>
-                                      <IconButton
-                                        onClick={() => setEditingExpense(null)}
-                                      >
+                                        label='Expense Type'
+                                        value={updatedExpense.expenseType || ''}
+                                        onChange={e =>
+                                          setUpdatedExpense({ ...updatedExpense, expenseType: e.target.value })
+                                        }
+                                      />
+                                      <TextField
+                                        label='Price'
+                                        type='number'
+                                        value={updatedExpense.price || ''}
+                                        onChange={e => setUpdatedExpense({ ...updatedExpense, price: e.target.value })}
+                                      />
+                                      <TextField
+                                        label='Other Expense'
+                                        value={updatedExpense.otherExpense || ''}
+                                        onChange={e =>
+                                          setUpdatedExpense({ ...updatedExpense, otherExpense: e.target.value })
+                                        }
+                                      />
+                                      <IconButton onClick={() => handleSave(expense.id)}>Save</IconButton>
+                                      <IconButton onClick={() => setEditingExpense(null)}>
                                         <CancelIcon />
                                       </IconButton>
                                     </Box>
                                   ) : (
                                     <Box>
                                       <Typography>
-                                        Type: {expense.expenseType} | Price: Rs.{" "}
-                                        {expense.price}
+                                        Type: {expense.expenseType} | Price: Rs. {expense.price}
                                       </Typography>
-                                      <Typography>
-                                        Other: {expense.otherExpense || ""}
-                                      </Typography>
-                                      <IconButton
-                                        onClick={() => handleEdit(expense)}
-                                      >
+                                      <Typography>Other: {expense.otherExpense || ''}</Typography>
+                                      <IconButton onClick={() => handleEdit(expense)}>
                                         <EditIcon />
                                       </IconButton>
-                                      <IconButton
-                                        onClick={() => handleDelete(expense.id)}
-                                        color="error"
-                                      >
+                                      <IconButton onClick={() => handleDelete(expense.id)} color='error'>
                                         <DeleteIcon />
                                       </IconButton>
                                     </Box>
@@ -347,39 +341,35 @@ const ExpenseList = ({ expenses = [], loading = false }) => {
                               ))}
                             </AccordionDetails>
                           </Accordion>
-          </TableCell>
-          <TableCell>
-            Rs. {calculateTotalExpense(groupedExpenses[date])}
-          </TableCell>
-        </TableRow>
-      ))}
-  </TableBody>
-</Table>
-
-              
+                        </TableCell>
+                        <TableCell>Rs. {calculateTotalExpense(groupedExpenses[date])}</TableCell>
+                      </TableRow>
+                    ))}
+                </TableBody>
+              </Table>
             </TableContainer>
           )}
-          
-            {userRole == "admin" && (
-          <Typography
-            variant="h5" // Larger font size for prominence
-            sx={{
-              mt: 2,
-              textAlign: "right",
-              fontWeight: "bold", // Make it bold for emphasis
-              padding: "5px",
-              borderRadius: "8px",
-              color: "#fff", // White text for contrast
-              backgroundColor: "#1976d1", // Blue background to make it stand out
-              display: "inline-block", // Make it fit content size
-            }}
-          >
-            Grand Total: Rs. {calculateGrandTotal(groupedExpenses)}
-          </Typography>
-             )}
+
+          {userRole == 'admin' && (
+            <Typography
+              variant='h5'
+              sx={{
+                mt: 2,
+                textAlign: 'right',
+                fontWeight: 'bold',
+                padding: '5px',
+                borderRadius: '8px',
+                color: '#fff',
+                backgroundColor: '#1976d1',
+                display: 'inline-block'
+              }}
+            >
+              Grand Total: Rs. {calculateGrandTotal(groupedExpenses)}
+            </Typography>
+          )}
           <TablePagination
             rowsPerPageOptions={[5, 10, 25]}
-            component="div"
+            component='div'
             count={sortedDates.length}
             rowsPerPage={rowsPerPage}
             page={page}
@@ -389,7 +379,7 @@ const ExpenseList = ({ expenses = [], loading = false }) => {
         </>
       )}
     </Box>
-  );
-};
+  )
+}
 
-export default ExpenseList;
+export default ExpenseList

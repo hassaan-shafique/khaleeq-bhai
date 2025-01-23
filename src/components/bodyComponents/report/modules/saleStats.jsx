@@ -118,7 +118,7 @@ const SaleStats = ({id , salesData}) => {
   const calculateInstallmentsById = (installments) => {
     const totals = {};
     installments.forEach(({ saleId, amount }) => {
-      console.log("Processing Installment:", saleId, amount); // Debug each installment
+      console.log("Processing Installment:", saleId, amount); 
       if (!totals[saleId]) totals[saleId] = 0;
       totals[saleId] += Number(amount || 0);
     });

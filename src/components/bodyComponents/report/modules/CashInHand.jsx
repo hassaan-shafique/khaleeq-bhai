@@ -20,6 +20,13 @@ const CashInHand = ({ id, salesData, expenses,  }) => {
   const [loading, setLoading] = useState(false)
   const [installments, setInstallments] =useState ([]);
   const [error, setError] = useState(null);
+  const [totalInstallmentAmount, setTotalInstallmentAmount] = useState(0);
+
+  // Callback function to receive the amount from the child
+  const handleTotalInstallment = (amount) => {
+    setTotalInstallmentAmount(amount);
+    console.log("Total Installment Amount received from child:", amount);
+  };
 
   const userRole = localStorage.getItem('userRole')
   
@@ -93,15 +100,52 @@ const handleTimeframeChange = (newTimeframe) => {
       return true;
     });
   };
+  const calculateTotalInstallment = (data) => {
+    if (!Array.isArray(data)) {
+      console.error("Invalid data: Expected an array but got", data);
+      return 0;
+    }
+    return data.reduce(
+      (total, installment) => total + (Number(installment.amount) || 0),
+      0
+    );
+  };
+  // Get the total installment amount
+  const totalInstallment = calculateTotalInstallment(installments);
 
+  const calculateCashInstallments = (data) => {
+    return data
+      .filter((installment) => installment.payment === "Cash")
+      .reduce((total, installment) => total + (Number(installment.amount) || 0), 0);
+  };
 
+  const cashInstallment = calculateCashInstallments (installments);
  
   
-  
-  
+  const calculateBankInstallments = (data) => {
+    const bankInstallments = data.filter((installment) => installment.payment === "Bank");
+    console.log("Bank Installments: ", bankInstallments);
+    return bankInstallments.reduce((total, installment) => total + (Number(installment.amount) || 0), 0);
+  };
+
+  const bankInstallment = calculateBankInstallments (installments);
+  const calculateJazzCashInstallments = (data) => {
+    return data
+      .filter((installment) => installment.payment === "JazzCash")
+      .reduce((total, installment) => total + (Number(installment.amount) || 0), 0);
+  };
+  const jazzcashInstallment = calculateJazzCashInstallments (installments);
+
+  const calculateEasyPaisaInstallments = (data) => {
+    return data
+      .filter((installment) => installment.payment === "EasyPaisa")
+      .reduce((total, installment) => total + (Number(installment.amount) || 0), 0);
+  };
+
+  const easypaisaInstallment = calculateEasyPaisaInstallments (installments);
   
   const calculateTotalSales = () => {
-    let totalSales = 0;
+    let totalSales = 0; 
     salesData.forEach((sale) => {
       if (
         sale.status === STATUS.COMPLETED &&
@@ -375,14 +419,21 @@ const handleTimeframeChange = (newTimeframe) => {
   
     return totalInEasyPaisa;
   };
-
+   // for completed sale
   const totalSales = calculateTotalSales();
   const totalExpenses = calculateTotalExpenses();
   const remainingCash = totalSales - totalExpenses;
 
-
+  // for pending sale 
   const totalInHand = calculateInHandSales();
   const totalExpense = calculateTotalExpenses ();
+  const totalWorth = calculateTotalWorth();
+  const totalInBank = calculateSalesInBank ();
+  const totalInCash = calculateInCash ();
+  const totalInEasyPaisa = calculateSalesInEasypaisa();
+  const totalInJazzCash =calculateSalesInJazzCash();
+  
+  
   const Balance = totalInHand - totalExpense;
   
   const calculatePendingSales = () => {
@@ -427,12 +478,12 @@ const handleTimeframeChange = (newTimeframe) => {
   
   return (
 
-    
+      
     <Box sx={{ padding: 4 }}>
       <Typography variant="h4" gutterBottom>
         Cash In Hand
       </Typography>
-
+     
       {/* Timeframe Buttons */}
       <Grid container spacing={2} sx={{ marginBottom: 4 }}>
         <Grid item>
@@ -679,23 +730,96 @@ const handleTimeframeChange = (newTimeframe) => {
         
       </Grid>
       
+      
     </Grid>
    
   </Grid>
   
-
+  {/* <p>Total Installment Amount: Rs. {totalInstallment}</p> */}
   {/* Third Column: Balance Amount and Total Expenses */}
-  <Grid item xs={12} sm={6} md={5}>
+  
+
+
+
+
+    <Grid item xs={12} sm={6} md={5}>
+     <Grid container spacing={3}>
+  {/* First row: Total Installment */}
+  {/* <Grid item xs={12} sx={{marginTop: 5}}>
+    <Card elevation={3} sx={{ backgroundColor: "#f5f5f5" }}>
+      <CardContent>
+        <Typography variant="h6" color="error">
+          Total Installment Till Now
+        </Typography>
+        <Typography variant="h4" color="secondary">
+          Rs {totalInstallment.toLocaleString()}
+        </Typography>
+      </CardContent>
+    </Card>
+  </Grid> */}
+
+  {/* Second row and onwards: Two cards per row */}
+  {/* <Grid item xs={2} sm={6}>
+    <Card elevation={3} sx={{ backgroundColor: "#f5f5f5" }}>
+      <CardContent>
+        <Typography variant="h6" color="error">
+          Cash Installment Till Now
+        </Typography>
+        <Typography variant="h4" color="secondary">
+          Rs {cashInstallment.toLocaleString()}
+        </Typography>
+      </CardContent>
+    </Card>
+  </Grid>
+  <Grid item xs={4} sm={6}>
+    <Card elevation={3} sx={{ backgroundColor: "#f5f5f5" }}>
+      <CardContent>
+        <Typography variant="h6" color="error">
+          Bank Installment Till Now
+        </Typography>
+        <Typography variant="h4" color="secondary">
+          Rs {bankInstallment.toLocaleString()}
+        </Typography>
+      </CardContent>
+    </Card>
+  </Grid>
+  <Grid item xs={4} sm={6}>
+    <Card elevation={3} sx={{ backgroundColor: "#f5f5f5" }}>
+      <CardContent>
+        <Typography variant="h6" color="error">
+          EasyPaisa Installment Till Now
+        </Typography>
+        <Typography variant="h4" color="secondary">
+          Rs {easypaisaInstallment.toLocaleString()}
+        </Typography>
+      </CardContent>
+    </Card>
+  </Grid>
+  <Grid item xs={4} sm={6}>
+    <Card elevation={3} sx={{ backgroundColor: "#f5f5f5" }}>
+      <CardContent>
+        <Typography variant="h6" color="error">
+          JazzCash Installment Till Now
+        </Typography>
+        <Typography variant="h4" color="secondary">
+          Rs {jazzcashInstallment.toLocaleString()}
+        </Typography>
+      </CardContent>
+    </Card>
+  </Grid> */}
+ </Grid>
+
   <ShowInstallments
          installments={installments} 
          timeframe={timeframe} 
-         customDate={customDate}
+         customDate={customDate} 
+         onCalculateTotal={handleTotalInstallment}
         />
    
   </Grid>
+
+
   <Grid container spacing={3}>
-
-
 
      {/* Total Expenses */}
      <Grid  item xs={12} sx={{marginTop: 4}}>
@@ -710,6 +834,7 @@ const handleTimeframeChange = (newTimeframe) => {
           </CardContent>
         </Card>
       </Grid>
+    
       {/* Balance Amount */}
       <Grid item xs={12}>
         <Card
@@ -731,29 +856,11 @@ const handleTimeframeChange = (newTimeframe) => {
           </CardContent>
         </Card>
       </Grid>
-     
-
-
-     
+ 
     </Grid>
-  {/* Fourth Column: Empty for future content or adjustments */}
-  <Grid item xs={12} sm={6} md={3}>
+ 
   
-    {/* Add additional items here if needed */}
-  </Grid>
 </Grid>
-
-
-
-
-       
-    
-
-
-       
-
-        
-       
 
       <Box sx = {{marginTop: 8}} >
       <Grid>
