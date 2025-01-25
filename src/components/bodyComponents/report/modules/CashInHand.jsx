@@ -62,7 +62,30 @@ const handleTimeframeChange = (newTimeframe) => {
     COMPLETED : "Completed",
     PENDING: "PENDING"
   }
+  const isSameDayIns = (date) => {
+    const now = new Date();
+    const InsDate = new Date(date.seconds * 1000);
+    return InsDate.toDateString() === now.toDateString();
+  };
+
+  const isSameWeekIns = (date) => {
+    const now = new Date();
+    const startOfWeek = new Date(now);
+    startOfWeek.setDate(now.getDate() - now.getDay() -7);
+    const endOfWeek = new Date(startOfWeek);
+    endOfWeek.setDate(startOfWeek.getDate() + 7); 
+    const InsDate = new Date(date.seconds * 1000);
+    return InsDate >= startOfWeek && InsDate <= endOfWeek;
+  };
   
+  const isSameMonthIns = (date) => {
+    const now = new Date();
+    const InsDate = new Date(date.seconds * 1000);
+    return InsDate.getMonth() === now.getMonth() && InsDate.getFullYear() === now.getFullYear();
+  };
+
+
+
 
   const isSameDay = (orderDate) => {
     const now = new Date();
@@ -85,6 +108,8 @@ const handleTimeframeChange = (newTimeframe) => {
     const saleDate = new Date(orderDate.seconds * 1000);
     return saleDate.getMonth() === now.getMonth() && saleDate.getFullYear() === now.getFullYear();
   };
+
+
   const filterDataByTimeframe = (data, timeframe) => {
     return data.filter((item) => {
       const date = new Date(item.date);
@@ -99,6 +124,7 @@ const handleTimeframeChange = (newTimeframe) => {
       }
       return true;
     });
+
   };
   const calculateTotalInstallment = (data) => {
     if (!Array.isArray(data)) {
@@ -166,22 +192,40 @@ const handleTimeframeChange = (newTimeframe) => {
 
   const calculateTotalExpenses = () => {
     let totalExpenses = 0;
-  
+
     expenses.forEach((expense) => {
-      if (
-      // Apply payment filter if set
-        (!timeframe || (
-          (timeframe === "day" && isSameDay(expense.selectedDate)) ||
-          (timeframe === "week" && isSameWeek(expense.selectedDate)) ||
-          (timeframe === "month" && isSameMonth(expense.selectedDate))
-        ))
-      ) {
-        totalExpenses += Number(expense.price);
-      }
+        if (expense.selectedDate && expense.selectedDate.seconds) {
+            const expenseDate = new Date(expense.selectedDate.seconds * 1000); // Convert Firestore timestamp
+            const startDate = customDate.start ? new Date(customDate.start) : null;
+            const endDate = customDate.end ? new Date(customDate.end) : null;
+
+            if (endDate) {
+                endDate.setHours(23, 59, 59, 999);
+            }
+
+            const withinCustomRange =
+                timeframe === "custom" &&
+                startDate &&
+                endDate &&
+                expenseDate >= startDate &&
+                expenseDate <= endDate;
+
+            if (
+                (timeframe === "day" && isSameDay(expense.selectedDate)) ||
+                (timeframe === "week" && isSameWeek(expense.selectedDate)) ||
+                (timeframe === "month" && isSameMonth(expense.selectedDate)) ||
+                withinCustomRange
+            ) {
+                totalExpenses += Number(expense.price);
+            }
+        }
     });
-  
+
     return totalExpenses;
-  };
+};
+
+
+
   const calculateInHandSales = () => {
     let totalInHand = 0;
   
@@ -645,7 +689,7 @@ const handleTimeframeChange = (newTimeframe) => {
       <Grid item xs={12}>
         <Paper elevation={3} sx={{ padding: 11}}>
           <Typography variant="h6" color="primary">
-            Total Advance
+           IN (Total Advance)
           </Typography>
           <Typography variant="h4" color="secondary">
             {loading ? <CircularProgress size={24} /> : `Rs ${calculateInHandSales()}/-`}
@@ -749,7 +793,7 @@ const handleTimeframeChange = (newTimeframe) => {
     <Card elevation={3} sx={{ backgroundColor: "#f5f5f5" }}>
       <CardContent>
         <Typography variant="h6" color="error">
-          Total Installment Till Now
+         OUT (Total Installment)
         </Typography>
         <Typography variant="h4" color="secondary">
           Rs {totalInstallment.toLocaleString()}
@@ -763,7 +807,7 @@ const handleTimeframeChange = (newTimeframe) => {
     <Card elevation={3} sx={{ backgroundColor: "#f5f5f5" }}>
       <CardContent>
         <Typography variant="h6" color="error">
-          Cash Installment Till Now
+          Cash Installment 
         </Typography>
         <Typography variant="h4" color="secondary">
           Rs {cashInstallment.toLocaleString()}
@@ -775,7 +819,7 @@ const handleTimeframeChange = (newTimeframe) => {
     <Card elevation={3} sx={{ backgroundColor: "#f5f5f5" }}>
       <CardContent>
         <Typography variant="h6" color="error">
-          Bank Installment Till Now
+          Bank Installment 
         </Typography>
         <Typography variant="h4" color="secondary">
           Rs {bankInstallment.toLocaleString()}
@@ -787,7 +831,7 @@ const handleTimeframeChange = (newTimeframe) => {
     <Card elevation={3} sx={{ backgroundColor: "#f5f5f5" }}>
       <CardContent>
         <Typography variant="h6" color="error">
-          EasyPaisa Installment Till Now
+          EasyPaisa Installment 
         </Typography>
         <Typography variant="h4" color="secondary">
           Rs {easypaisaInstallment.toLocaleString()}
@@ -799,7 +843,7 @@ const handleTimeframeChange = (newTimeframe) => {
     <Card elevation={3} sx={{ backgroundColor: "#f5f5f5" }}>
       <CardContent>
         <Typography variant="h6" color="error">
-          JazzCash Installment Till Now
+          JazzCash Installment 
         </Typography>
         <Typography variant="h4" color="secondary">
           Rs {jazzcashInstallment.toLocaleString()}
@@ -807,14 +851,15 @@ const handleTimeframeChange = (newTimeframe) => {
       </CardContent>
     </Card>
   </Grid> */}
+
  </Grid>
 
-  <ShowInstallments
+   <ShowInstallments
          installments={installments} 
          timeframe={timeframe} 
          customDate={customDate} 
          onCalculateTotal={handleTotalInstallment}
-        />
+        /> 
    
   </Grid>
 
