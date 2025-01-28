@@ -47,7 +47,6 @@ export default function SideBarComponent() {
       component: <MonetizationOnOutlined fontSize="medium" color="primary" />,
     },
  
-
     {
       title: "Vendors",
       component: <SettingsOutlined fontSize="medium" color="primary" />,
@@ -64,6 +63,10 @@ export default function SideBarComponent() {
     {
       title: "Reports",
       component: <DescriptionOutlined fontSize="medium" color="primary" />,
+    },
+    {
+      title: "Verification",
+      component: <TrendingUpOutlined fontSize="medium" color="primary" />,
     },
   ];
 
@@ -109,7 +112,7 @@ const sidebarContent = (
                   borderLeft: 0,
                   borderColor: "primary.main",
                   backgroundColor:
-                    index === selected ? "darkblue" : "transparent", // Highlight selected item
+                    index === selected ? "darkblue" : "transparent", 
                 }}
               >
                 <ListItemIcon>
@@ -122,7 +125,7 @@ const sidebarContent = (
                     primaryTypographyProps={{
                       fontSize: "large",
                       fontWeight: selected === index ? "bold" : "",
-                      color: "white", // Make text white for all items
+                      color: "white",
                     }}
                   />
                 )}
@@ -143,7 +146,7 @@ const sidebarContent = (
                 borderLeft: 0,
                 borderColor: "primary.main",
                 backgroundColor:
-                  index === selected ? "darkblue" : "transparent", // Highlight selected item
+                  index === selected ? "darkblue" : "transparent", 
               }}
             >
               <ListItemIcon>
@@ -156,7 +159,7 @@ const sidebarContent = (
                   primaryTypographyProps={{
                     fontSize: "large",
                     fontWeight: selected === index ? "bold" : "",
-                    color: "white", // Make text white for all items
+                    color: "white", 
                   }}
                 />
               )}

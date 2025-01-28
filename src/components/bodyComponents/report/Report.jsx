@@ -12,7 +12,7 @@ const ReportCards = () => {
   const [salesData, setSalesData] = useState([]);
   const [loading, setLoading] = useState(true);
   const [expenses, setExpenses] = useState([]);
-  
+  const [installments, setInstallments] = useState([]);
   const [selectedComponent, setSelectedComponent] = useState("CashInHand");
   
 
@@ -60,6 +60,26 @@ const ReportCards = () => {
     fetchExpenses();
   }, []);
 
+  useEffect(() => {
+    const fetchInstallments = async () => {
+      try {
+        const installmentsCollection = collection(db, 'salesInstallments');
+        const installmentSnapshot = await getDocs(installmentsCollection);
+        const installmentList = installmentSnapshot.docs.map(doc => ({
+          id: doc.id,
+          ...doc.data(),
+        }));
+        setInstallments(installmentList);
+      } catch (error) {
+        console.error('Error fetching installment:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchInstallments();
+  }, []);
+
   if (loading) {
     return (
       <Box
@@ -83,7 +103,7 @@ const ReportCards = () => {
 
       {/* Cash In Hand Component (Always visible) */}
       <Grid item xs={12}>
-        <CashInHand   salesData={salesData} expenses={expenses} />
+        <CashInHand   salesData={salesData} expenses={expenses}  installments ={installments}/>
       </Grid>
       <Grid container spacing={2} sx={{ marginBottom: 4 }}>
         <Grid item>

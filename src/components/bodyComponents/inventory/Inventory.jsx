@@ -97,6 +97,7 @@ const Inventory = () => {
               setRefresh={setInventoryRefresh}
               
             />
+
             <InventoryList
   inventory={inventory}
   setInventoryRefresh={setInventoryRefresh}

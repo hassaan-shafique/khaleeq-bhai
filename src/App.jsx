@@ -20,6 +20,7 @@ import ViewProducts from './components/bodyComponents/sale/Products/ViewProducts
 import { app } from './config/Firebase'
 import { db } from './config/Firebase'
 import { collection, getDocs, doc } from 'firebase/firestore'
+import Verify from './components/bodyComponents/verification/verify'
 
 // Custom Protected Route Component
 const ProtectedRoute = ({ isAuthenticated, children }) => {
@@ -142,6 +143,8 @@ function App() {
             <Route path='expense' element={<Expense expenses={expenses} loading={loading} setRefresh={setRefresh} />} />
             <Route path='reports' element={<Report />} />
             <Route path='vendors' element={<Vendors />} />
+            <Route path = 'verification' element= {<Verify/>}/> 
+           
           </Route>
         </Routes>
       </BrowserRouter>
