@@ -77,11 +77,12 @@ const InstallmentData = ({ installments, timeframe, startDate ,endDate,onInstall
   
 
    const install = cashInstallment+ bankInstallment + jazzcashInstallment + easypaisaInstallment;
+
    useEffect(() => {
     if (onInstallmentCalculated) {
-      onInstallmentCalculated(install);
+      onInstallmentCalculated(install,cashInstallment,bankInstallment,jazzcashInstallment,easypaisaInstallment);
     }
-  }, [install, onInstallmentCalculated]);
+  }, [install,cashInstallment , bankInstallment, jazzcashInstallment, easypaisaInstallment,  onInstallmentCalculated]);
 
   return (
     <Grid container spacing={3}>

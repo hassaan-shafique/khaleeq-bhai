@@ -31,6 +31,7 @@
     "react-router-dom": "^6.11.2",
     "react-to-print": "^3.0.4",
     "react-webcam": "^7.2.0",
+    "react-window": "^1.8.11",
     "recharts": "^2.15.0"
   },
   "devDependencies": {
