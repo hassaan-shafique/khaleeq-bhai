@@ -17,6 +17,7 @@ import {
  MenuItem,
  Select,
  TableContainer,
+ Checkbox,
 } from "@mui/material";
 import { collection, query, where, getDocs } from "firebase/firestore";
 import { db } from "../../../../config/Firebase";
@@ -27,70 +28,122 @@ const SaleByQuantity = ({salesData}) => {
   const [timeframe, setTimeframe] = useState("day"); // Default to "day"
   // const [sales, setSales] = useState([]);
   const [loading, setLoading] = useState(false)
-  const [customDate, setCustomDate] = useState({ start: "", end: "" });
+const [customDate, setCustomDate] = useState({ start: '', end: '' })
   const [saleStats, setSaleStats] = useState([])
   const [productFilter, setProductFilter] = useState("");
-const [kbcwProducts,setKbceProducts] =useState([]);
+const [kbcwProducts,setKbcwProducts] =useState([]);
 const [glassesProducts, setGlassesProducts] =useState ([]);
 const [kbcwTotal, setKbcwTotal] = useState(0);
-  const [glassesTotal, setGlassesTotal] = useState(0);
+const [glassesTotal, setGlassesTotal] = useState(0); 
+const [checkedProducts, setCheckedProducts] = useState({});
+
   const STATUS = {
     COMPLETED : "Completed",
     PENDING: "PENDING"
   }
  const userRole = localStorage.getItem("userRole");
+ useEffect(() => {
+  const stored = localStorage.getItem("checkedProducts");
+  if (stored) {
+    setCheckedProducts(JSON.parse(stored));
+  }
+}, []);
 
-  useEffect(() => {
-    const getSalesData = () => {
-      setSaleStats([])
-      let sales = []
-      let kbcwCount = 0;
-      let glassesCount = 0;
-      salesData.forEach(sale => {
-        if (sale.status === STATUS.COMPLETED) {
-          if (
-            (!productFilter || sale.payment === productFilter) && // Apply payment filter
-            ((timeframe === "day" && isSameDay(sale.startDate)) ||
-              (timeframe === "week" && isSameWeek(sale.startDate)) ||
-              (timeframe === "month" && isSameMonth(sale.startDate)))
-          ) {
-            sales.push(sale);
-            
-            if (sale.kbcwProducts) {
-              sale.kbcwProducts.forEach((product) => {
-                kbcwCount += Number(product.enteredQuantity) || 0; // Add the quantity
-              });
-            
-              // Sort kbcwProducts by enteredQuantity in descending order
-              sale.kbcwProducts.sort((a, b) => (b.enteredQuantity || 0) - (a.enteredQuantity || 0));
-            }
-            
-            // Accumulate and sort quantities for Glasses Products
-            if (sale.glassesProducts) {
-              sale.glassesProducts.forEach((product) => {
-                glassesCount += Number(product.enteredQuantity) || 0; // Add the quantity
-              });
-            
-              // Sort glassesProducts by enteredQuantity in descending order
-              sale.glassesProducts.sort((a, b) => (b.enteredQuantity || 0) - (a.enteredQuantity || 0));
-            }
+// Helper: Save checkedProducts state to localStorage
+const saveCheckedProducts = (newState) => {
+  localStorage.setItem("checkedProducts", JSON.stringify(newState));
+};
+
+// Handler for when a checkbox is toggled
+const handleCheckboxChange = (event, product) => {
+  const { checked } = event.target;
+  // Use product.kbcwBarcode as the key (adjust if you have another unique identifier)
+  const key = product.kbcwBarcode;
+  const newState = { ...checkedProducts, [key]: checked };
+  setCheckedProducts(newState);
+  saveCheckedProducts(newState);
+};
+
+
+useEffect(() => {
+  const getSalesData = () => {
+    setSaleStats([]);
+    let sales = [];
+    let kbcwCount = 0;
+    let glassesCount = 0;
+
+    salesData.forEach((sale) => {
+      if (sale.status === STATUS.COMPLETED) {
+        const saleDate = new Date(sale.startDate.seconds * 1000);
+        let isValidSale = false;
+
+        // ✅ Single-day custom logic (start date === end date)
+        if (timeframe === "custom" && customDate.start && customDate.end) {
+          const selectedStartDate = new Date(customDate.start);
+          const selectedEndDate = new Date(customDate.end);
+
+          // Normalize times to midnight for both start and end dates for precise comparison
+          selectedStartDate.setHours(0, 0, 0, 0);
+          selectedEndDate.setHours(23, 59, 59, 999); // Full end day (till 23:59:59.999)
+
+          // If start date equals end date, it's a single day
+          if (selectedStartDate.toDateString() === selectedEndDate.toDateString()) {
+            isValidSale = saleDate.toDateString() === selectedStartDate.toDateString();
+          } else {
+            // Date range logic (start to end date)
+            isValidSale = saleDate >= selectedStartDate && saleDate <= selectedEndDate;
           }
         }
-      });
-      setSaleStats(sales);
-      setKbcwTotal(kbcwCount);
-      setGlassesTotal(glassesCount);
-    };
-    
-    if (salesData.length) {
-      getSalesData()
-    }
-   
-  }, [timeframe, salesData, productFilter]);
+        // ✅ Non-custom logic (day, week, month)
+        else {
+          isValidSale =
+            (timeframe === "day" && isSameDay(sale.startDate)) ||
+            (timeframe === "week" && isSameWeek(sale.startDate)) ||
+            (timeframe === "month" && isSameMonth(sale.startDate));
+        }
+
+        // ✅ Apply product filter and collect sales
+        if (isValidSale && (!productFilter || sale.productType === productFilter)) {
+          sales.push(sale);
+
+          // ✅ Accumulate and sort KBCW Products
+          if (sale.kbcwProducts) {
+            sale.kbcwProducts.forEach((product) => {
+              kbcwCount += Number(product.enteredQuantity) || 0;
+            });
+            sale.kbcwProducts.sort((a, b) => (b.enteredQuantity || 0) - (a.enteredQuantity || 0));
+          }
+
+          // ✅ Accumulate and sort Glasses Products
+          if (sale.glassesProducts) {
+            sale.glassesProducts.forEach((product) => {
+              glassesCount += Number(product.enteredQuantity) || 0;
+            });
+            sale.glassesProducts.sort((a, b) => (b.enteredQuantity || 0) - (a.enteredQuantity || 0));
+          }
+        }
+      }
+    });
+
+    setSaleStats(sales);
+    setKbcwTotal(kbcwCount);
+    setGlassesTotal(glassesCount);
+  };
+
+  if (salesData.length) {
+    getSalesData();
+  }
+}, [timeframe, salesData, productFilter, customDate]);
+
+
+
 
 
   const handleTimeframeChange = (newTimeframe) => {
     setTimeframe(newTimeframe);
+    if (newTimeframe === "custom" && (!customDate.start || !customDate.end)) {
+      alert("Please select both start and end dates for the custom range.");
+    }
   };
 
   const isSameDay = (orderDate) => {
@@ -115,7 +168,15 @@ const [kbcwTotal, setKbcwTotal] = useState(0);
     return saleDate.getMonth() === now.getMonth() && saleDate.getFullYear() === now.getFullYear();
   };
  
+  const isInCustomRange = (orderDate) => {
+    if (!customDate.start || !customDate.end) return false;
 
+    const startDate = new Date(customDate.start);
+    const endDate = new Date(customDate.end);
+    const saleDate = new Date(orderDate.seconds * 1000);
+
+    return saleDate >= startDate && saleDate <= endDate;
+  };
 
   // Helper function to format Firestore timestamp
 const formatTimestamp = (timestamp) => {
@@ -128,6 +189,7 @@ const formatTimestamp = (timestamp) => {
     const day = date.getDate().toString().padStart(2, "0");
     const month = (date.getMonth() + 1).toString().padStart(2, "0"); // Months are 0-based
     const year = date.getFullYear();
+    
 
     // Format as "DD/MM/YYYY"
     return `${day}/${month}/${year}`;
@@ -243,6 +305,35 @@ const handlePrint = () => {
           </Button>
         )}
         </Grid>
+         <Grid item>
+                  {userRole === 'admin' && (
+                    <Button variant={timeframe === 'custom' ? 'contained' : 'outlined'} onClick={() => setTimeframe('custom')}>
+                      Custom
+                    </Button>
+                  )}
+                </Grid>
+          {timeframe === 'custom' && (
+                <Grid container spacing={2} sx={{ marginBottom: 4 }}>
+                  <Grid item xs={6}>
+                    <TextField
+                      label='Start Date'
+                      type='date'
+                      fullWidth
+                      value={customDate.start}
+                      onChange={e => setCustomDate({ ...customDate, start: e.target.value })}
+                    />
+                  </Grid>
+                  <Grid item xs={6}>
+                    <TextField
+                      label='End Date'
+                      type='date'
+                      fullWidth
+                      value={customDate.end}
+                      onChange={e => setCustomDate({ ...customDate, end: e.target.value })}
+                    />
+                  </Grid>
+                </Grid>
+              )}
        
       </Grid>
         {/* Totals Summary */}
@@ -329,6 +420,7 @@ const handlePrint = () => {
         <TableCell sx={{ backgroundColor: '#1976d2', color: 'white' }}>Price</TableCell>
         <TableCell sx={{ backgroundColor: '#1976d2', color: 'white' }}>Size</TableCell>
         <TableCell sx={{ backgroundColor: '#1976d2', color: 'white' }}>Quantity</TableCell>
+        <TableCell sx={{ backgroundColor: '#1976d2', color: 'white' }}>Check</TableCell>
       </TableRow>
     </TableHead>
 
@@ -357,6 +449,18 @@ const handlePrint = () => {
                           <TableCell>{product.kbcwPrice}</TableCell>
                           <TableCell>{product.kbcwSize}</TableCell>
                           <TableCell>{product.enteredQuantity}</TableCell>
+                          <TableCell>
+                                    <Checkbox
+                                      color="primary"
+                                     
+                                      checked={
+                                        !!checkedProducts[product.kbcwBarcode]
+                                      }
+                                      onChange={(event) =>
+                                        handleCheckboxChange(event, product)
+                                      }
+                                    />
+                                  </TableCell>
                         </TableRow>
                       ))}
                     </TableBody>
@@ -388,6 +492,18 @@ const handlePrint = () => {
                            <TableCell>{product.glassesNumber}</TableCell>
                            <TableCell>{product.enteredQuantity}</TableCell>
                            <TableCell>{product.glassesPrice}</TableCell>
+                           <TableCell>
+                                    <Checkbox
+                                      color="primary"
+                                      // Use product.kbcwBarcode as the key
+                                      checked={
+                                        !!checkedProducts[product.kbcwBarcode]
+                                      }
+                                      onChange={(event) =>
+                                        handleCheckboxChange(event, product)
+                                      }
+                                    />
+                                  </TableCell>
                         </TableRow>
                       ))}
                     </TableBody>

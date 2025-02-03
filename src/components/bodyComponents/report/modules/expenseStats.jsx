@@ -14,11 +14,12 @@ import {
   TableContainer,
   Card,
   CardContent,
-
+ TextField,
 } from "@mui/material";
 
 const ExpenseStats = ({ expenses }) => {
   const [timeframe, setTimeframe] = useState("day"); // Default to "day"
+ const [customDate, setCustomDate] = useState({ start: '', end: '' })
   const [filteredExpenses, setFilteredExpenses] = useState([]); // Filtered expense list
   const [loading, setLoading] = useState(false);
   const [totalPrice, setTotalPrice] = useState(0);
@@ -30,57 +31,93 @@ const ExpenseStats = ({ expenses }) => {
     const filterExpenses = () => {
       const now = new Date();
       let filtered = [];
-
+  
       expenses.forEach((expense) => {
         const expenseDate = new Date(expense.selectedDate.seconds * 1000);
-
-        if (
+        let isValidExpense = false;
+  
+        // Handle custom date range logic
+        if (timeframe === "custom" && customDate.start && customDate.end) {
+          const selectedStartDate = new Date(customDate.start);
+          const selectedEndDate = new Date(customDate.end);
+  
+          // Normalize times for accurate comparisons
+          selectedStartDate.setHours(0, 0, 0, 0);
+          selectedEndDate.setHours(23, 59, 59, 999); // Full end day (till 23:59:59.999)
+  
+          // Check if expense date is within the custom range
+          isValidExpense = expenseDate >= selectedStartDate && expenseDate <= selectedEndDate;
+        } 
+        // Handle predefined timeframes (day, week, month)
+        else if (
           (timeframe === "day" && isSameDay(expenseDate, now)) ||
           (timeframe === "week" && isSameWeek(expenseDate, now)) ||
           (timeframe === "month" && isSameMonth(expenseDate, now))
         ) {
+          isValidExpense = true;
+        }
+  
+        if (isValidExpense) {
           filtered.push(expense);
         }
       });
-
+  
       setFilteredExpenses(filtered);
     };
-
+  
     if (expenses.length > 0) {
       setLoading(true);
       filterExpenses();
       setLoading(false);
     }
-  }, [timeframe, expenses]);
+  }, [timeframe, expenses, customDate]);
+  
 
-  const calculateTotalPrice = (expenses, timeframe) => {
+
+  const calculateTotalPrice = (expenses, timeframe, customDate) => {
     const now = new Date();
     let total = 0;
+  
     const filtered = expenses.filter((expense) => {
       const expenseDate = new Date(expense.selectedDate.seconds * 1000);
+      let isValidExpense = false;
+  
       if (timeframe === "day") {
-        return isSameDay(expenseDate, now);
+        isValidExpense = isSameDay(expenseDate, now);
       } else if (timeframe === "week") {
-        return isSameWeek(expenseDate, now);
+        isValidExpense = isSameWeek(expenseDate, now);
       } else if (timeframe === "month") {
-        return isSameMonth(expenseDate, now);
+        isValidExpense = isSameMonth(expenseDate, now);
+      } else if (timeframe === "custom" && customDate.start && customDate.end) {
+        const selectedStartDate = new Date(customDate.start);
+        const selectedEndDate = new Date(customDate.end);
+        
+        // Normalize times to midnight for both start and end dates for precise comparison
+        selectedStartDate.setHours(0, 0, 0, 0);
+        selectedEndDate.setHours(23, 59, 59, 999); // Full end day (till 23:59:59.999)
+  
+        // Check if the expense date is within the custom range
+        isValidExpense = expenseDate >= selectedStartDate && expenseDate <= selectedEndDate;
       }
-      return false;
+  
+      return isValidExpense;
     });
-
+  
     filtered.forEach((expense) => {
       total += parseFloat(expense.price || 0);
     });
-
+  
     setFilteredExpenses(filtered);
     return total;
   };
+  
   useEffect(() => {
     setLoading(true);
-    const total = calculateTotalPrice(expenses, timeframe);
+    const total = calculateTotalPrice(expenses, timeframe, customDate);
     setTotalPrice(total);
     setLoading(false);
-  }, [expenses, timeframe]);
+  }, [expenses, timeframe, customDate]);
+  
 
 
   // Check if two dates are on the same day
@@ -216,6 +253,35 @@ const ExpenseStats = ({ expenses }) => {
       </Grid>
     ))
   }
+    <Grid item>
+                    {userRole === 'admin' && (
+                      <Button variant={timeframe === 'custom' ? 'contained' : 'outlined'} onClick={() => setTimeframe('custom')}>
+                        Custom
+                      </Button>
+                    )}
+                  </Grid>
+            {timeframe === 'custom' && (
+                  <Grid container spacing={2} sx={{ marginBottom: 4 }}>
+                    <Grid item xs={6}>
+                      <TextField
+                        label='Start Date'
+                        type='date'
+                        fullWidth
+                        value={customDate.start}
+                        onChange={e => setCustomDate({ ...customDate, start: e.target.value })}
+                      />
+                    </Grid>
+                    <Grid item xs={6}>
+                      <TextField
+                        label='End Date'
+                        type='date'
+                        fullWidth
+                        value={customDate.end}
+                        onChange={e => setCustomDate({ ...customDate, end: e.target.value })}
+                      />
+                    </Grid>
+                  </Grid>
+                )}
 </Grid>
 
       <Card sx={{ marginBottom: 4, backgroundColor: "#f5f5f5", boxShadow: 3 }}>
