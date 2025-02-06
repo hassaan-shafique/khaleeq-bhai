@@ -12,7 +12,7 @@ import { db } from "../../../../config/Firebase"; // Ensure db is correctly impo
 
 const AddInstallment = ({ saleId, open, handleClose, updatePendingAmount=()=>{} }) => {
   const [formData, setFormData] = useState({
-    date: "",
+    date: new Date(),
     amount: "",
     payment: "",
     saleId,

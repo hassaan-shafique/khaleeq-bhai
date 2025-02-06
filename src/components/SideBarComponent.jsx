@@ -92,7 +92,19 @@ export default function SideBarComponent() {
 
 const sidebarContent = (
   <List>
-    {sideBarComponent.map((comp, index) => (
+   {sideBarComponent
+    .filter((comp) => {
+      // Show only the Verification component for the verifier role
+      if (userRole === "verifyer") {
+        return comp.title === "Verification";
+      }
+    
+      if ((comp.title === "Vendors" && userRole !== "admin")) {
+        return false;
+      }
+      return true; // Show other components for roles other than verifier
+    })
+    .map((comp, index) => (
       <ListItem disablePadding dense key={index}>
         <Box width="100%">
           {/* Check if the component is 'Vendors' and if the user is not an admin */}

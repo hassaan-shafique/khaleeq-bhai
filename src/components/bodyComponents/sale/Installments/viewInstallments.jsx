@@ -22,6 +22,7 @@ import { collection, getDocs, doc, updateDoc, deleteDoc } from 'firebase/firesto
 import { db } from '../../../../config/Firebase'
 import EditIcon from '@mui/icons-material/Edit'
 import DeleteIcon from '@mui/icons-material/Delete'
+import { Timestamp } from "firebase/firestore";
 
 export const ViewInstallment = ({ id, open, handleClose }) => {
   const [installments, setInstallments] = useState([])
@@ -33,25 +34,41 @@ export const ViewInstallment = ({ id, open, handleClose }) => {
 
   // Fetch installments from Firebase
   const fetchInstallments = async () => {
-    setLoading(true)
+    setLoading(true);
     try {
-      const querySnapshot = await getDocs(collection(db, 'salesInstallments'))
-      const data = querySnapshot.docs.map(doc => ({
-        id: doc.id,
-        ...doc.data()
-      }))
-      setInstallments(data.filter(f => f.saleId === id))
+      const querySnapshot = await getDocs(collection(db, "salesInstallments"));
+      const data = querySnapshot.docs.map((doc) => {
+        const installment = doc.data();
+  
+        return {
+          id: doc.id,
+          ...installment,
+          // Handle missing or invalid dates
+          date: installment.date
+            ? installment.date.toDate
+              ? installment.date.toDate() // Firestore Timestamp
+              : new Date(installment.date) // Assume it's a string date
+            : null, // Set to null if date is empty
+        };
+      });
+  
+      setInstallments(data.filter((f) => f.saleId === id));
     } catch (error) {
-      console.error('Error fetching installments:', error)
-      setError('Failed to fetch installments. Please try again later.')
+      console.error("Error fetching installments:", error);
+      setError("Failed to fetch installments. Please try again later.");
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
+  
 
   useEffect(() => {
-    if (id) fetchInstallments()
-  }, [id])
+    if (id) {
+      fetchInstallments().then(() => {
+        console.log("Installments fetched:", installments);
+      });
+    }
+  }, [id]);
 
   // Handle Edit Click
   const handleEditClick = installment => {
@@ -66,50 +83,56 @@ export const ViewInstallment = ({ id, open, handleClose }) => {
   }
 
   // Update Firestore Installment
+  
+
   const handleUpdateInstallment = async () => {
-    if (!selectedInstallment) return
-
+    if (!selectedInstallment) return;
+  
     try {
-      // Log the current selected installment before updating
-      console.log('Before update, selectedInstallment:', selectedInstallment)
-
-      // Determine if the date is a Firestore Timestamp and convert accordingly
-      let parsedDate
+      console.log("Before update, selectedInstallment:", selectedInstallment);
+  
+      // Parse the date properly
+      let parsedDate;
       if (selectedInstallment.date && selectedInstallment.date.toDate) {
-        parsedDate = selectedInstallment.date.toDate()
-        console.log('Converted Firestore Timestamp to Date:', parsedDate)
+        // If it's already a Firestore Timestamp, convert it to a JavaScript Date
+        parsedDate = selectedInstallment.date.toDate();
       } else {
-        parsedDate = new Date(selectedInstallment.date)
-        console.log('Parsed date from string:', parsedDate)
+        parsedDate = new Date(selectedInstallment.date);
       }
-
-      // Check if the parsed date is valid
+  
+      // Validate the parsed date
       if (isNaN(parsedDate.getTime())) {
-        throw new Error('Invalid date value: ' + selectedInstallment.date)
+        throw new Error("Invalid date value: " + selectedInstallment.date);
       }
-      console.log('Parsed Date is valid:', parsedDate)
-
+  
+      console.log("Parsed Date is valid:", parsedDate);
+  
+      // Convert to Firestore Timestamp
+      const firestoreDate = Timestamp.fromDate(parsedDate);
+  
       // Get a reference to the document in Firestore
-      const installmentRef = doc(db, 'salesInstallments', selectedInstallment.id)
-      console.log('Updating installment document at path:', installmentRef.path)
-
+      const installmentRef = doc(db, "salesInstallments", selectedInstallment.id);
+      console.log("Updating installment document at path:", installmentRef.path);
+  
       // Update the document with the new values
       await updateDoc(installmentRef, {
-        amount: Number(selectedInstallment.amount),
-        payment: selectedInstallment.payment,
-        date: parsedDate // Storing as a Date object
-      })
-      console.log('Update successful!')
-
+        amount: Number(selectedInstallment.amount), // Ensure amount is a number
+        payment: selectedInstallment.payment, // Keep payment field as it is
+        date: firestoreDate, // Use the Firestore Timestamp
+      });
+  
+      console.log("Update successful!");
+  
       // Refresh the data after update and close the dialog
-      await fetchInstallments()
-      setEditDialogOpen(false)
+      await fetchInstallments();
+      setEditDialogOpen(false);
     } catch (error) {
-      console.error('Error updating installment:', error)
-      setError('Failed to update installment.')
+      console.error("Error updating installment:", error);
+      setError("Failed to update installment.");
     }
-  }
-
+  };
+  
+  
   // Delete Firestore Installment
   const handleDeleteInstallment = async () => {
     if (!selectedInstallment) return
@@ -165,13 +188,13 @@ export const ViewInstallment = ({ id, open, handleClose }) => {
                       <TableRow key={installment.id} sx={{ '&:hover': { backgroundColor: '#f0f0f0' } }}>
                         <TableCell align='left'>Rs. {installment.amount}</TableCell>
                         <TableCell align="left">{installment?.payment || "Unknown"}</TableCell>
-                        <TableCell align='left'>
-                          {installment.date
-                            ? installment.date.toDate
-                              ? installment.date.toDate().toLocaleDateString()
-                              : new Date(installment.date).toLocaleDateString()
-                            : 'Invalid Date'}
-                        </TableCell>
+                        <TableCell align="left">
+  {installment.date
+    ? new Date(installment.date).toLocaleDateString()
+    : "No Date Available"}
+</TableCell>
+
+
                         <TableCell align='left'>
                           <IconButton onClick={() => handleEditClick(installment)} color='primary'>
                             <EditIcon />
