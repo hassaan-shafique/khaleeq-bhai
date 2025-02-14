@@ -17,6 +17,7 @@ import {
  MenuItem,
  Select,
  TableContainer,
+
 } from "@mui/material";
 import { collection, query, where, getDocs } from "firebase/firestore";
 import { db } from "../../../../config/Firebase";
@@ -29,6 +30,7 @@ import {
 } from "recharts";
 
 
+
 const SaleStats = ({id , salesData}) => {
   const [timeframe, setTimeframe] = useState("day"); // Default to "day"
   // const [sales, setSales] = useState([]);
@@ -38,6 +40,17 @@ const SaleStats = ({id , salesData}) => {
   const [paymentFilter, setPaymentFilter] = useState("");
   const [showChart, setShowChart] = useState(false);
   const [installments, setInstallments] = useState([]);
+
+  const [startDate, setStartDate] = useState("");
+  const [endDate, setEndDate] = useState("");
+
+  // Filter the installments based on selected dates
+  const filteredInstallments = installments.filter((installment) => {
+    const installmentDate = new Date(installment.date);
+    const isAfterStart = startDate ? installmentDate >= new Date(startDate) : true;
+    const isBeforeEnd = endDate ? installmentDate <= new Date(endDate) : true;
+    return isAfterStart && isBeforeEnd;
+  });
   const STATUS = {
     COMPLETED : "Completed",
     PENDING: "PENDING"
@@ -616,6 +629,11 @@ const formatTimestamp = (timestamp) => {
         </TableCell>
         <TableCell>
           <Typography variant="subtitle1" fontWeight="bold">
+           Date
+          </Typography>
+        </TableCell>
+        <TableCell>
+          <Typography variant="subtitle1" fontWeight="bold">
             installment Amount 
           </Typography>
         </TableCell>
@@ -642,8 +660,25 @@ const formatTimestamp = (timestamp) => {
       </TableCell>
     </TableRow>
   ) : saleStats.length > 0 ? (
-    saleStats.map((sale, index) =>
-      sale.totalAmount ? (
+    saleStats.map((sale, index) => {
+      // Filter installments for the current sale
+      const saleInstallments = installments.filter(
+        (installment) => installment.saleId === sale.id
+      );
+
+      // Calculate total installment amount and get the latest installment date
+      const totalInstallmentAmount = saleInstallments.reduce(
+        (total, inst) => total + Number(inst.amount || 0),
+        0
+      );
+
+      const latestInstallmentDate = saleInstallments.length
+  ? new Date(
+      Math.max(...saleInstallments.map((inst) => new Date(inst.date)))
+    ).toLocaleDateString("en-GB") // This formats as "dd/mm/yyyy"
+  : "No Date";
+
+      return sale.totalAmount ? (
         <TableRow
           key={sale.id}
           hover
@@ -681,12 +716,16 @@ const formatTimestamp = (timestamp) => {
               Rs {sale.discount}
             </Typography>
           </TableCell>
-          <TableCell>
+          <TableCell align="left">
             <Typography variant="body2" color="secondary">
-              Rs {installmentTotals[sale.id] || 0} 
+              {latestInstallmentDate}
             </Typography>
           </TableCell>
-        
+          <TableCell>
+            <Typography variant="body2" color="secondary">
+              Rs {totalInstallmentAmount}
+            </Typography>
+          </TableCell>
           <TableCell>
             <Typography variant="body2">{sale.payment}</Typography>
           </TableCell>
@@ -694,8 +733,8 @@ const formatTimestamp = (timestamp) => {
             <Typography variant="body2">{sale.salesman}</Typography>
           </TableCell>
         </TableRow>
-      ) : null
-    )
+      ) : null;
+    })
   ) : (
     <TableRow>
       <TableCell colSpan={3} align="center">
@@ -706,10 +745,139 @@ const formatTimestamp = (timestamp) => {
     </TableRow>
   )}
 </TableBody>
+
   </Table> 
   
 </TableContainer>
 </div>
+
+
+<Typography variant="h6" sx={{ marginBottom: 2 }}>
+        Detailed Installment Data
+      </Typography>
+      
+
+      <TableContainer
+  component={Paper}
+  sx={{
+    borderRadius: 2,
+    boxShadow: 3,
+    maxHeight: 400, // Set the maximum height for the table
+    overflowY: "auto", // Enable vertical scrolling
+  }}
+>
+  <Table stickyHeader>
+    <TableHead>
+      <TableRow sx={{ backgroundColor: "#f5f5f5" }}>
+        <TableCell>
+          <Typography variant="subtitle1" fontWeight="bold">
+            Sr No
+          </Typography>
+        </TableCell>
+        <TableCell>
+          <Typography variant="subtitle1" fontWeight="bold">
+            Order Date
+          </Typography>
+        </TableCell>
+        <TableCell>
+          <Typography variant="subtitle1" fontWeight="bold">
+            Order No
+          </Typography>
+        </TableCell>
+        <TableCell>
+          <Typography variant="subtitle1" fontWeight="bold">
+            Installment Date
+          </Typography>
+        </TableCell>
+        <TableCell>
+          <Typography variant="subtitle1" fontWeight="bold">
+            Installment Amount
+          </Typography>
+        </TableCell>
+      </TableRow>
+    </TableHead>
+
+    <TableBody>
+      {loading ? (
+        <TableRow>
+          <TableCell colSpan={4} align="center">
+            <CircularProgress />
+          </TableCell>
+        </TableRow>
+      ) : saleStats.length > 0 ? (
+        saleStats.map((sale, index) => {
+          // Filter installments for the current sale
+          const saleInstallments = installments.filter(
+            (installment) => installment.saleId === sale.id
+          );
+
+          // Calculate total installment amount and get the latest installment date
+          const totalInstallmentAmount = saleInstallments.reduce(
+            (total, inst) => total + Number(inst.amount || 0),
+            0
+          );
+
+          const latestInstallmentDate = saleInstallments.length
+            ? new Date(
+                Math.max(...saleInstallments.map((inst) => new Date(inst.date)))
+              ).toLocaleDateString("en-GB") // This formats as "dd/mm/yyyy"
+            : "No Date";
+
+          // Skip rows with totalInstallmentAmount === 0
+          if (totalInstallmentAmount === 0) {
+            return null;
+          }
+
+          return sale.totalAmount ? (
+            <TableRow
+              key={sale.id}
+              hover
+              sx={{
+                "&:nth-of-type(odd)": {
+                  backgroundColor: "#f9f9f9",
+                },
+              }}
+            >
+              <TableCell>
+                <Typography variant="body2">{index + 1}</Typography>
+              </TableCell>
+              <TableCell>
+            <Typography variant="body2">
+              {formatTimestamp(sale.startDate)}
+            </Typography>
+          </TableCell>
+              <TableCell>
+                <Typography variant="body2" color="primary">
+                  {sale.orderNo}
+                </Typography>
+              </TableCell>
+              <TableCell align="left">
+                <Typography variant="body2" color="secondary">
+                  {latestInstallmentDate}
+                </Typography>
+              </TableCell>
+              <TableCell>
+                <Typography variant="body2" color="secondary">
+                  Rs {totalInstallmentAmount}
+                </Typography>
+              </TableCell>
+            </TableRow>
+          ) : null;
+        })
+      ) : (
+        <TableRow>
+          <TableCell colSpan={4} align="center">
+            <Typography variant="body2" color="textSecondary">
+              No Installment data available.
+            </Typography>
+          </TableCell>
+        </TableRow>
+      )}
+    </TableBody>
+  </Table>
+</TableContainer>
+
+
 
 
   <Typography variant="h6" gutterBottom>

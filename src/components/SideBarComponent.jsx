@@ -68,6 +68,10 @@ export default function SideBarComponent() {
       title: "Verification",
       component: <TrendingUpOutlined fontSize="medium" color="primary" />,
     },
+    {
+      title: "Contact",
+      component: <TrendingUpOutlined fontSize="medium" color="primary" />,
+    },
   ];
 
   const [selected, setSelected] = useState(0);
@@ -97,6 +101,9 @@ const sidebarContent = (
       // Show only the Verification component for the verifier role
       if (userRole === "verifyer") {
         return comp.title === "Verification";
+      }
+      if (userRole === "productController"){
+        return comp.title === "Inventory" || comp.title === "Reports"
       }
     
       if ((comp.title === "Vendors" && userRole !== "admin")) {

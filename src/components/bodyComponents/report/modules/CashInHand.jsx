@@ -218,146 +218,202 @@ const handleInstallmentTotal = (install, cash, bank, jazzcash, easypaisa) => {
   }
 
   const calculateInHandSales = () => {
-    let totalInHand = 0
-
-    salesData.forEach(sale => {
-      // Ensure sale.startDate is not null or undefined
-      if (sale.startDate && sale.startDate.seconds) {
-        if (
-          !paymentFilter ||
-          sale.payment === paymentFilter // Apply payment filter
-        ) {
-          const saleDate = new Date(sale.startDate.seconds * 1000) // Convert Firestore timestamp
-          const startDate = customDate.start ? new Date(customDate.start) : null
-          const endDate = customDate.end ? new Date(customDate.end) : null
-
-          // Ensure the end date includes the entire day
-          if (endDate) {
-            endDate.setHours(23, 59, 59, 999)
-          }
-
-          const withinCustomRange =
-            timeframe === 'custom' && startDate && endDate && saleDate >= startDate && saleDate <= endDate
-
-          if (
-            (timeframe === 'day' && isSameDay(sale.startDate)) ||
-            (timeframe === 'week' && isSameWeek(sale.startDate)) ||
-            (timeframe === 'month' && isSameMonth(sale.startDate)) ||
-            withinCustomRange
-          ) {
-            totalInHand += Number(sale.advance)
-          }
-        }
+    if (!salesData || salesData.length === 0) return 0;
+  
+    let totalInHand = 0;
+  
+    salesData.forEach((sale) => {
+      // Skip invalid or missing data
+      if (!sale.startDate?.seconds) return;
+  
+      const saleDate = new Date(sale.startDate.seconds * 1000); // Convert Firestore timestamp
+      const startDate = customDate.start ? new Date(customDate.start) : null;
+      const endDate = customDate.end ? new Date(customDate.end) : null;
+  
+      // Handle edge case for same-day selection in custom timeframe
+      if (startDate && endDate && startDate.toDateString() === endDate.toDateString()) {
+        endDate.setHours(23, 59, 59, 999); // Extend the end date to cover the entire day
       }
-    })
-
-    return totalInHand
-  }
+  
+      // Ensure consistency by converting all dates to UTC
+      const saleDateUTC = new Date(saleDate.toISOString());
+      const startDateUTC = startDate ? new Date(startDate.toISOString()) : null;
+      const endDateUTC = endDate ? new Date(endDate.toISOString()) : null;
+  
+      // Check if the sale matches the selected payment filter
+      const matchesPaymentFilter = !paymentFilter || sale.payment === paymentFilter;
+  
+      // Check if the sale falls within the custom date range
+      const withinCustomRange =
+        timeframe === 'custom' &&
+        startDateUTC &&
+        endDateUTC &&
+        saleDateUTC >= startDateUTC &&
+        saleDateUTC <= endDateUTC;
+  
+      // Check if the sale falls within the selected timeframe
+      const matchesTimeframe =
+        (timeframe === 'day' && isSameDay(sale.startDate)) ||
+        (timeframe === 'week' && isSameWeek(sale.startDate)) ||
+        (timeframe === 'month' && isSameMonth(sale.startDate)) ||
+        withinCustomRange;
+  
+      // Add the sale advance to the total if all conditions are met
+      if (matchesPaymentFilter && matchesTimeframe) {
+        totalInHand += Number(sale.advance);
+      }
+    });
+  
+    return totalInHand;
+  };
+  
+  
   const calculateTotalWorth = () => {
-    let totalWorth = 0
-
-    salesData.forEach(sale => {
-      // Ensure sale.startDate is not null or undefined
-      if (sale.startDate && sale.startDate.seconds) {
-        if (
-          !paymentFilter ||
-          sale.payment === paymentFilter // Apply payment filter
-        ) {
-          const saleDate = new Date(sale.startDate.seconds * 1000) // Convert Firestore timestamp
-          const startDate = customDate.start ? new Date(customDate.start) : null
-          const endDate = customDate.end ? new Date(customDate.end) : null
-
-          // Ensure the end date includes the entire day
-          if (endDate) {
-            endDate.setHours(23, 59, 59, 999)
-          }
-
-          const withinCustomRange =
-            timeframe === 'custom' && startDate && endDate && saleDate >= startDate && saleDate <= endDate
-
-          if (
-            (timeframe === 'day' && isSameDay(sale.startDate)) ||
-            (timeframe === 'week' && isSameWeek(sale.startDate)) ||
-            (timeframe === 'month' && isSameMonth(sale.startDate)) ||
-            withinCustomRange
-          ) {
-            totalWorth += Number(sale.totalAmount)
-          }
-        }
+    if (!salesData || salesData.length === 0) return 0;
+  
+    let totalWorth = 0;
+  
+    salesData.forEach((sale) => {
+      // Skip invalid or missing data
+      if (!sale.startDate?.seconds) return;
+  
+      // Convert Firestore timestamp to a Date object
+      const saleDate = new Date(sale.startDate.seconds * 1000);
+      const startDate = customDate.start ? new Date(customDate.start) : null;
+      const endDate = customDate.end ? new Date(customDate.end) : null;
+  
+      // Handle same-day selection for custom timeframe
+      if (startDate && endDate && startDate.toDateString() === endDate.toDateString()) {
+        endDate.setHours(23, 59, 59, 999); // Extend the end date to include the entire day
       }
-    })
+  
+      // Adjust dates to UTC for consistent comparisons
+      const saleDateUTC = new Date(saleDate.toISOString());
+      const startDateUTC = startDate ? new Date(startDate.toISOString()) : null;
+      const endDateUTC = endDate ? new Date(endDate.toISOString()) : null;
+  
+      // Debugging: Log important values
+     
 
-    return totalWorth
-  }
+      // Check if the sale falls within the custom date range
+      const withinCustomRange =
+        timeframe === "custom" &&
+        startDateUTC &&
+        endDateUTC &&
+        saleDateUTC >= startDateUTC &&
+        saleDateUTC <= endDateUTC;
+        
+  
+      // Check if the sale matches the selected timeframe
+      const matchesTimeframe =
+        (timeframe === "day" && isSameDay(sale.startDate)) ||
+        (timeframe === "week" && isSameWeek(sale.startDate)) ||
+        (timeframe === "month" && isSameMonth(sale.startDate)) ||
+        withinCustomRange;
+  
+      // Add the sale's totalAmount to the total worth if it matches all conditions
+      if (matchesTimeframe && (!paymentFilter || sale.payment === paymentFilter)) {
+        console.log("Adding sale totalAmount:", sale.totalAmount);
+        totalWorth += Number(sale.totalAmount);
+      }
+
+      
+    });
+  
+    console.log("Final Total Worth:", totalWorth);
+    return totalWorth;
+  };
+  
   const calculateInCash = () => {
-    let totalInCash = 0
-
+    let totalInCash = 0;
+  
     salesData.forEach(sale => {
       // Ensure sale.startDate is not null or undefined
       if (sale.startDate && sale.startDate.seconds) {
-        const saleDate = new Date(sale.startDate.seconds * 1000) // Convert Firestore timestamp
-        const startDate = customDate.start ? new Date(customDate.start) : null
-        const endDate = customDate.end ? new Date(customDate.end) : null
-
+        const saleDate = new Date(sale.startDate.seconds * 1000); // Convert Firestore timestamp
+        const startDate = customDate.start ? new Date(customDate.start) : null;
+        const endDate = customDate.end ? new Date(customDate.end) : null;
+  
+        // Convert all dates to UTC for consistent comparisons
+        const saleDateUTC = new Date(saleDate.toISOString());
+        const startDateUTC = startDate ? new Date(startDate.toISOString()) : null;
+        const endDateUTC = endDate ? new Date(endDate.toISOString()) : null;
+  
         // Ensure the end date includes the entire day
-        if (endDate) {
-          endDate.setHours(23, 59, 59, 999)
+        if (endDateUTC) {
+          endDateUTC.setUTCHours(23, 59, 59, 999);
         }
-
+  
+       
         const withinCustomRange =
-          timeframe === 'custom' && startDate && endDate && saleDate >= startDate && saleDate <= endDate
-
+          timeframe === 'custom' &&
+          startDateUTC &&
+          endDateUTC &&
+          saleDateUTC >= startDateUTC &&
+          saleDateUTC <= endDateUTC;
+  
         if (
           (timeframe === 'day' && isSameDay(sale.startDate)) ||
           (timeframe === 'week' && isSameWeek(sale.startDate)) ||
           (timeframe === 'month' && isSameMonth(sale.startDate)) ||
           withinCustomRange
         ) {
-          console.log(sale.payment)
           if (sale.payment && sale.payment.trim() === 'Cash') {
-            totalInCash += Number(sale.advance)
+            
+            totalInCash += Number(sale.advance);
           }
         }
       }
-    })
-
-    return totalInCash
-  }
+    });
+  
+    return totalInCash;
+  };
+  
+  
 
   const calculateSalesInBank = () => {
-    let totalInBank = 0
-
+    let totalInBank = 0;
+  
     salesData.forEach(sale => {
       // Ensure sale.startDate is not null or undefined
       if (sale.startDate && sale.startDate.seconds) {
-        const saleDate = new Date(sale.startDate.seconds * 1000) // Convert Firestore timestamp
-        const startDate = customDate.start ? new Date(customDate.start) : null
-        const endDate = customDate.end ? new Date(customDate.end) : null
-
-        // Ensure the end date includes the entire day
-        if (endDate) {
-          endDate.setHours(23, 59, 59, 999)
-        }
-
+        const saleDate = new Date(sale.startDate.seconds * 1000); // Convert Firestore timestamp
+        const startDate = customDate.start ? new Date(customDate.start) : null;
+        const endDate = customDate.end ? new Date(customDate.end) : null;
+  
+        // Ensure the start date begins at 00:00:00 and the end date includes the full day
+        if (startDate) startDate.setHours(0, 0, 0, 0);
+        if (endDate) endDate.setHours(23, 59, 59, 999);
+  
+        
+  
         const withinCustomRange =
-          timeframe === 'custom' && startDate && endDate && saleDate >= startDate && saleDate <= endDate
-
+          timeframe === 'custom' &&
+          startDate &&
+          endDate &&
+          saleDate >= startDate &&
+          saleDate <= endDate;
+  
         if (
           (timeframe === 'day' && isSameDay(sale.startDate)) ||
           (timeframe === 'week' && isSameWeek(sale.startDate)) ||
           (timeframe === 'month' && isSameMonth(sale.startDate)) ||
           withinCustomRange
         ) {
-          console.log(sale.payment)
           if (sale.payment && sale.payment.trim() === 'Bank') {
-            totalInBank += Number(sale.advance)
+          
+            totalInBank += Number(sale.advance);
           }
         }
       }
-    })
-
-    return totalInBank
-  }
+    });
+  
+    return totalInBank;
+  };
+  
+  
+  
+  
   const calculateSalesInJazzCash = () => {
     let totalInJazzCash = 0
 
@@ -369,9 +425,9 @@ const handleInstallmentTotal = (install, cash, bank, jazzcash, easypaisa) => {
         const endDate = customDate.end ? new Date(customDate.end) : null
 
         // Ensure the end date includes the entire day
-        if (endDate) {
-          endDate.setHours(23, 59, 59, 999)
-        }
+        if (startDate) startDate.setHours(0, 0, 0, 0);
+        if (endDate) endDate.setHours(23, 59, 59, 999);
+  
 
         const withinCustomRange =
           timeframe === 'custom' && startDate && endDate && saleDate >= startDate && saleDate <= endDate
@@ -403,9 +459,8 @@ const handleInstallmentTotal = (install, cash, bank, jazzcash, easypaisa) => {
         const endDate = customDate.end ? new Date(customDate.end) : null
 
         // Ensure the end date includes the entire day
-        if (endDate) {
-          endDate.setHours(23, 59, 59, 999)
-        }
+        if (startDate) startDate.setHours(0, 0, 0, 0);
+        if (endDate) endDate.setHours(23, 59, 59, 999);
 
         const withinCustomRange =
           timeframe === 'custom' && startDate && endDate && saleDate >= startDate && saleDate <= endDate
@@ -465,7 +520,7 @@ const handleInstallmentTotal = (install, cash, bank, jazzcash, easypaisa) => {
   }
   // for completed sale
   const totalSales = calculateTotalSales()
-  const totalExpenses = calculateTotalExpenses()
+   const totalExpenses = calculateTotalExpenses()
   const remainingCash = totalSales - totalExpenses
      
   // for pending sale
@@ -480,10 +535,17 @@ const handleInstallmentTotal = (install, cash, bank, jazzcash, easypaisa) => {
   const Balance = totalInHand + installmentTotal - totalExpense;
 
   const CashBalance = totalInCash + cashInstallmentTotal - totalExpense;
-  const BankBalance = totalInBank + bankInstallmentTotal - totalExpense;
+  
 
   const total = totalInHand + installmentTotal;
 
+  const final = totalInCash + installmentTotal + totalInBank ;
+
+  const finalCash = final - totalInBank;
+
+  const newBalance = finalCash  - totalExpense;
+
+ // amount of advance and installment 
   const totalCashAmount = totalInCash + cashInstallmentTotal;
   const totalBankAmount = totalInBank + bankInstallmentTotal;
   const totalJazzCashAmount = totalInEasyPaisa  + jazzcashInstallmentTotal;
@@ -559,11 +621,12 @@ const handleInstallmentTotal = (install, cash, bank, jazzcash, easypaisa) => {
           <MenuItem value='EasyPaisa'>EasyPaisa</MenuItem>
         </Select>
       </FormControl>
-      <Typography sx={{ fontSize: 18, textAlign: 'center' }}>Completed Sales Report </Typography>
+      {/* <Typography sx={{ fontSize: 18, textAlign: 'center' }}>Completed Sales Report </Typography> */}
 
       {/* Cash In Hand Summary */}
-      <Grid container spacing={3}>
-        {/* Sales Card */}
+
+      {/* <Grid container spacing={3}>
+       
         <Grid item xs={12} sm={6} md={4}>
           <Card elevation={3} sx={{ backgroundColor: '#f5f5f5' }}>
             <CardContent>
@@ -577,7 +640,7 @@ const handleInstallmentTotal = (install, cash, bank, jazzcash, easypaisa) => {
           </Card>
         </Grid>
 
-        {/* Expense Card */}
+       
         <Grid item xs={12} sm={6} md={4}>
           <Card elevation={3} sx={{ backgroundColor: '#f5f5f5' }}>
             <CardContent>
@@ -592,7 +655,7 @@ const handleInstallmentTotal = (install, cash, bank, jazzcash, easypaisa) => {
         </Grid>
         
 
-        {/* Remaining Cash Card */}
+        
         <Grid item xs={12} sm={6} md={4}>
           <Card
             elevation={3}
@@ -610,9 +673,104 @@ const handleInstallmentTotal = (install, cash, bank, jazzcash, easypaisa) => {
             </CardContent>
           </Card>
         </Grid>
-      </Grid>
+      </Grid> */}
 
-      <Typography sx={{ fontSize: 18, textAlign: 'center' }}>Pending Sales Report </Typography>
+      {/* <Typography sx={{ fontSize: 18, textAlign: 'center' }}>Pending Sales Report </Typography> */}
+
+      <Grid container spacing={4} sx={{ padding: 2 }}>
+  {/* First Row: IN, Out, and CC */}
+  <Grid item xs={12} md={4}>
+    <Card elevation={3} sx={{ backgroundColor: '#f5f5f5', padding: 2 }}>
+      <CardContent>
+        <Typography variant="h6" color="error">
+          IN (Cash)
+        </Typography>
+        <Typography variant="h4" color="secondary">
+          {loading ? <CircularProgress size={24} /> : `Rs ${calculateInCash()}/-`}
+        </Typography>
+      </CardContent>
+    </Card>
+  </Grid>
+  <Grid item xs={12} md={4}>
+    <Card elevation={3} sx={{ backgroundColor: '#f5f5f5', padding: 2 }}>
+      <CardContent>
+        <Typography variant="h6" color="error">
+          Out (Total Installments)
+        </Typography>
+        <Typography variant="h4" color="secondary">
+          Rs {installmentTotal.toLocaleString()}
+        </Typography>
+      </CardContent>
+    </Card>
+  </Grid>
+  <Grid item xs={12} md={4}>
+    <Card elevation={3} sx={{ backgroundColor: '#f5f5f5', padding: 2 }}>
+      <CardContent>
+        <Typography variant="h6" color="error">
+          CC (Bank)
+        </Typography>
+        <Typography variant="h4" color="secondary">
+          {loading ? <CircularProgress size={24} /> : `Rs ${calculateSalesInBank()}/-`}
+        </Typography>
+      </CardContent>
+    </Card>
+  </Grid>
+
+  {/* Second Row: Final and FinalCash */}
+  <Grid item xs={12} md={6}>
+    <Card elevation={3} sx={{ backgroundColor: '#f5f5f5', padding: 2 }}>
+      <CardContent>
+        <Typography variant="h6" color="error">
+          Total = In + Out + CC
+        </Typography>
+        <Typography variant="h4" color="secondary">
+          Rs {final.toLocaleString()}
+        </Typography>
+      </CardContent>
+    </Card>
+  </Grid>
+  <Grid item xs={12} md={6}>
+    <Card elevation={3} sx={{ backgroundColor: '#f5f5f5', padding: 2 }}>
+      <CardContent>
+        <Typography variant="h6" color="error">
+          Cash = Total - CC
+        </Typography>
+        <Typography variant="h4" color="secondary">
+          Rs {finalCash.toLocaleString()}
+        </Typography>
+      </CardContent>
+    </Card>
+  </Grid>
+  <Grid item xs={12} sx={{ marginTop: 4 }}>
+            <Card elevation={3} sx={{ backgroundColor: '#f5f5f5' }}>
+              <CardContent>
+                <Typography variant='h6' color='error'>
+                  Total Expenses
+                </Typography>
+                <Typography variant='h4' color='secondary'>
+                  Rs {totalExpenses.toLocaleString()}
+                </Typography>
+              </CardContent>
+            </Card>
+          </Grid>
+
+  {/* Third Row: NewBalance */}
+  <Grid item xs={12}>
+    <Card elevation={3} sx={{ backgroundColor: '#f5f5f5', padding: 2 }}>
+      <CardContent>
+        <Typography variant="h6" color="error">
+          NewBalance = Cash - Expense
+        </Typography>
+        <Typography variant="h4" color="secondary">
+          Rs {newBalance.toLocaleString()}
+        </Typography>
+      </CardContent>
+    </Card>
+  </Grid>
+
+</Grid>
+
+
 
       <Grid container spacing={7} sx={{ marginTop: 7 }}>
         {/* First Column: Total Order Worth, Total Advance, Pending Amount */}
@@ -634,7 +792,7 @@ const handleInstallmentTotal = (install, cash, bank, jazzcash, easypaisa) => {
             <Grid item xs={12}>
               <Paper elevation={3} sx={{ padding: 11 }}>
                 <Typography variant='h6' color='primary'>
-                  IN (Total Advance)
+                  Total Advance
                 </Typography>
                 <Typography variant='h4' color='secondary'>
                   {loading ? <CircularProgress size={24} /> : `Rs ${calculateInHandSales()}/-`}
@@ -661,7 +819,7 @@ const handleInstallmentTotal = (install, cash, bank, jazzcash, easypaisa) => {
               <Card elevation={3} sx={{ backgroundColor: '#f5f5f5' }}>
                 <CardContent>
                   <Typography variant='h6' color='error'>
-                    Cash
+                   IN   (Cash)
                   </Typography>
                   <Typography variant='h4' color='secondary'>
                     {loading ? <CircularProgress size={24} /> : `Rs ${calculateInCash()}/-`}
@@ -675,7 +833,7 @@ const handleInstallmentTotal = (install, cash, bank, jazzcash, easypaisa) => {
               <Card elevation={3} sx={{ backgroundColor: '#f5f5f5' }}>
                 <CardContent>
                   <Typography variant='h6' color='error'>
-                    Cash in Bank
+                   CC (Bank)
                   </Typography>
                   <Typography variant='h4' color='secondary'>
                     {loading ? <CircularProgress size={24} /> : `Rs ${calculateSalesInBank()}/-`}
@@ -737,7 +895,9 @@ const handleInstallmentTotal = (install, cash, bank, jazzcash, easypaisa) => {
         />  */}
         </Grid>
 
-
+       
+ 
+  
 
         <Grid container spacing={3} sx={{ marginTop: 4 }}>
   <Grid item xs={12} sm={6} md={3}>
@@ -792,19 +952,19 @@ const handleInstallmentTotal = (install, cash, bank, jazzcash, easypaisa) => {
     </Card>
   </Grid>
 
-  {/* Bank Balance Card */}
-  <Grid item xs={12} sm={6}>
-    <Card elevation={3} sx={{ backgroundColor: '#f5f5f5' }}>
-      <CardContent>
-        <Typography variant='h6' color='error'>
-          Bank Balance
-        </Typography>
-        <Typography variant='h4' color='secondary'>
-          Rs {BankBalance.toLocaleString()}
-        </Typography>
-      </CardContent>
-    </Card>
-  </Grid>
+
+   <Grid item xs={12} sm ={6} sx={{ marginTop: 4 }}>
+            <Card elevation={3} sx={{ backgroundColor: '#f5f5f5' }}>
+              <CardContent>
+                <Typography variant='h6' color='error'>
+                  Total  inHand = Advance + total Installment Amount 
+                </Typography>
+                <Typography variant='h4' color='secondary'>
+                  Rs {total.toLocaleString()}
+                </Typography>
+              </CardContent>
+            </Card>
+          </Grid>
 </Grid>
 
 
@@ -825,18 +985,7 @@ const handleInstallmentTotal = (install, cash, bank, jazzcash, easypaisa) => {
             </Card>
           </Grid>
 
-          <Grid item xs={12} sx={{ marginTop: 4 }}>
-            <Card elevation={3} sx={{ backgroundColor: '#f5f5f5' }}>
-              <CardContent>
-                <Typography variant='h6' color='error'>
-                  Total = inHand (Advance) + total Installment Amount 
-                </Typography>
-                <Typography variant='h4' color='secondary'>
-                  Rs {total.toLocaleString()}
-                </Typography>
-              </CardContent>
-            </Card>
-          </Grid>
+         
          
           
 

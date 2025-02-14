@@ -95,7 +95,7 @@ const InventoryList = ({ inventory = [], loading = false, setInventoryRefresh,  
       const snapshot = await getDocs(typesCollection)
       const fetchedTypes = snapshot.docs.map(doc => doc.data())
       setInventoryTypes(prev => [
-        ...prev.filter(type => type.value === 'other'), // Keep "Other" always in dropdown
+        ...prev.filter(type => type.value === 'other'), 
         ...fetchedTypes
       ])
     }
@@ -325,14 +325,14 @@ const InventoryList = ({ inventory = [], loading = false, setInventoryRefresh,  
       fullWidth
     />
   </Grid>
-</Grid>
+     </Grid>
 
 
     
 
 
 
-<Grid container direction="column" spacing={2} sx={{ marginBottom: 1 }}>
+ <Grid container direction="column" spacing={2} sx={{ marginBottom: 1 }}>
   <Grid item container justifyContent="flex-end">
     {userRole === 'admin' && (
       <Button variant="contained" color="primary" onClick={handlePrint}>
@@ -341,12 +341,12 @@ const InventoryList = ({ inventory = [], loading = false, setInventoryRefresh,  
     )}
   </Grid>
   
-</Grid>
-<Grid container justifyContent="flex-end">
+ </Grid>
+ <Grid container justifyContent="flex-end">
   <Grid item>
     <UpdateQuantity setRefresh={setQuantityRefresh} />
   </Grid>
-</Grid>
+ </Grid>
 
 
 

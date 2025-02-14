@@ -32,7 +32,7 @@ const ViewProducts = () => {
   const { id } = useParams();
   const [salesData, setSalesData] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [editDialogOpen, setEditDialogOpen] = useState(false);
+  // const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [editGlassDialogOpen, setEditGlassDialogOpen] = useState(false);
   const [editKbcwDialogOpen, setEditKbcwDialogOpen] = useState(false);
   const [editVendorDialogOpen, setEditVendorDialogOpen] = useState(false);
@@ -232,7 +232,10 @@ const handleDeleteClick = async (product, productType) => {
         ...salesData,
         glassesProducts: newGlassesProducts,
       });
-      setEditDialogOpen(false);
+      alert("Glasses product updated successfully!");
+     
+      
+      setEditKbcwDialogOpen(false);
     } catch (error) {
       console.error("Error adding document: ", error);
     }
@@ -248,7 +251,9 @@ const handleDeleteClick = async (product, productType) => {
         ...salesData,
         kbcwProducts: newKbcwProducts,
       });
-      setEditDialogOpen(false);
+      alert("Kbcw product updated successfully!");
+      setEditGlassDialogOpen(false);
+      
     } catch (error) {
       console.error("Error adding document: ", error);
     }
@@ -258,17 +263,27 @@ const handleDeleteClick = async (product, productType) => {
       (g) => g.id !== editVendorProduct.id
     );
     newVendorProducts.push(editVendorProduct);
+  
     try {
       const docRef = doc(db, "sales", id);
       await updateDoc(docRef, {
         ...salesData,
         vendorProducts: newVendorProducts,
       });
-      setEditDialogOpen(false);
+  
+      // Show success alert
+      alert("Vendor product updated successfully!");
+  
+      // Close the dialog
+    
+      
+      setEditVendorDialogOpen(false);
     } catch (error) {
-      console.error("Error adding document: ", error);
+      console.error("Error updating document: ", error);
+      alert("Failed to update vendor product. Please try again."); // Show error alert
     }
   };
+  
 
 
 

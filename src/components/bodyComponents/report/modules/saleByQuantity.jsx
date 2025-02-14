@@ -284,7 +284,7 @@ const handlePrint = () => {
           </Button>
         </Grid>
         <Grid item>
-          {userRole === "admin" && ( 
+          {userRole === "admin" || "productController"&& ( 
           <Button
             variant={timeframe === "week" ? "contained" : "outlined"}
             color="primary"
@@ -295,7 +295,7 @@ const handlePrint = () => {
           )}
         </Grid>
         <Grid item>
-        {userRole === "admin" && ( 
+        {userRole === "admin"  || "productController" && ( 
           <Button
             variant={timeframe === "month" ? "contained" : "outlined"}
             color="primary"
@@ -306,7 +306,7 @@ const handlePrint = () => {
         )}
         </Grid>
          <Grid item>
-                  {userRole === 'admin' && (
+                  {userRole === 'admin' || " productController" && (
                     <Button variant={timeframe === 'custom' ? 'contained' : 'outlined'} onClick={() => setTimeframe('custom')}>
                       Custom
                     </Button>

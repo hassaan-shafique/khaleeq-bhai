@@ -21,6 +21,7 @@ import { app } from './config/Firebase'
 import { db } from './config/Firebase'
 import { collection, getDocs, doc } from 'firebase/firestore'
 import Verify from './components/bodyComponents/verification/verify'
+import Contact from './components/bodyComponents/contact/contact'
 
 // Custom Protected Route Component
 const ProtectedRoute = ({ isAuthenticated, children }) => {
@@ -144,7 +145,7 @@ function App() {
             <Route path='reports' element={<Report />} />
             <Route path='vendors' element={<Vendors />} />
             <Route path = 'verification' element= {<Verify/>}/> 
-           
+            <Route path = 'contact' element= {<Contact/>}/> 
           </Route>
         </Routes>
       </BrowserRouter>

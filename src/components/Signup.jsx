@@ -139,6 +139,7 @@ const Signup = () => {
               <MenuItem value="admin">Admin</MenuItem>
               <MenuItem value="employee">Employee</MenuItem>
               <MenuItem value="verifyer">Verifyer</MenuItem>
+              <MenuItem value="productController">Product Controller</MenuItem>
             </Select>
           </FormControl>
           <Button
