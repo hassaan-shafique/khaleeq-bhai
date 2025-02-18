@@ -17,6 +17,9 @@ import Vendors from './components/bodyComponents/Vendors/Vendors'
 import Activity from './components/bodyComponents/activity/Activity'
 import Sales from './components/bodyComponents/sale/Sales'
 import ViewProducts from './components/bodyComponents/sale/Products/ViewProducts'
+
+import ReportV2 from './pages/Report'
+
 import { app } from './config/Firebase'
 import { db } from './config/Firebase'
 import { collection, getDocs, doc } from 'firebase/firestore'
@@ -143,9 +146,10 @@ function App() {
             <Route path='daily-activity' element={<Activity />} />
             <Route path='expense' element={<Expense expenses={expenses} loading={loading} setRefresh={setRefresh} />} />
             <Route path='reports' element={<Report />} />
+            <Route path='new-reports' element={<ReportV2 />} />
             <Route path='vendors' element={<Vendors />} />
-            <Route path = 'verification' element= {<Verify/>}/> 
-            <Route path = 'contact' element= {<Contact/>}/> 
+            <Route path='verification' element={<Verify />} />
+            <Route path='contact' element={<Contact />} />
           </Route>
         </Routes>
       </BrowserRouter>

@@ -14,10 +14,7 @@ const ReportCards = () => {
   const [expenses, setExpenses] = useState([]);
   const [installments, setInstallments] = useState([]);
   const [selectedComponent, setSelectedComponent] = useState("CashInHand");
-  
 
- 
- 
 
   const fetchSalesData = async () => {
     setLoading(true);
@@ -99,7 +96,7 @@ const ReportCards = () => {
   return (
     <Box sx={{ padding: 14 }}>
       {/* Button to switch between components */}
-    
+
 
       {/* Cash In Hand Component (Always visible) */}
       <Grid item xs={12}>
@@ -139,7 +136,7 @@ const ReportCards = () => {
           </Button>
         </Grid>
       </Grid>
-      
+
 
       {/* Render Selected Component */}
       <Grid container spacing={4}>
@@ -165,7 +162,7 @@ const ReportCards = () => {
         )}
       </Grid>
 
-      
+
     </Box>
   );
 };
