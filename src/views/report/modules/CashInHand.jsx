@@ -16,7 +16,7 @@ import {
 
 import ChartComponent from './ChartComponent'
 import InstallmentData from './installmentsData'
-import { isSameDay, isSameMonth, isSameWeek, formatDate } from '/src/utils/dateUtils'
+import { isSameDay, isSameMonth, isSameWeek } from '/src/utils/dateUtils'
 import { calculateTotalExpenses } from '/src/utils/expensesUtils'
 
 import CurrentStats from '../stats/currentStats'
@@ -55,11 +55,11 @@ const CashInHand = ({ salesData, expenses, installments }) => {
 
       const matchesTimeframe =
         timeframe === 'day'
-          ? isSameDay(saleDate)
+          ? isSameDay(sale.startDate)
           : timeframe === 'week'
-          ? isSameWeek(saleDate)
+          ? isSameWeek(sale.startDate)
           : timeframe === 'month'
-          ? isSameMonth(saleDate)
+          ? isSameMonth(sale.startDate)
           : withinCustomRange
 
       // Apply filter condition only if `filter` has a value
