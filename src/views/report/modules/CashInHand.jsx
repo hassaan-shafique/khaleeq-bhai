@@ -21,6 +21,9 @@ import { isSameDay, isSameMonth, isSameWeek, formatDate } from '/src/utils/dateU
 import { calculateTotalExpenses } from '/src/utils/expensesUtils'
 import Widget from '/src/views/shared/Card'
 import CurrentStats from '../stats/currentStats'
+import TotalStats from '../stats/totalStat'
+import AdvInsAddStats from '../stats/advInsAddStats'
+import BalanceStats from '../stats/balanceStats'
 
 const CashInHand = ({ salesData, expenses, installments }) => {
   const userRole = localStorage.getItem('userRole')
@@ -333,12 +336,12 @@ const CashInHand = ({ salesData, expenses, installments }) => {
   const totalInCash = calculateInCash()
   const totalInBank = calculateSalesInBank()
   const totalExpenses = calculateTotalExpenses(expenses, customDate, timeframe)
-
   const totalSales = calculateTotalSales()
   const totalInHand = calculateInHandSales()
   const totalWorth = calculateTotalWorth()
   const totalInEasyPaisa = calculateSalesInEasypaisa()
   const totalInJazzCash = calculateSalesInJazzCash()
+  const pendingSales= calculatePendingSales()
 
   //   ----------------
 
@@ -421,18 +424,29 @@ const CashInHand = ({ salesData, expenses, installments }) => {
         installmentTotal={installmentTotal}
       />
 
+     <TotalStats
+     totalWorth ={totalWorth}
+     totalInHand ={totalInHand}
+     pendingSales ={pendingSales}
+     totalInCash ={totalInCash}
+     totalInBank ={totalInBank}
+     totalInJazzCash ={totalInJazzCash}
+     totalInEasyPaisa ={totalInEasyPaisa}
+
+     />
+
       <Typography variant='h5' sx={{ fontWeight: 'bold', padding: 4 }}>
         Total Stats
       </Typography>
 
       <Grid container spacing={4} sx={{ padding: 2 }}>
-        <Widget label={'Total Order Worth'} value={calculateTotalWorth()} size={12} />
-        <Widget label={'Total Advance'} value={calculateInHandSales()} size={12} />
-        <Widget label={'Total Pending Amount'} value={calculatePendingSales()} size={12} />
-        <Widget label={'IN (Cash)'} value={calculateInCash()} size={12} />
-        <Widget label={'CC (Bank)'} value={calculateSalesInBank()} size={12} />
-        <Widget label={'Cash in JazzCash'} value={calculateSalesInJazzCash()} size={12} />
-        <Widget label={'Cash in EasyPaisa'} value={calculateSalesInEasypaisa()} size={12} />
+        <Widget label={'Total Order Worth'} value={totalWorth} size={12} />
+        <Widget label={'Total Advance'} value={totalInHand} size={12} />
+        <Widget label={'Total Pending Amount'} value={pendingSales} size={12} />
+        <Widget label={'IN (Cash)'} value={totalInCash} size={12} />
+        <Widget label={'CC (Bank)'} value={totalInBank} size={12} />
+        <Widget label={'Cash in JazzCash'} value={totalInJazzCash} size={12} />
+        <Widget label={'Cash in EasyPaisa'} value={totalInEasyPaisa} size={12} />
       </Grid>
 
       <InstallmentData
@@ -441,6 +455,14 @@ const CashInHand = ({ salesData, expenses, installments }) => {
         startDate={customDate.start}
         endDate={customDate.end}
         onInstallmentCalculated={handleInstallmentTotal}
+      />
+
+      <AdvInsAddStats
+
+      totalCashAmount = {totalCashAmount}
+      totalBankAmount = {totalBankAmount}
+      totalJazzCashAmount = {totalJazzCashAmount}
+      totalEasyPaisaAmount = {totalEasyPaisaAmount}
       />
 
       <Typography variant='h5' sx={{ fontWeight: 'bold', padding: 4 }}>
@@ -453,6 +475,13 @@ const CashInHand = ({ salesData, expenses, installments }) => {
         <Widget label={'Total JazzCash Amount'} value={totalJazzCashAmount} size={12} sm={6} md={3} />
         <Widget label={'Total EasyPaisa Amount'} value={totalEasyPaisaAmount} size={12} sm={6} md={3} />
       </Grid>
+
+      <BalanceStats
+      CashBalance = {CashBalance}
+      total  = {total}
+      totalExpenses = {totalExpenses}
+      Balance = {Balance}
+      />
 
       <Typography variant='h5' sx={{ fontWeight: 'bold', padding: 4 }}>
         Balance Stats
@@ -472,7 +501,7 @@ const CashInHand = ({ salesData, expenses, installments }) => {
             totalExpenses={totalExpenses}
             remainingCash={remainingCash}
             totalInHand={totalInHand}
-            pendingAmount={calculatePendingSales()}
+            pendingAmount={pendingSales}
             Balance={Balance}
           />
         </Grid>
