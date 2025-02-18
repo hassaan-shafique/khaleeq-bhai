@@ -436,67 +436,10 @@ const CashInHand = ({ salesData, expenses, installments }) => {
         <Widget label={'Total Order Worth'} value={calculateTotalWorth()} size={12} />
         <Widget label={'Total Advance'} value={calculateInHandSales()} size={12} />
         <Widget label={'Total Pending Amount'} value={calculatePendingSales()} size={12} />
-      </Grid>
-
-      <Grid item xs={12} sm={6} md={3}>
-        <Grid container spacing={2}>
-          <Grid item xs={12}>
-            <Card elevation={3} sx={{ backgroundColor: '#f5f5f5' }}>
-              <CardContent>
-                <Typography variant='h6' color='error'>
-                  IN (Cash)
-                </Typography>
-                <Typography variant='h4' color='secondary'>
-                  {`Rs ${calculateInCash()}/-`}
-                </Typography>
-              </CardContent>
-            </Card>
-          </Grid>
-
-          {/* Cash in Bank */}
-          <Grid item xs={12}>
-            <Card elevation={3} sx={{ backgroundColor: '#f5f5f5' }}>
-              <CardContent>
-                <Typography variant='h6' color='error'>
-                  CC (Bank)
-                </Typography>
-                <Typography variant='h4' color='secondary'>
-                  {`Rs ${calculateSalesInBank()}/-`}
-                </Typography>
-              </CardContent>
-            </Card>
-          </Grid>
-
-          {/* Cash */}
-
-          {/* Cash in JazzCash */}
-          <Grid item xs={12}>
-            <Card elevation={3} sx={{ backgroundColor: '#f5f5f5' }}>
-              <CardContent>
-                <Typography variant='h6' color='error'>
-                  Cash in JazzCash
-                </Typography>
-                <Typography variant='h4' color='secondary'>
-                  {`Rs ${calculateSalesInJazzCash()}/-`}
-                </Typography>
-              </CardContent>
-            </Card>
-          </Grid>
-
-          {/* Cash in EasyPaisa */}
-          <Grid item xs={12}>
-            <Card elevation={3} sx={{ backgroundColor: '#f5f5f5' }}>
-              <CardContent>
-                <Typography variant='h6' color='error'>
-                  Cash in EasyPaisa
-                </Typography>
-                <Typography variant='h4' color='secondary'>
-                  {`Rs ${calculateSalesInEasypaisa()}/-`}
-                </Typography>
-              </CardContent>
-            </Card>
-          </Grid>
-        </Grid>
+        <Widget label={'IN (Cash)'} value={calculateInCash()} size={12} />
+        <Widget label={'CC (Bank)'} value={calculateSalesInBank()} size={12} />
+        <Widget label={' Cash in JazzCash'} value={calculateSalesInJazzCash()} size={12} />
+        <Widget label={'Cash in EasyPaisa'} value={calculateSalesInEasypaisa()} size={12} />
       </Grid>
 
       <InstallmentData
@@ -506,122 +449,24 @@ const CashInHand = ({ salesData, expenses, installments }) => {
         endDate={customDate.end}
         onInstallmentCalculated={handleInstallmentTotal}
       />
+      <Grid container spacing={4} sx={{ padding: 2 }}>
+        <Widget label={'Total Cash'} value={totalCashAmount} size={12} sm={6} md={3} />
+        <Widget label={'Total Bank Amount'} value={totalBankAmount} size={12} sm={6} md={3} />
+        <Widget label={' Total JazzCash Amount'} value={totalJazzCashAmount} size={12} sm={6} md={3}/>
+        <Widget label={'Total EasyPaisa Amount'} value={totalEasyPaisaAmount} size={12} sm={6} md={3} />
+
+      </Grid>
+    
+
 
       <Grid container spacing={3} sx={{ marginTop: 4 }}>
-        <Grid item xs={12} sm={6} md={3}>
-          <Card elevation={3} sx={{ backgroundColor: '#f5f5f5' }}>
-            <CardContent>
-              <Typography variant='h6' color='error'>
-                Total Cash
-              </Typography>
-              <Typography variant='h4' color='secondary'>
-                Rs {totalCashAmount.toLocaleString()}
-              </Typography>
-            </CardContent>
-          </Card>
-        </Grid>
 
-        <Grid item xs={12} sm={6} md={3}>
-          <Card elevation={3} sx={{ backgroundColor: '#f5f5f5' }}>
-            <CardContent>
-              <Typography variant='h6' color='error'>
-                Total Bank Amount
-              </Typography>
-              <Typography variant='h4' color='secondary'>
-                Rs {totalBankAmount.toLocaleString()}
-              </Typography>
-            </CardContent>
-          </Card>
-        </Grid>
-
-        <Grid item xs={12} sm={6} md={3}>
-          <Card elevation={3} sx={{ backgroundColor: '#f5f5f5' }}>
-            <CardContent>
-              <Typography variant='h6' color='error'>
-                Total JazzCash Amount
-              </Typography>
-              <Typography variant='h4' color='secondary'>
-                Rs {totalJazzCashAmount.toLocaleString()}
-              </Typography>
-            </CardContent>
-          </Card>
-        </Grid>
-
-        <Grid item xs={12} sm={6} md={3}>
-          <Card elevation={3} sx={{ backgroundColor: '#f5f5f5' }}>
-            <CardContent>
-              <Typography variant='h6' color='error'>
-                Total EasyPaisa Amount
-              </Typography>
-              <Typography variant='h4' color='secondary'>
-                Rs {totalEasyPaisaAmount.toLocaleString()}
-              </Typography>
-            </CardContent>
-          </Card>
-        </Grid>
+        <Widget label={'Cash Balance'} value={CashBalance} size={12} sm={6}  />
+        <Widget label={'Total inHand = Advance + total Installment Amount'} value={total} size={12} sm={6}  />
+        <Widget label={' Total Expenses'} value={totalExpenses} size={12} sm={6} />
+        <Widget label={'Balance Amount'} value={Balance} size={12} sm={6} md={3} />
       </Grid>
 
-      <Grid container spacing={3} sx={{ marginTop: 4 }}>
-        {/* Cash Balance Card */}
-        <Grid item xs={12} sm={6}>
-          <Card elevation={3} sx={{ backgroundColor: '#f5f5f5' }}>
-            <CardContent>
-              <Typography variant='h6' color='error'>
-                Cash Balance
-              </Typography>
-              <Typography variant='h4' color='secondary'>
-                Rs {CashBalance.toLocaleString()}
-              </Typography>
-            </CardContent>
-          </Card>
-        </Grid>
-
-        <Grid item xs={12} sm={6} sx={{ marginTop: 4 }}>
-          <Card elevation={3} sx={{ backgroundColor: '#f5f5f5' }}>
-            <CardContent>
-              <Typography variant='h6' color='error'>
-                Total inHand = Advance + total Installment Amount
-              </Typography>
-              <Typography variant='h4' color='secondary'>
-                Rs {total.toLocaleString()}
-              </Typography>
-            </CardContent>
-          </Card>
-        </Grid>
-      </Grid>
-
-      <Grid container spacing={3}>
-        <Grid item xs={12} sx={{ marginTop: 4 }}>
-          <Card elevation={3} sx={{ backgroundColor: '#f5f5f5' }}>
-            <CardContent>
-              <Typography variant='h6' color='error'>
-                Total Expenses
-              </Typography>
-              <Typography variant='h4' color='secondary'>
-                Rs {totalExpenses.toLocaleString()}
-              </Typography>
-            </CardContent>
-          </Card>
-        </Grid>
-
-        <Grid item xs={12}>
-          <Card
-            elevation={3}
-            sx={{
-              backgroundColor: remainingCash >= 0 ? '#e8f5e9' : '#ffebee'
-            }}
-          >
-            <CardContent>
-              <Typography variant='h6' color={remainingCash >= 0 ? 'success.main' : 'error'}>
-                Balance Amount
-              </Typography>
-              <Typography variant='h4' color='secondary'>
-                Rs {Balance.toLocaleString()}
-              </Typography>
-            </CardContent>
-          </Card>
-        </Grid>
-      </Grid>
 
       <Box sx={{ marginTop: 8 }}>
         <Grid>

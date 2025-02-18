@@ -87,73 +87,12 @@ const InstallmentData = ({ installments, timeframe, startDate ,endDate,onInstall
   return (
     <Grid container spacing={3}>
       {/* First row: Total Installment */}
-      
-      <Grid item xs={12} sx={{ marginTop: 5 }}>
-        <Card elevation={3} sx={{ backgroundColor: '#f5f5f5' }}>
-          <CardContent>
-            <Typography variant='h6' color='error'>
-              OUT (Total Installment)
-            </Typography>
-            <Typography variant='h4' color='secondary'>
-            Rs {totalInstallment(startDate, endDate).toLocaleString()}
-            </Typography>
-          </CardContent>
-        </Card>
-      </Grid>
+      <Widget label={'OUT (Total Installment)'} value={totalInstallment(startDate, endDate)} size={12}  />
+      <Widget label={' Cash Installment'} value={cashInstallment} size={12} sm={6}  /> 
+      <Widget label={' Bank Installment'} value={bankInstallment} size={12} sm={6}  /> 
+      <Widget label={' EasyPaisa Installment'} value={easypaisaInstallment} size={12} sm={6}  /> 
+      <Widget label={' JazzCash Installment'} value={jazzcashInstallment} size={12} sm={6}  /> 
 
-      {/* Second row and onwards: Two cards per row */}
-      <Grid item xs={2} sm={6}>
-        <Card elevation={3} sx={{ backgroundColor: '#f5f5f5' }}>
-          <CardContent>
-            <Typography variant='h6' color='error'>
-              Cash Installment
-            </Typography>
-            <Typography variant='h4' color='secondary'>
-              Rs {cashInstallment.toLocaleString()}
-            </Typography>
-          </CardContent>
-        </Card>
-      </Grid>
-
-      <Grid item xs={4} sm={6}>
-        <Card elevation={3} sx={{ backgroundColor: '#f5f5f5' }}>
-          <CardContent>
-            <Typography variant='h6' color='error'>
-              Bank Installment
-            </Typography>
-            <Typography variant='h4' color='secondary'>
-              Rs {bankInstallment.toLocaleString()}
-            </Typography>
-          </CardContent>
-        </Card>
-      </Grid>
-      
-
-      <Grid item xs={4} sm={6}>
-        <Card elevation={3} sx={{ backgroundColor: '#f5f5f5' }}>
-          <CardContent>
-            <Typography variant='h6' color='error'>
-              EasyPaisa Installment
-            </Typography>
-            <Typography variant='h4' color='secondary'>
-              Rs {easypaisaInstallment.toLocaleString()}
-            </Typography>
-          </CardContent>
-        </Card>
-      </Grid>
-
-      <Grid item xs={4} sm={6}>
-        <Card elevation={3} sx={{ backgroundColor: '#f5f5f5' }}>
-          <CardContent>
-            <Typography variant='h6' color='error'>
-              JazzCash Installment
-            </Typography>
-            <Typography variant='h4' color='secondary'>
-              Rs {jazzcashInstallment.toLocaleString()}
-            </Typography>
-          </CardContent>
-        </Card>
-      </Grid>
     </Grid>
   )
 }
