@@ -1,7 +1,8 @@
 import React, { useEffect } from 'react'
 import { Grid, Card, CardContent, Typography } from '@mui/material'
+// import { isSameDay, isSameMonth, isSameWeek, formatDate } from '/src/utils/dateUtils'
 
-const InstallmentData = ({ installments, timeframe, startDate ,endDate,onInstallmentCalculated }) => {
+const InstallmentData = ({ installments, timeframe, startDate, endDate, onInstallmentCalculated }) => {
 
   const isSameDay = orderDate => {
     const now = new Date()
@@ -28,33 +29,28 @@ const InstallmentData = ({ installments, timeframe, startDate ,endDate,onInstall
   }
 
   const isCustom = (orderDate, startDate, endDate) => {
-    const saleDate = new Date(orderDate);
-    const start = new Date(startDate);
-    const end = new Date(endDate);
-    const result = saleDate >= start && saleDate <= end;
-    return result;
+    const saleDate = new Date(orderDate)
+    const start = new Date(startDate)
+    const end = new Date(endDate)
+    const result = saleDate >= start && saleDate <= end
+    return result
   }
 
-
   const filterDataByTimeframe = (date, startDate, endDate) => {
-    // console.log("Filtering for date:", date, "Timeframe:", timeframe);
-
     switch (timeframe) {
-      case "day":
-        return isSameDay(date);
-      case "week":
-        return isSameWeek(date);
-      case "month":
-        return isSameMonth(date);
-      case "custom":
-        const result = isCustom(date, startDate, endDate);
-        console.log("Custom Filter Result:", result);
-        return result;
+      case 'day':
+        return isSameDay(date)
+      case 'week':
+        return isSameWeek(date)
+      case 'month':
+        return isSameMonth(date)
+      case 'custom':
+        const result = isCustom(date, startDate, endDate)
+        return result
       default:
-        return false;
+        return false
     }
-  };
-
+  }
 
   const calculateInstallments = (data, method) => {
     return data
@@ -70,17 +66,15 @@ const InstallmentData = ({ installments, timeframe, startDate ,endDate,onInstall
 
   const cashInstallment = calculateInstallments(installments, 'Cash')
   const bankInstallment = calculateInstallments(installments, 'Bank')
-  const jazzcashInstallment = calculateInstallments(installments, 'JazzCash')
   const easypaisaInstallment = calculateInstallments(installments, 'EasyPaisa')
+  const jazzcashInstallment = calculateInstallments(installments, 'JazzCash')
+  const install = cashInstallment + bankInstallment + jazzcashInstallment + easypaisaInstallment
 
-
-   const install = cashInstallment+ bankInstallment + jazzcashInstallment + easypaisaInstallment;
-
-   useEffect(() => {
+  useEffect(() => {
     if (onInstallmentCalculated) {
-      onInstallmentCalculated(install,cashInstallment,bankInstallment,jazzcashInstallment,easypaisaInstallment);
+      onInstallmentCalculated(install, cashInstallment, bankInstallment, jazzcashInstallment, easypaisaInstallment)
     }
-  }, [install,cashInstallment , bankInstallment, jazzcashInstallment, easypaisaInstallment,  onInstallmentCalculated]);
+  }, [install, cashInstallment, bankInstallment, jazzcashInstallment, easypaisaInstallment, onInstallmentCalculated])
 
   return (
     <Grid container spacing={3}>
@@ -93,7 +87,7 @@ const InstallmentData = ({ installments, timeframe, startDate ,endDate,onInstall
               OUT (Total Installment)
             </Typography>
             <Typography variant='h4' color='secondary'>
-            Rs {totalInstallment(startDate, endDate).toLocaleString()}
+              Rs {totalInstallment(startDate, endDate).toLocaleString()}
             </Typography>
           </CardContent>
         </Card>
@@ -125,7 +119,6 @@ const InstallmentData = ({ installments, timeframe, startDate ,endDate,onInstall
           </CardContent>
         </Card>
       </Grid>
-
 
       <Grid item xs={4} sm={6}>
         <Card elevation={3} sx={{ backgroundColor: '#f5f5f5' }}>

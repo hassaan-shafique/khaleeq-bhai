@@ -1,9 +1,10 @@
 import React, { useEffect } from 'react'
 import { Grid, Card, CardContent, Typography } from '@mui/material'
+import Widget from '/src/views/shared/Card'
 
 const InstallmentData = ({ installments, timeframe, startDate ,endDate,onInstallmentCalculated }) => {
 
-  
+
 
   const isSameDay = orderDate => {
     const now = new Date()
@@ -32,7 +33,7 @@ const InstallmentData = ({ installments, timeframe, startDate ,endDate,onInstall
   const isCustom = (orderDate, startDate, endDate) => {
     const saleDate = new Date(orderDate);
     const start = new Date(startDate);
-    const end = new Date(endDate);  
+    const end = new Date(endDate);
     const result = saleDate >= start && saleDate <= end;
     return result;
   }
@@ -40,7 +41,7 @@ const InstallmentData = ({ installments, timeframe, startDate ,endDate,onInstall
 
   const filterDataByTimeframe = (date, startDate, endDate) => {
     // console.log("Filtering for date:", date, "Timeframe:", timeframe);
-  
+
     switch (timeframe) {
       case "day":
         return isSameDay(date);
@@ -56,7 +57,7 @@ const InstallmentData = ({ installments, timeframe, startDate ,endDate,onInstall
         return false;
     }
   };
-  
+
 
   const calculateInstallments = (data, method) => {
     return data
@@ -74,7 +75,7 @@ const InstallmentData = ({ installments, timeframe, startDate ,endDate,onInstall
   const bankInstallment = calculateInstallments(installments, 'Bank')
   const jazzcashInstallment = calculateInstallments(installments, 'JazzCash')
   const easypaisaInstallment = calculateInstallments(installments, 'EasyPaisa')
-  
+
 
    const install = cashInstallment+ bankInstallment + jazzcashInstallment + easypaisaInstallment;
 
@@ -88,15 +89,13 @@ const InstallmentData = ({ installments, timeframe, startDate ,endDate,onInstall
     <Grid container spacing={3}>
       {/* First row: Total Installment */}
       <Widget label={'OUT (Total Installment)'} value={totalInstallment(startDate, endDate)} size={12}  />
-      <Widget label={' Cash Installment'} value={cashInstallment} size={12} sm={6}  /> 
-      <Widget label={' Bank Installment'} value={bankInstallment} size={12} sm={6}  /> 
-      <Widget label={' EasyPaisa Installment'} value={easypaisaInstallment} size={12} sm={6}  /> 
-      <Widget label={' JazzCash Installment'} value={jazzcashInstallment} size={12} sm={6}  /> 
+      <Widget label={' Cash Installment'} value={cashInstallment} size={12} sm={6}  />
+      <Widget label={' Bank Installment'} value={bankInstallment} size={12} sm={6}  />
+      <Widget label={' EasyPaisa Installment'} value={easypaisaInstallment} size={12} sm={6}  />
+      <Widget label={' JazzCash Installment'} value={jazzcashInstallment} size={12} sm={6}  />
 
     </Grid>
   )
 }
 
 export default InstallmentData
-
-

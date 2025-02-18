@@ -145,8 +145,8 @@ function App() {
             <Route path='glasses' element={<Glasses />} />
             <Route path='daily-activity' element={<Activity />} />
             <Route path='expense' element={<Expense expenses={expenses} loading={loading} setRefresh={setRefresh} />} />
-            <Route path='reports' element={<Report />} />
-            <Route path='new-reports' element={<ReportV2 />} />
+            <Route path='old-reports' element={<Report />} />
+            <Route path='reports' element={<ReportV2 />} />
             <Route path='vendors' element={<Vendors />} />
             <Route path='verification' element={<Verify />} />
             <Route path='contact' element={<Contact />} />

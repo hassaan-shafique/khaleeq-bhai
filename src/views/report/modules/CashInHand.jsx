@@ -20,8 +20,9 @@ import { STATUS } from '../../../constants'
 import { isSameDay, isSameMonth, isSameWeek, formatDate } from '/src/utils/dateUtils'
 import { calculateTotalExpenses } from '/src/utils/expensesUtils'
 import Widget from '/src/views/shared/Card'
+
 import CurrentStats from '../stats/currentStats'
-import TotalStats from '../stats/totalStat'
+import TotalStats from '../stats/totalStats'
 import AdvInsAddStats from '../stats/advInsAddStats'
 import BalanceStats from '../stats/balanceStats'
 
@@ -336,24 +337,20 @@ const CashInHand = ({ salesData, expenses, installments }) => {
   const totalInCash = calculateInCash()
   const totalInBank = calculateSalesInBank()
   const totalExpenses = calculateTotalExpenses(expenses, customDate, timeframe)
-  const totalSales = calculateTotalSales()
-  const totalInHand = calculateInHandSales()
+
   const totalWorth = calculateTotalWorth()
-  const totalInEasyPaisa = calculateSalesInEasypaisa()
+  const totalInHand = calculateInHandSales()
+  const pendingSales = calculatePendingSales()
   const totalInJazzCash = calculateSalesInJazzCash()
-  const pendingSales= calculatePendingSales()
+  const totalInEasyPaisa = calculateSalesInEasypaisa()
+
+  const totalSales = calculateTotalSales()
 
   //   ----------------
 
-
   const remainingCash = totalSales - totalExpenses
   const Balance = totalInHand + installmentTotal - totalExpenses
-  const CashBalance = totalInCash + cashInstallmentTotal - totalExpenses
-  const total = totalInHand + installmentTotal
-  const totalCashAmount = totalInCash + cashInstallmentTotal
-  const totalBankAmount = totalInBank + bankInstallmentTotal
-  const totalJazzCashAmount = totalInJazzCash + jazzcashInstallmentTotal
-  const totalEasyPaisaAmount = totalInEasyPaisa + easypaisaInstallmentTotal
+
 
   return (
     <Box sx={{ padding: 4 }}>
@@ -424,30 +421,15 @@ const CashInHand = ({ salesData, expenses, installments }) => {
         installmentTotal={installmentTotal}
       />
 
-     <TotalStats
-     totalWorth ={totalWorth}
-     totalInHand ={totalInHand}
-     pendingSales ={pendingSales}
-     totalInCash ={totalInCash}
-     totalInBank ={totalInBank}
-     totalInJazzCash ={totalInJazzCash}
-     totalInEasyPaisa ={totalInEasyPaisa}
-
-     />
-
-      <Typography variant='h5' sx={{ fontWeight: 'bold', padding: 4 }}>
-        Total Stats
-      </Typography>
-
-      <Grid container spacing={4} sx={{ padding: 2 }}>
-        <Widget label={'Total Order Worth'} value={totalWorth} size={12} />
-        <Widget label={'Total Advance'} value={totalInHand} size={12} />
-        <Widget label={'Total Pending Amount'} value={pendingSales} size={12} />
-        <Widget label={'IN (Cash)'} value={totalInCash} size={12} />
-        <Widget label={'CC (Bank)'} value={totalInBank} size={12} />
-        <Widget label={'Cash in JazzCash'} value={totalInJazzCash} size={12} />
-        <Widget label={'Cash in EasyPaisa'} value={totalInEasyPaisa} size={12} />
-      </Grid>
+      <TotalStats
+        totalWorth={totalWorth}
+        totalInHand={totalInHand}
+        pendingSales={pendingSales}
+        totalInCash={totalInCash}
+        totalInBank={totalInBank}
+        totalInJazzCash={totalInJazzCash}
+        totalInEasyPaisa={totalInEasyPaisa}
+      />
 
       <InstallmentData
         installments={installments}
@@ -458,50 +440,32 @@ const CashInHand = ({ salesData, expenses, installments }) => {
       />
 
       <AdvInsAddStats
-
-      totalCashAmount = {totalCashAmount}
-      totalBankAmount = {totalBankAmount}
-      totalJazzCashAmount = {totalJazzCashAmount}
-      totalEasyPaisaAmount = {totalEasyPaisaAmount}
+        totalInCash={totalInCash}
+        totalInBank={totalInBank}
+        totalInJazzCash={totalInJazzCash}
+        totalInEasyPaisa={totalInEasyPaisa}
+        cashInstallmentTotal={cashInstallmentTotal}
+        bankInstallmentTotal={bankInstallmentTotal}
+        jazzcashInstallmentTotal={jazzcashInstallmentTotal}
+        easypaisaInstallmentTotal={easypaisaInstallmentTotal}
       />
-
-      <Typography variant='h5' sx={{ fontWeight: 'bold', padding: 4 }}>
-        Advance and Installment Addition Stats
-      </Typography>
-
-      <Grid container spacing={4} sx={{ padding: 2 }}>
-        <Widget label={'Total Cash'} value={totalCashAmount} size={12} sm={6} md={3} />
-        <Widget label={'Total Bank Amount'} value={totalBankAmount} size={12} sm={6} md={3} />
-        <Widget label={'Total JazzCash Amount'} value={totalJazzCashAmount} size={12} sm={6} md={3} />
-        <Widget label={'Total EasyPaisa Amount'} value={totalEasyPaisaAmount} size={12} sm={6} md={3} />
-      </Grid>
 
       <BalanceStats
-      CashBalance = {CashBalance}
-      total  = {total}
-      totalExpenses = {totalExpenses}
-      Balance = {Balance}
+        totalExpenses={totalExpenses}
+        totalInHand={totalInHand}
+        installmentTotal={installmentTotal}
+        totalInCash={totalInCash}
+        cashInstallmentTotal={cashInstallmentTotal}
       />
-
-      <Typography variant='h5' sx={{ fontWeight: 'bold', padding: 4 }}>
-        Balance Stats
-      </Typography>
-
-      <Grid container spacing={3} sx={{ marginTop: 4 }}>
-        <Widget label={'Cash Balance'} value={CashBalance} size={12} sm={6} />
-        <Widget label={'Total inHand = Advance + total Installment Amount'} value={total} size={12} sm={6} />
-        <Widget label={' Total Expenses'} value={totalExpenses} size={12} sm={6} />
-        <Widget label={'Balance Amount'} value={Balance} size={12} sm={6} md={3} />
-      </Grid>
 
       <Box sx={{ marginTop: 8 }}>
         <Grid>
           <ChartComponent
             totalSales={totalSales}
             totalExpenses={totalExpenses}
-            remainingCash={remainingCash}
             totalInHand={totalInHand}
             pendingAmount={pendingSales}
+            remainingCash={remainingCash}
             Balance={Balance}
           />
         </Grid>

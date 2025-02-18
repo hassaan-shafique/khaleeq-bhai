@@ -41,7 +41,6 @@ const ReportView = ({ salesData, expenses, installments }) => {
       <Grid container spacing={2} sx={{ marginBottom: 4, marginTop: '4px', padding: 4 }}>
         <Tabs value={selectedComponent} handler={value => setSelectedComponent(value)} tabs={TABS} />
       </Grid>
-
       <ReportSection
         selectedComponent={selectedComponent}
         salesData={salesData}

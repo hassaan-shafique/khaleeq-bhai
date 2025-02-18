@@ -395,6 +395,7 @@ const CashInHand = ({ id, salesData, expenses }) => {
 
     return totalInJazzCash
   }
+  
   const calculateSalesInEasypaisa = () => {
     let totalInEasyPaisa = 0
 

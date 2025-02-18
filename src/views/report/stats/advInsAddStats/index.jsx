@@ -2,11 +2,22 @@ import React from 'react'
 import { Grid, Typography } from '@mui/material'
 import Widget from '/src/views/shared/Card'
 
-const AdvInsAddStats = (totalInCash =0 ,totalInJazzCash = 0, totalInBank = 0 ,totalInEasyPaisa = 0) => {
-  const totalCashAmount = totalInCash + cashInstallmentTotal
-  const totalBankAmount = totalInBank + bankInstallmentTotal
-  const totalJazzCashAmount = totalInJazzCash + jazzcashInstallmentTotal
-  const totalEasyPaisaAmount = totalInEasyPaisa + easypaisaInstallmentTotal
+const AdvInsAddStats = ({
+  totalInCash = 0,
+  totalInJazzCash = 0,
+  totalInEasyPaisa = 0,
+  totalInBank = 0,
+  cashInstallmentTotal = 0,
+  bankInstallmentTotal = 0,
+  jazzcashInstallmentTotal = 0,
+  easypaisaInstallmentTotal = 0
+}) => {
+  const STATISTICS = [
+    { label: 'Total Cash', value: totalInCash + cashInstallmentTotal },
+    { label: 'Total Bank Amount', value: totalInBank + bankInstallmentTotal },
+    { label: 'Total JazzCash Amount', value: totalInJazzCash + jazzcashInstallmentTotal },
+    { label: 'Total EasyPaisa Amount', value: totalInEasyPaisa + easypaisaInstallmentTotal }
+  ]
   return (
     <>
       <Typography variant='h5' sx={{ fontWeight: 'bold', padding: 4 }}>
@@ -14,14 +25,12 @@ const AdvInsAddStats = (totalInCash =0 ,totalInJazzCash = 0, totalInBank = 0 ,to
       </Typography>
 
       <Grid container spacing={4} sx={{ padding: 2 }}>
-        <Widget label={'Total Cash'} value={totalCashAmount} size={12} sm={6} md={3} />
-        <Widget label={'Total Bank Amount'} value={totalBankAmount} size={12} sm={6} md={3} />
-        <Widget label={'Total JazzCash Amount'} value={totalJazzCashAmount} size={12} sm={6} md={3} />
-        <Widget label={'Total EasyPaisa Amount'} value={totalEasyPaisaAmount} size={12} sm={6} md={3} />
+        {STATISTICS.map(({ label, value }, index) => (
+          <Widget key={index} label={label} value={value} size={12} sm={6} md={3} />
+        ))}
       </Grid>
     </>
   )
 }
 
 export default AdvInsAddStats
-
