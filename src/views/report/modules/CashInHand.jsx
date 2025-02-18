@@ -16,29 +16,24 @@ import {
 
 import ChartComponent from './ChartComponent'
 import InstallmentData from './installmentsData'
-import { STATUS } from '../../../constants'
 import { isSameDay, isSameMonth, isSameWeek, formatDate } from '/src/utils/dateUtils'
 import { calculateTotalExpenses } from '/src/utils/expensesUtils'
-import Widget from '/src/views/shared/Card'
 
 import CurrentStats from '../stats/currentStats'
 import TotalStats from '../stats/totalStats'
 import AdvInsAddStats from '../stats/advInsAddStats'
 import BalanceStats from '../stats/balanceStats'
+import useSaleDate from '../../../hooks/useSaleDate'
 
 const CashInHand = ({ salesData, expenses, installments }) => {
   const userRole = localStorage.getItem('userRole')
-
   const [timeframe, setTimeframe] = useState('day')
   const [customDate, setCustomDate] = useState({ start: '', end: '' })
-  const [paymentFilter, setPaymentFilter] = useState('')
   const [installmentTotal, setInstallmentTotal] = useState(0)
   const [cashInstallmentTotal, setCashInstallmentTotal] = useState(0)
   const [bankInstallmentTotal, setBankInstallmentTotal] = useState(0)
   const [jazzcashInstallmentTotal, setJazzcashInstallmentTotal] = useState(0)
   const [easypaisaInstallmentTotal, setEasypaisaInstallmentTotal] = useState(0)
-
-  //   -----
 
   const handleInstallmentTotal = (install, cash, bank, jazzcash, easypaisa) => {
     setInstallmentTotal(install)
@@ -48,309 +43,60 @@ const CashInHand = ({ salesData, expenses, installments }) => {
     setEasypaisaInstallmentTotal(easypaisa)
   }
 
-  const calculateTotalSales = () => {
-    let totalSales = 0
-
-    salesData.forEach(sale => {
-      // Ensure sale.startDate is not null or undefined
-      if (sale.startDate && sale.startDate.seconds) {
-        if (sale.status === STATUS.COMPLETED) {
-          const saleDate = new Date(sale.startDate.seconds * 1000) // Convert Firestore timestamp
-          const startDate = customDate.start ? new Date(customDate.start) : null
-          const endDate = customDate.end ? new Date(customDate.end) : null
-
-          // Ensure the end date includes the entire day
-          if (endDate) {
-            endDate.setHours(23, 59, 59, 999)
-          }
-
-          const withinCustomRange =
-            timeframe === 'custom' && startDate && endDate && saleDate >= startDate && saleDate <= endDate
-
-          if (
-            (timeframe === 'day' && isSameDay(sale.startDate)) ||
-            (timeframe === 'week' && isSameWeek(sale.startDate)) ||
-            (timeframe === 'month' && isSameMonth(sale.startDate)) ||
-            withinCustomRange
-          ) {
-            totalSales += Number(sale.totalAmount) || 0 // Safeguard against invalid numbers
-          }
-        }
-      }
-    })
-
-    return totalSales
-  }
-
-  const calculateInHandSales = () => {
+  const calculateSales = (filter, params) => {
     if (!salesData || salesData.length === 0) return 0
 
-    let totalInHand = 0
+    return salesData.reduce((totalSales, sale) => {
+      const { saleDate, startDate, endDate } = useSaleDate(customDate, sale)
 
-    salesData.forEach(sale => {
-      // Skip invalid or missing data
-      if (!sale.startDate?.seconds) return
-
-      const saleDate = new Date(sale.startDate.seconds * 1000) // Convert Firestore timestamp
-      const startDate = customDate.start ? new Date(customDate.start) : null
-      const endDate = customDate.end ? new Date(customDate.end) : null
-
-      // Handle edge case for same-day selection in custom timeframe
-      if (startDate && endDate && startDate.toDateString() === endDate.toDateString()) {
-        endDate.setHours(23, 59, 59, 999) // Extend the end date to cover the entire day
-      }
-
-      // Ensure consistency by converting all dates to UTC
-      const saleDateUTC = new Date(saleDate.toISOString())
-      const startDateUTC = startDate ? new Date(startDate.toISOString()) : null
-      const endDateUTC = endDate ? new Date(endDate.toISOString()) : null
-
-      // Check if the sale matches the selected payment filter
-      const matchesPaymentFilter = !paymentFilter || sale.payment === paymentFilter
-
-      // Check if the sale falls within the custom date range
+      // Check if sale falls within the selected timeframe
       const withinCustomRange =
-        timeframe === 'custom' && startDateUTC && endDateUTC && saleDateUTC >= startDateUTC && saleDateUTC <= endDateUTC
+        timeframe === 'custom' && startDate && endDate && saleDate >= startDate && saleDate <= endDate
 
-      // Check if the sale falls within the selected timeframe
       const matchesTimeframe =
-        (timeframe === 'day' && isSameDay(sale.startDate)) ||
-        (timeframe === 'week' && isSameWeek(sale.startDate)) ||
-        (timeframe === 'month' && isSameMonth(sale.startDate)) ||
-        withinCustomRange
+        timeframe === 'day'
+          ? isSameDay(saleDate)
+          : timeframe === 'week'
+          ? isSameWeek(saleDate)
+          : timeframe === 'month'
+          ? isSameMonth(saleDate)
+          : withinCustomRange
 
-      // Add the sale advance to the total if all conditions are met
-      if (matchesPaymentFilter && matchesTimeframe) {
-        totalInHand += Number(sale.advance)
-      }
-    })
+      // Apply filter condition only if `filter` has a value
+      const matchesFilter = !filter || sale.payment?.trim() === filter
 
-    return totalInHand
-  }
+      if (matchesTimeframe && matchesFilter) {
+        const amount =
+          params === 'advance'
+            ? Number(sale.advance || 0)
+            : params === 'total'
+            ? Number(sale.totalAmount || 0)
+            : params === 'pending'
+            ? Number(sale.pendingAmount || 0)
+            : 0
 
-  const calculateTotalWorth = () => {
-    if (!salesData || salesData.length === 0) return 0
-
-    let totalWorth = 0
-
-    salesData.forEach(sale => {
-      // Skip invalid or missing data
-      if (!sale.startDate?.seconds) return
-
-      // Convert Firestore timestamp to a Date object
-      const saleDate = new Date(sale.startDate.seconds * 1000)
-      const startDate = customDate.start ? new Date(customDate.start) : null
-      const endDate = customDate.end ? new Date(customDate.end) : null
-
-      // Handle same-day selection for custom timeframe
-      if (startDate && endDate && startDate.toDateString() === endDate.toDateString()) {
-        endDate.setHours(23, 59, 59, 999) // Extend the end date to include the entire day
+        return totalSales + amount
       }
 
-      // Adjust dates to UTC for consistent comparisons
-      const saleDateUTC = new Date(saleDate.toISOString())
-      const startDateUTC = startDate ? new Date(startDate.toISOString()) : null
-      const endDateUTC = endDate ? new Date(endDate.toISOString()) : null
-
-      // Debugging: Log important values
-
-      // Check if the sale falls within the custom date range
-      const withinCustomRange =
-        timeframe === 'custom' && startDateUTC && endDateUTC && saleDateUTC >= startDateUTC && saleDateUTC <= endDateUTC
-
-      // Check if the sale matches the selected timeframe
-      const matchesTimeframe =
-        (timeframe === 'day' && isSameDay(sale.startDate)) ||
-        (timeframe === 'week' && isSameWeek(sale.startDate)) ||
-        (timeframe === 'month' && isSameMonth(sale.startDate)) ||
-        withinCustomRange
-
-      // Add the sale's totalAmount to the total worth if it matches all conditions
-      if (matchesTimeframe && (!paymentFilter || sale.payment === paymentFilter)) {
-        totalWorth += Number(sale.totalAmount)
-      }
-    })
-
-    return totalWorth
-  }
-
-  const calculateInCash = () => {
-    let totalInCash = 0
-    salesData.forEach(sale => {
-      if (sale.startDate && sale.startDate.seconds) {
-        const saleDate = formatDate(sale.startDate.seconds)
-        const { start, end } = customDate
-        const withinCustomRange = timeframe === 'custom' && start && end && saleDate >= start && saleDate <= end
-        if (
-          (timeframe === 'day' && isSameDay(sale.startDate)) ||
-          (timeframe === 'week' && isSameWeek(sale.startDate)) ||
-          (timeframe === 'month' && isSameMonth(sale.startDate)) ||
-          withinCustomRange
-        ) {
-          if (sale.payment && sale.payment.trim() === 'Cash') {
-            totalInCash += Number(sale.advance)
-          }
-        }
-      }
-    })
-    return totalInCash
-  }
-
-  const calculateSalesInBank = () => {
-    let totalInBank = 0
-
-    salesData.forEach(sale => {
-      // Ensure sale.startDate is not null or undefined
-      if (sale.startDate && sale.startDate.seconds) {
-        const saleDate = new Date(sale.startDate.seconds * 1000) // Convert Firestore timestamp
-        const startDate = customDate.start ? new Date(customDate.start) : null
-        const endDate = customDate.end ? new Date(customDate.end) : null
-
-        // Ensure the start date begins at 00:00:00 and the end date includes the full day
-        if (startDate) startDate.setHours(0, 0, 0, 0)
-        if (endDate) endDate.setHours(23, 59, 59, 999)
-
-        const withinCustomRange =
-          timeframe === 'custom' && startDate && endDate && saleDate >= startDate && saleDate <= endDate
-
-        if (
-          (timeframe === 'day' && isSameDay(sale.startDate)) ||
-          (timeframe === 'week' && isSameWeek(sale.startDate)) ||
-          (timeframe === 'month' && isSameMonth(sale.startDate)) ||
-          withinCustomRange
-        ) {
-          if (sale.payment && sale.payment.trim() === 'Bank') {
-            totalInBank += Number(sale.advance)
-          }
-        }
-      }
-    })
-
-    return totalInBank
-  }
-
-  const calculateSalesInJazzCash = () => {
-    let totalInJazzCash = 0
-
-    salesData.forEach(sale => {
-      // Ensure sale.startDate is not null or undefined
-      if (sale.startDate && sale.startDate.seconds) {
-        const saleDate = new Date(sale.startDate.seconds * 1000) // Convert Firestore timestamp
-        const startDate = customDate.start ? new Date(customDate.start) : null
-        const endDate = customDate.end ? new Date(customDate.end) : null
-
-        // Ensure the end date includes the entire day
-        if (startDate) startDate.setHours(0, 0, 0, 0)
-        if (endDate) endDate.setHours(23, 59, 59, 999)
-
-        const withinCustomRange =
-          timeframe === 'custom' && startDate && endDate && saleDate >= startDate && saleDate <= endDate
-
-        if (
-          (timeframe === 'day' && isSameDay(sale.startDate)) ||
-          (timeframe === 'week' && isSameWeek(sale.startDate)) ||
-          (timeframe === 'month' && isSameMonth(sale.startDate)) ||
-          withinCustomRange
-        ) {
-          if (sale.payment && sale.payment.trim() === 'JazzCash') {
-            totalInJazzCash += Number(sale.advance)
-          }
-        }
-      }
-    })
-
-    return totalInJazzCash
-  }
-
-  const calculateSalesInEasypaisa = () => {
-    let totalInEasyPaisa = 0
-
-    salesData.forEach(sale => {
-      // Ensure sale.startDate is not null or undefined
-      if (sale.startDate && sale.startDate.seconds) {
-        const saleDate = new Date(sale.startDate.seconds * 1000) // Convert Firestore timestamp
-        const startDate = customDate.start ? new Date(customDate.start) : null
-        const endDate = customDate.end ? new Date(customDate.end) : null
-
-        // Ensure the end date includes the entire day
-        if (startDate) startDate.setHours(0, 0, 0, 0)
-        if (endDate) endDate.setHours(23, 59, 59, 999)
-
-        const withinCustomRange =
-          timeframe === 'custom' && startDate && endDate && saleDate >= startDate && saleDate <= endDate
-
-        if (
-          (timeframe === 'day' && isSameDay(sale.startDate)) ||
-          (timeframe === 'week' && isSameWeek(sale.startDate)) ||
-          (timeframe === 'month' && isSameMonth(sale.startDate)) ||
-          withinCustomRange
-        ) {
-          if (sale.payment && sale.payment.trim() === 'EasyPaisa') {
-            totalInEasyPaisa += Number(sale.advance)
-          }
-        }
-      }
-    })
-
-    return totalInEasyPaisa
-  }
-
-  const calculatePendingSales = () => {
-    let totalPending = 0
-
-    salesData.forEach(sale => {
-      // Ensure sale.startDate is not null or undefined
-      if (sale.startDate && sale.startDate.seconds) {
-        if (
-          !paymentFilter ||
-          sale.payment === paymentFilter // Apply payment filter
-        ) {
-          const saleDate = new Date(sale.startDate.seconds * 1000) // Convert Firestore timestamp
-          const startDate = customDate.start ? new Date(customDate.start) : null
-          const endDate = customDate.end ? new Date(customDate.end) : null
-
-          // Ensure the end date includes the entire day
-          if (endDate) {
-            endDate.setHours(23, 59, 59, 999)
-          }
-
-          const withinCustomRange =
-            timeframe === 'custom' && startDate && endDate && saleDate >= startDate && saleDate <= endDate
-
-          if (
-            (timeframe === 'day' && isSameDay(sale.startDate)) ||
-            (timeframe === 'week' && isSameWeek(sale.startDate)) ||
-            (timeframe === 'month' && isSameMonth(sale.startDate)) ||
-            withinCustomRange
-          ) {
-            totalPending += Number(sale.pendingAmount)
-          }
-        }
-      }
-    })
-
-    return totalPending
+      return totalSales
+    }, 0)
   }
 
   //   ----------------
 
-  const totalInCash = calculateInCash()
-  const totalInBank = calculateSalesInBank()
+  const totalInCash = calculateSales('Cash', 'advance')
+  const totalInBank = calculateSales('Bank', 'advance')
+  const totalInJazzCash = calculateSales('JazzCash', 'advance')
+  const totalInEasyPaisa = calculateSales('EasyPaisa', 'advance')
+  const totalWorth = calculateSales('', 'total')
+  const totalSales = calculateSales('', 'total')
+  const totalInHand = calculateSales('', 'advance')
+  const pendingSales = calculateSales('', 'pending')
   const totalExpenses = calculateTotalExpenses(expenses, customDate, timeframe)
-
-  const totalWorth = calculateTotalWorth()
-  const totalInHand = calculateInHandSales()
-  const pendingSales = calculatePendingSales()
-  const totalInJazzCash = calculateSalesInJazzCash()
-  const totalInEasyPaisa = calculateSalesInEasypaisa()
-
-  const totalSales = calculateTotalSales()
-
-  //   ----------------
-
   const remainingCash = totalSales - totalExpenses
   const Balance = totalInHand + installmentTotal - totalExpenses
 
+  //   ----------------
 
   return (
     <Box sx={{ padding: 4 }}>
