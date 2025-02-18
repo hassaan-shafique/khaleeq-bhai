@@ -20,6 +20,7 @@ import { STATUS } from '../../../constants'
 import { isSameDay, isSameMonth, isSameWeek, formatDate } from '/src/utils/dateUtils'
 import { calculateTotalExpenses } from '/src/utils/expensesUtils'
 import Widget from '/src/views/shared/Card'
+import CurrentStats from '../stats/currentStats'
 
 const CashInHand = ({ salesData, expenses, installments }) => {
   const userRole = localStorage.getItem('userRole')
@@ -329,27 +330,26 @@ const CashInHand = ({ salesData, expenses, installments }) => {
 
   //   ----------------
 
-  const totalSales = calculateTotalSales()
+  const totalInCash = calculateInCash()
+  const totalInBank = calculateSalesInBank()
   const totalExpenses = calculateTotalExpenses(expenses, customDate, timeframe)
+
+  const totalSales = calculateTotalSales()
   const totalInHand = calculateInHandSales()
   const totalWorth = calculateTotalWorth()
-  const totalInBank = calculateSalesInBank()
-  const totalInCash = calculateInCash()
   const totalInEasyPaisa = calculateSalesInEasypaisa()
   const totalInJazzCash = calculateSalesInJazzCash()
 
   //   ----------------
 
+
   const remainingCash = totalSales - totalExpenses
   const Balance = totalInHand + installmentTotal - totalExpenses
   const CashBalance = totalInCash + cashInstallmentTotal - totalExpenses
   const total = totalInHand + installmentTotal
-  const final = totalInCash + installmentTotal + totalInBank
-  const finalCash = final - totalInBank
-  const newBalance = finalCash - totalExpenses
   const totalCashAmount = totalInCash + cashInstallmentTotal
   const totalBankAmount = totalInBank + bankInstallmentTotal
-  const totalJazzCashAmount = totalInEasyPaisa + jazzcashInstallmentTotal
+  const totalJazzCashAmount = totalInJazzCash + jazzcashInstallmentTotal
   const totalEasyPaisaAmount = totalInEasyPaisa + easypaisaInstallmentTotal
 
   return (
@@ -414,19 +414,12 @@ const CashInHand = ({ salesData, expenses, installments }) => {
 
       {/* ----- */}
 
-      <Typography variant='h5' sx={{ fontWeight: 'bold' }}>
-        Current Stats
-      </Typography>
-
-      <Grid container spacing={4} sx={{ padding: 2 }}>
-        <Widget label={'IN (Cash)'} value={calculateInCash()} size={12} md={4} />
-        <Widget label={'Out (Total Installments)'} value={installmentTotal} size={12} md={4} />
-        <Widget label={'CC (Bank)'} value={calculateSalesInBank()} size={12} md={4} />
-        <Widget label={'Total = In + Out + CC'} value={final} size={12} md={6} />
-        <Widget label={'Cash = Total - CC'} value={finalCash} size={12} md={6} />
-        <Widget label={'Total Expenses'} value={totalExpenses} size={12} />
-        <Widget label={'NewBalance = Cash - Expense'} value={newBalance} size={12} />
-      </Grid>
+      <CurrentStats
+        totalInCash={totalInCash}
+        totalInBank={totalInBank}
+        totalExpenses={totalExpenses}
+        installmentTotal={installmentTotal}
+      />
 
       <Typography variant='h5' sx={{ fontWeight: 'bold', padding: 4 }}>
         Total Stats
@@ -438,7 +431,7 @@ const CashInHand = ({ salesData, expenses, installments }) => {
         <Widget label={'Total Pending Amount'} value={calculatePendingSales()} size={12} />
         <Widget label={'IN (Cash)'} value={calculateInCash()} size={12} />
         <Widget label={'CC (Bank)'} value={calculateSalesInBank()} size={12} />
-        <Widget label={' Cash in JazzCash'} value={calculateSalesInJazzCash()} size={12} />
+        <Widget label={'Cash in JazzCash'} value={calculateSalesInJazzCash()} size={12} />
         <Widget label={'Cash in EasyPaisa'} value={calculateSalesInEasypaisa()} size={12} />
       </Grid>
 
@@ -449,24 +442,28 @@ const CashInHand = ({ salesData, expenses, installments }) => {
         endDate={customDate.end}
         onInstallmentCalculated={handleInstallmentTotal}
       />
+
+      <Typography variant='h5' sx={{ fontWeight: 'bold', padding: 4 }}>
+        Advance and Installment Addition Stats
+      </Typography>
+
       <Grid container spacing={4} sx={{ padding: 2 }}>
         <Widget label={'Total Cash'} value={totalCashAmount} size={12} sm={6} md={3} />
         <Widget label={'Total Bank Amount'} value={totalBankAmount} size={12} sm={6} md={3} />
-        <Widget label={' Total JazzCash Amount'} value={totalJazzCashAmount} size={12} sm={6} md={3}/>
+        <Widget label={'Total JazzCash Amount'} value={totalJazzCashAmount} size={12} sm={6} md={3} />
         <Widget label={'Total EasyPaisa Amount'} value={totalEasyPaisaAmount} size={12} sm={6} md={3} />
-
       </Grid>
-    
 
+      <Typography variant='h5' sx={{ fontWeight: 'bold', padding: 4 }}>
+        Balance Stats
+      </Typography>
 
       <Grid container spacing={3} sx={{ marginTop: 4 }}>
-
-        <Widget label={'Cash Balance'} value={CashBalance} size={12} sm={6}  />
-        <Widget label={'Total inHand = Advance + total Installment Amount'} value={total} size={12} sm={6}  />
+        <Widget label={'Cash Balance'} value={CashBalance} size={12} sm={6} />
+        <Widget label={'Total inHand = Advance + total Installment Amount'} value={total} size={12} sm={6} />
         <Widget label={' Total Expenses'} value={totalExpenses} size={12} sm={6} />
         <Widget label={'Balance Amount'} value={Balance} size={12} sm={6} md={3} />
       </Grid>
-
 
       <Box sx={{ marginTop: 8 }}>
         <Grid>
