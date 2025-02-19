@@ -11,8 +11,8 @@ import Signup from './components/Signup'
 import Inventory from './components/bodyComponents/inventory/Inventory'
 import Glasses from './components/bodyComponents/glasses/Glasses'
 import Expense from './components/bodyComponents/expense/Expense'
-import Report from './components/bodyComponents/report/Report'
-import reportExpense from './components/bodyComponents/report/reportExpense'
+// import Report from './components/bodyComponents/report/Report'
+// import reportExpense from './components/bodyComponents/report/reportExpense'
 import Vendors from './components/bodyComponents/Vendors/Vendors'
 import Activity from './components/bodyComponents/activity/Activity'
 import Sales from './components/bodyComponents/sale/Sales'
@@ -145,7 +145,7 @@ function App() {
             <Route path='glasses' element={<Glasses />} />
             <Route path='daily-activity' element={<Activity />} />
             <Route path='expense' element={<Expense expenses={expenses} loading={loading} setRefresh={setRefresh} />} />
-            <Route path='old-reports' element={<Report />} />
+            {/* <Route path='old-reports' element={<Report />} /> */}
             <Route path='reports' element={<ReportV2 />} />
             <Route path='vendors' element={<Vendors />} />
             <Route path='verification' element={<Verify />} />

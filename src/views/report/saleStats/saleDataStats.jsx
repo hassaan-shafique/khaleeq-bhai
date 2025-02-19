@@ -1,30 +1,6 @@
-import React, { useState, useEffect, useRef } from 'react'
-import {
-  Box,
-  Button,
-  Grid,
-  Typography,
-  Paper,
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableRow,
-  CircularProgress,
-  TextField,
-  FormControl,
-  InputLabel,
-  MenuItem,
-  Select,
-  TableContainer
-} from '@mui/material'
-
-const formatDate = date => {
-  const epochTime = date
-  const newDate = new Date(epochTime * 1000)
-  const formattedDate = newDate.toISOString().split('T')[0]
-  return formattedDate
-}
+import React from 'react'
+import { Typography, TableCell, TableRow } from '@mui/material'
+import { formatDateDisplay } from '/src/utils/dateUtils'
 
 const SaleDataStats = ({ sale, installments, index }) => {
   const saleInstallments = installments.filter(installment => installment.saleId === sale.id)
@@ -47,7 +23,7 @@ const SaleDataStats = ({ sale, installments, index }) => {
         <Typography variant='body2'>{index + 1}</Typography>
       </TableCell>
       <TableCell>
-        <Typography variant='body2'>{formatDate(sale.startDate.seconds)}</Typography>
+        <Typography variant='body2'>{formatDateDisplay(sale.startDate)}</Typography>
       </TableCell>
       <TableCell>
         <Typography variant='body2' color='primary'>

@@ -1,6 +1,6 @@
 import React from 'react'
 import { Grid, Typography } from '@mui/material'
-import Widget from '/src/views/shared/Card'
+import Widget from '/src/views/shared/Widget'
 
 const TotalStats = ({
   totalInCash = 0,

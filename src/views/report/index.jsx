@@ -1,13 +1,13 @@
 import React, { useState } from 'react'
 import { Grid, Box, Button, Table, Tab, TableCell } from '@mui/material'
 
-import SaleStats from './modules/saleStats'
 import SaleByProduct from './modules/saleByProduct'
 import SaleByQuantity from './modules/saleByQuantity'
 import ExpenseStats from './modules/ExpenseStats'
 import Tabs from '../shared/Tabs/index.jsx'
 import { TABS } from '../../constants'
-import CashInHand from './modules/CashInHand'
+import CashInHand from './cashInHand'
+import SaleStats from './saleStats/index.jsx'
 
 const COMPONENTS = {
   SaleStats: props => <SaleStats {...props} />,
@@ -35,12 +35,12 @@ const ReportView = ({ salesData, expenses, installments }) => {
 
   return (
     <Box sx={{ padding: 14 }}>
-      <Grid item xs={12}>
-        <CashInHand salesData={salesData} expenses={expenses} installments={installments} />
-      </Grid>
+      <CashInHand salesData={salesData} expenses={expenses} installments={installments} />
+
       <Grid container spacing={2} sx={{ marginBottom: 4, marginTop: '4px', padding: 4 }}>
         <Tabs value={selectedComponent} handler={value => setSelectedComponent(value)} tabs={TABS} />
       </Grid>
+      
       <ReportSection
         selectedComponent={selectedComponent}
         salesData={salesData}

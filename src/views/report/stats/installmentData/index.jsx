@@ -1,11 +1,8 @@
 import React, { useEffect } from 'react'
 import { Grid, Card, CardContent, Typography } from '@mui/material'
-import Widget from '/src/views/shared/Card'
+import Widget from '/src/views/shared/widget'
 
-const InstallmentData = ({ installments, timeframe, startDate ,endDate,onInstallmentCalculated }) => {
-
-
-
+const InstallmentData = ({ installments, timeframe, startDate, endDate, onInstallmentCalculated }) => {
   const isSameDay = orderDate => {
     const now = new Date()
     const saleDate = new Date(orderDate)
@@ -18,7 +15,9 @@ const InstallmentData = ({ installments, timeframe, startDate ,endDate,onInstall
     startOfWeek.setDate(now.getDate() - now.getDay() - 7)
     const endOfWeek = new Date(startOfWeek)
     endOfWeek.setDate(startOfWeek.getDate() + 7)
+
     const saleDate = new Date(orderDate)
+
     const result = saleDate >= startOfWeek && saleDate <= endOfWeek
     return result
   }
@@ -31,33 +30,28 @@ const InstallmentData = ({ installments, timeframe, startDate ,endDate,onInstall
   }
 
   const isCustom = (orderDate, startDate, endDate) => {
-    const saleDate = new Date(orderDate);
-    const start = new Date(startDate);
-    const end = new Date(endDate);
-    const result = saleDate >= start && saleDate <= end;
-    return result;
+    const saleDate = new Date(orderDate)
+    const start = new Date(startDate)
+    const end = new Date(endDate)
+    const result = saleDate >= start && saleDate <= end
+    return result
   }
 
-
   const filterDataByTimeframe = (date, startDate, endDate) => {
-    // console.log("Filtering for date:", date, "Timeframe:", timeframe);
-
     switch (timeframe) {
-      case "day":
-        return isSameDay(date);
-      case "week":
-        return isSameWeek(date);
-      case "month":
-        return isSameMonth(date);
-      case "custom":
-        const result = isCustom(date, startDate, endDate);
-        console.log("Custom Filter Result:", result);
-        return result;
+      case 'day':
+        return isSameDay(date)
+      case 'week':
+        return isSameWeek(date)
+      case 'month':
+        return isSameMonth(date)
+      case 'custom':
+        const result = isCustom(date, startDate, endDate)
+        return result
       default:
-        return false;
+        return false
     }
-  };
-
+  }
 
   const calculateInstallments = (data, method) => {
     return data
@@ -73,28 +67,35 @@ const InstallmentData = ({ installments, timeframe, startDate ,endDate,onInstall
 
   const cashInstallment = calculateInstallments(installments, 'Cash')
   const bankInstallment = calculateInstallments(installments, 'Bank')
-  const jazzcashInstallment = calculateInstallments(installments, 'JazzCash')
   const easypaisaInstallment = calculateInstallments(installments, 'EasyPaisa')
+  const jazzcashInstallment = calculateInstallments(installments, 'JazzCash')
+  const install = cashInstallment + bankInstallment + jazzcashInstallment + easypaisaInstallment
 
-
-   const install = cashInstallment+ bankInstallment + jazzcashInstallment + easypaisaInstallment;
-
-   useEffect(() => {
+  useEffect(() => {
     if (onInstallmentCalculated) {
-      onInstallmentCalculated(install,cashInstallment,bankInstallment,jazzcashInstallment,easypaisaInstallment);
+      onInstallmentCalculated(install, cashInstallment, bankInstallment, jazzcashInstallment, easypaisaInstallment)
     }
-  }, [install,cashInstallment , bankInstallment, jazzcashInstallment, easypaisaInstallment,  onInstallmentCalculated]);
+  }, [install, cashInstallment, bankInstallment, jazzcashInstallment, easypaisaInstallment, onInstallmentCalculated])
+
+  const stats = [
+    { label: 'OUT (Total Installment)', value: totalInstallment(startDate, endDate), size: 12 },
+    { label: 'Cash Installment', value: cashInstallment, size: 12, md: 6 },
+    { label: 'Bank Installment', value: bankInstallment, size: 12, md: 6 },
+    { label: 'EasyPaisa Installment', value: easypaisaInstallment, size: 12, md: 6 },
+    { label: 'JazzCash Installment', value: jazzcashInstallment, size: 12, md: 6 }
+  ]
 
   return (
-    <Grid container spacing={3}>
-      {/* First row: Total Installment */}
-      <Widget label={'OUT (Total Installment)'} value={totalInstallment(startDate, endDate)} size={12}  />
-      <Widget label={' Cash Installment'} value={cashInstallment} size={12} sm={6}  />
-      <Widget label={' Bank Installment'} value={bankInstallment} size={12} sm={6}  />
-      <Widget label={' EasyPaisa Installment'} value={easypaisaInstallment} size={12} sm={6}  />
-      <Widget label={' JazzCash Installment'} value={jazzcashInstallment} size={12} sm={6}  />
-
-    </Grid>
+    <>
+      <Typography variant='h5' sx={{ fontWeight: 'bold', mb: 2, marginTop: 4 }}>
+        Installments Stats
+      </Typography>
+      <Grid container spacing={4} sx={{ padding: 2 }}>
+        {stats.map((item, index) => (
+          <Widget key={index} label={item.label} value={item.value} size={item.size} md={item.md} />
+        ))}
+      </Grid>
+    </>
   )
 }
 

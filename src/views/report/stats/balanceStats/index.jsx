@@ -1,6 +1,6 @@
 import React from 'react'
 import { Grid, Typography } from '@mui/material'
-import Widget from '/src/views/shared/Card'
+import Widget from '/src/views/shared/Widget'
 
 const BalanceStats = ({
   totalExpenses = 0,
@@ -22,7 +22,7 @@ const BalanceStats = ({
 
   return (
     <>
-      <Typography variant='h5' sx={{ fontWeight: 'bold', paddingTop: 4 }}>
+      <Typography variant='h5' sx={{ fontWeight: 'bold', padding: 2 }}>
         Balance Stats
       </Typography>
 
