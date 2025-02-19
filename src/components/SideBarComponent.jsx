@@ -178,11 +178,11 @@ export default function SideBarComponent() {
   return (
     <Box
       sx={{
-        width: sidebarOpen ? '300px' : '100px',
+        width: sidebarOpen ? '250px' : '100px',
         transition: 'width 0.3s ease',
-        backgroundColor: '#3884e7',
+        backgroundColor: '#616161',
         color: 'white',
-        height: '100vh',
+        height: '100%',
         padding: 2,
         paddingTop: 20,
         display: 'flex',
