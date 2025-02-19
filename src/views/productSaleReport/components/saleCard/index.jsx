@@ -10,20 +10,7 @@ const SaleCard = ({ sale }) => {
   if (!sale.kbcwProducts?.length && !sale.glassesProducts?.length) return null
 
   return (
-    <Box
-    //   sx={{
-    //     borderRadius: 3,
-    //     boxShadow: 6,
-    //     p: 3,
-    //     mb: 4,
-    //     backgroundColor: '#ffffff',
-    //     transition: 'transform 0.2s ease-in-out, box-shadow 0.3s ease',
-    //     '&:hover': {
-    //       transform: 'scale(1.02)',
-    //       boxShadow: 10
-    //     }
-    //   }}
-    >
+    <Box>
       {/* Sale Info */}
       <Box display='flex' alignItems='center' gap={2} mb={1}>
         <EventNoteIcon color='primary' />
