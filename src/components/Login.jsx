@@ -51,12 +51,12 @@ const Login = () => {
 
   return (
     <Container
-      component="main"
-      maxWidth={false}
+      component='main'
+      maxWidth
       sx={{
         height: '100vh',
         display: 'flex',
-        flexDirection: isSmallScreen ? 'column' : 'row', // Stack on small screens
+        flexDirection: isSmallScreen ? 'column' : 'row' // Stack on small screens
       }}
     >
       {/* Left Side - Image */}
@@ -71,7 +71,7 @@ const Login = () => {
           backgroundPosition: 'center',
           backgroundRepeat: 'no-repeat',
           opacity: 0.9, // Slight transparency for better contrast
-          minHeight: isSmallScreen ? '40vh' : '100vh',
+          minHeight: isSmallScreen ? '40vh' : '100vh'
         }}
       />
 
@@ -86,10 +86,10 @@ const Login = () => {
           padding: isSmallScreen ? 4 : 6,
           backgroundColor: 'rgba(255, 255, 255, 0.9)', // Semi-transparent white
           boxShadow: 3,
-          minHeight: isSmallScreen ? '60vh' : '100vh',
+          minHeight: isSmallScreen ? '60vh' : '100vh'
         }}
       >
-        <Typography component="h1" variant="h5" sx={{ mb: 3, fontWeight: 'bold' }}>
+        <Typography component='h1' variant='h5' sx={{ mb: 3, fontWeight: 'bold' }}>
           Welcome Back, Login Here
         </Typography>
 
@@ -97,13 +97,13 @@ const Login = () => {
           <Grid container spacing={2}>
             <Grid item xs={12}>
               <TextField
-                variant="outlined"
+                variant='outlined'
                 required
                 fullWidth
-                id="email"
-                label="Email"
-                name="email"
-                autoComplete="email"
+                id='email'
+                label='Email'
+                name='email'
+                autoComplete='email'
                 autoFocus
                 value={email}
                 onChange={e => setEmail(e.target.value)}
@@ -111,37 +111,37 @@ const Login = () => {
             </Grid>
             <Grid item xs={12}>
               <TextField
-                variant="outlined"
+                variant='outlined'
                 required
                 fullWidth
-                name="password"
-                label="Password"
-                type="password"
-                id="password"
-                autoComplete="current-password"
+                name='password'
+                label='Password'
+                type='password'
+                id='password'
+                autoComplete='current-password'
                 value={password}
                 onChange={e => setPassword(e.target.value)}
               />
             </Grid>
             {error && (
               <Grid item xs={12}>
-                <Typography color="error" sx={{ textAlign: 'center', mt: 1 }}>
+                <Typography color='error' sx={{ textAlign: 'center', mt: 1 }}>
                   {error}
                 </Typography>
               </Grid>
             )}
           </Grid>
           <Button
-            type="submit"
+            type='submit'
             fullWidth
-            variant="contained"
+            variant='contained'
             sx={{
               backgroundColor: 'grey',
               color: 'white',
               '&:hover': { backgroundColor: 'darkgrey' },
               marginTop: 3,
               padding: 1.5,
-              fontWeight: 'bold',
+              fontWeight: 'bold'
             }}
           >
             Login
@@ -149,14 +149,14 @@ const Login = () => {
         </form>
 
         <Box sx={{ marginTop: 2, textAlign: 'center' }}>
-          <Typography variant="body2">
+          <Typography variant='body2'>
             Don't have an account?{' '}
             <Link
-              to="/register"
+              to='/register'
               style={{
                 textDecoration: 'none',
                 color: theme.palette.grey[700],
-                fontWeight: 'bold',
+                fontWeight: 'bold'
               }}
             >
               Register

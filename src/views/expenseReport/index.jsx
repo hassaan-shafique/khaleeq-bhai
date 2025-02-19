@@ -12,11 +12,10 @@ import {
   TableRow,
   CircularProgress,
   TableContainer,
-  Card,
-  CardContent,
   TextField
 } from '@mui/material'
 import Widget from '../shared/Widget'
+import { formatDateDisplay } from '../../utils/dateUtils'
 
 const ExpenseReportView = ({ expenses }) => {
   const [timeframe, setTimeframe] = useState('day') // Default to "day"
@@ -24,7 +23,7 @@ const ExpenseReportView = ({ expenses }) => {
   const [filteredExpenses, setFilteredExpenses] = useState([]) // Filtered expense list
   const [loading, setLoading] = useState(false)
   const [totalPrice, setTotalPrice] = useState(0)
-
+  const printRef = useRef(null)
   const userRole = localStorage.getItem('userRole')
 
   // Filter expenses based on the selected timeframe
@@ -117,7 +116,6 @@ const ExpenseReportView = ({ expenses }) => {
     setLoading(false)
   }, [expenses, timeframe, customDate])
 
-  // Check if two dates are on the same day
   const isSameDay = (date1, date2) => {
     return (
       date1.getDate() === date2.getDate() &&
@@ -129,34 +127,14 @@ const ExpenseReportView = ({ expenses }) => {
   const isSameWeek = (date1, date2) => {
     const startOfWeek = new Date(date2)
     startOfWeek.setDate(date2.getDate() - date2.getDay() - 7)
-
     const endOfWeek = new Date(startOfWeek)
     endOfWeek.setDate(startOfWeek.getDate() + 7)
-
     return date1 >= startOfWeek && date1 <= endOfWeek
   }
 
-  // Check if two dates are in the same month
   const isSameMonth = (date1, date2) => {
     return date1.getMonth() === date2.getMonth() && date1.getFullYear() === date2.getFullYear()
   }
-
-  // Format a Firestore timestamp to "DD/MM/YYYY"
-  const formatTimestamp = timestamp => {
-    try {
-      const date = new Date(timestamp.seconds ? timestamp.seconds * 1000 : timestamp)
-      if (isNaN(date.getTime())) return 'Invalid Date'
-
-      const day = date.getDate().toString().padStart(2, '0')
-      const month = (date.getMonth() + 1).toString().padStart(2, '0')
-      const year = date.getFullYear()
-
-      return `${day}/${month}/${year}`
-    } catch (error) {
-      return 'Invalid Date'
-    }
-  }
-  const printRef = useRef(null)
 
   const handlePrint = () => {
     // Clone the printRef content to a new window for printing
@@ -214,101 +192,74 @@ const ExpenseReportView = ({ expenses }) => {
   }
 
   return (
-    <Box sx={{ padding: 4 }}>
-      <Typography variant='h4' gutterBottom>
-        Expense Stats
+    <Box sx={{ padding: 4, marginTop: 20, height: '100vh' }}>
+      <Typography variant='h4' gutterBottom sx={{ fontWeight: 'bold', mb: 4, mt: 4, color: '#333' }}>
+        📊 Expense Stats
       </Typography>
 
       <Grid container spacing={2} sx={{ marginBottom: 4 }}>
-        {[
-          'day', // Always show "day"
-          userRole === 'admin' ? 'week' : null, // Show "week" only for admin
-          userRole === 'admin' ? 'month' : null // Show "month" only for admin
-        ]
-          .filter(Boolean) // Remove null values from the array
-          .map(frame => (
-            <Grid item key={frame}>
-              <Button
-                variant={timeframe === frame ? 'contained' : 'outlined'}
-                color='primary'
-                onClick={() => setTimeframe(frame)}
-              >
-                {frame.charAt(0).toUpperCase() + frame.slice(1)} {/* Capitalize the first letter */}
-              </Button>
-            </Grid>
-          ))}
-        <Grid item>
-          {userRole === 'admin' && (
-            <Button variant={timeframe === 'custom' ? 'contained' : 'outlined'} onClick={() => setTimeframe('custom')}>
-              Custom
+        {['day', ...(userRole === 'admin' ? ['week', 'month', 'custom'] : [])].map(frame => (
+          <Grid item key={frame}>
+            <Button
+              variant={timeframe === frame ? 'contained' : 'outlined'}
+              color='primary'
+              onClick={() => setTimeframe(frame)}
+            >
+              {frame.charAt(0).toUpperCase() + frame.slice(1)}
             </Button>
-          )}
-        </Grid>
-        {timeframe === 'custom' && (
-          <Grid container spacing={2} sx={{ marginBottom: 4 }}>
-            <Grid item xs={6}>
-              <TextField
-                label='Start Date'
-                type='date'
-                fullWidth
-                value={customDate.start}
-                onChange={e => setCustomDate({ ...customDate, start: e.target.value })}
-              />
-            </Grid>
-            <Grid item xs={6}>
-              <TextField
-                label='End Date'
-                type='date'
-                fullWidth
-                value={customDate.end}
-                onChange={e => setCustomDate({ ...customDate, end: e.target.value })}
-              />
-            </Grid>
           </Grid>
-        )}
+        ))}
       </Grid>
 
+      {timeframe === 'custom' && (
+        <Grid container spacing={2} sx={{ marginBottom: 4 }}>
+          <Grid item xs={6}>
+            <TextField
+              label='Start Date'
+              type='date'
+              fullWidth
+              value={customDate.start}
+              onChange={e => setCustomDate({ ...customDate, start: e.target.value })}
+              InputLabelProps={{ shrink: true }} // ✅ Fix overlapping label
+            />
+          </Grid>
+          <Grid item xs={6}>
+            <TextField
+              label='End Date'
+              type='date'
+              fullWidth
+              value={customDate.end}
+              onChange={e => setCustomDate({ ...customDate, end: e.target.value })}
+              InputLabelProps={{ shrink: true }} // ✅ Fix overlapping label
+            />
+          </Grid>
+        </Grid>
+      )}
+
       <Widget
-        label={`Total Expense
-        (${timeframe === 'day' ? 'Today' : timeframe === 'week' ? 'This Week' : 'This Month'})`}
+        label={`Total Expense (${timeframe === 'day' ? 'Today' : timeframe === 'week' ? 'This Week' : 'This Month'})`}
         value={totalPrice.toFixed(2)}
         size={12}
         md={12}
       />
 
-
-
+      <Box sx={{ display: 'flex', justifyContent: 'flex-end', padding: 2, paddingTop: 5 }}>
+        <Button onClick={handlePrint} variant='contained' color='primary'>
+          Print Table
+        </Button>
+      </Box>
       <div ref={printRef} style={{ marginTop: 20 }}>
-        {/* Expenses Table */}
-        <TableContainer component={Paper} sx={{ borderRadius: 2, boxShadow: 3, maxHeight: 800 }}>
-          <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
-            <Button onClick={handlePrint} variant='contained' color='primary'>
-              Print Table
-            </Button>
-          </div>
+        <TableContainer component={Paper} sx={{ borderRadius: 2, boxShadow: 3, maxHeight: '400px' }}>
           <Table stickyHeader>
             <TableHead>
               <TableRow sx={{ backgroundColor: '#f5f5f5' }}>
-                <TableCell>
-                  <Typography variant='subtitle1' fontWeight='bold'>
-                    Sr No
-                  </Typography>
-                </TableCell>
-                <TableCell>
-                  <Typography variant='subtitle1' fontWeight='bold'>
-                    Date
-                  </Typography>
-                </TableCell>
-                <TableCell>
-                  <Typography variant='subtitle1' fontWeight='bold'>
-                    Expense Type
-                  </Typography>
-                </TableCell>
-                <TableCell>
-                  <Typography variant='subtitle1' fontWeight='bold'>
-                    Price
-                  </Typography>
-                </TableCell>
+                {['Sr No', 'Date', 'Expense Type', 'Price'].map(header => (
+                  <TableCell key={header}>
+                    <Typography variant='subtitle1' fontWeight='bold'>
+                      {header}
+                    </Typography>
+                  </TableCell>
+                ))}
               </TableRow>
             </TableHead>
             <TableBody>
@@ -320,20 +271,12 @@ const ExpenseReportView = ({ expenses }) => {
                 </TableRow>
               ) : filteredExpenses.length > 0 ? (
                 filteredExpenses.map((expense, index) => (
-                  <TableRow
-                    key={expense.id}
-                    hover
-                    sx={{
-                      '&:nth-of-type(odd)': { backgroundColor: '#f9f9f9' }
-                    }}
-                  >
+                  <TableRow key={expense.id} hover sx={{ '&:nth-of-type(odd)': { backgroundColor: '#f9f9f9' } }}>
                     <TableCell>
                       <Typography variant='body2'>{index + 1}</Typography>
                     </TableCell>
                     <TableCell>
-                      <Typography variant='body2'>
-                        {new Date(expense.selectedDate.seconds * 1000).toLocaleDateString()}
-                      </Typography>
+                      <Typography variant='body2'>{formatDateDisplay(expense.selectedDate)}</Typography>
                     </TableCell>
                     <TableCell>
                       <Typography variant='body2' color='secondary'>
@@ -341,7 +284,7 @@ const ExpenseReportView = ({ expenses }) => {
                       </Typography>
                     </TableCell>
                     <TableCell>
-                      <Typography variant='body2'>Rs {expense.price}</Typography>
+                      <Typography variant='body2'>Rs {parseFloat(expense.price).toFixed(2)}</Typography>
                     </TableCell>
                   </TableRow>
                 ))

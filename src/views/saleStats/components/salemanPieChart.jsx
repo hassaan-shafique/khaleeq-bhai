@@ -1,3 +1,5 @@
+import React, { useState, useEffect } from 'react'
+
 import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer } from 'recharts'
 import { Typography, Paper, Box } from '@mui/material'
 
@@ -6,7 +8,7 @@ const SalemanPieChart = ({ saleStats }) => {
 
   const calculatePieData = () => {
     const groupedData = {}
-    const nameMapping = {} // To preserve original case formatting
+    const nameMapping = {}
 
     saleStats.forEach(sale => {
       const normalizedSalesman = sale.salesman ? sale.salesman.toLowerCase() : 'unknown'
@@ -39,17 +41,17 @@ const SalemanPieChart = ({ saleStats }) => {
             <strong>Top Salesman:</strong>
           </Typography>
           <Typography variant='body1' fontWeight='bold' color='primary'>
-            {topSalesman.name.toUpperCase()} 
+            {topSalesman.name.toUpperCase()}
           </Typography>
           <Typography variant='body1' fontWeight='bold' color='primary'>
-           ({topSalesman.value})
+            ({topSalesman.value})
           </Typography>
         </Box>
       )}
 
       {/* Centered Pie Chart */}
       <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
-        <ResponsiveContainer>
+        <ResponsiveContainer width='100%' height={400}>
           <PieChart>
             <Pie
               data={pieData}
