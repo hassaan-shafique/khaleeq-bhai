@@ -16,6 +16,7 @@ import {
   CardContent,
   TextField
 } from '@mui/material'
+import Widget from '../shared/Widget'
 
 const ExpenseReportView = ({ expenses }) => {
   const [timeframe, setTimeframe] = useState('day') // Default to "day"
@@ -267,24 +268,19 @@ const ExpenseReportView = ({ expenses }) => {
         )}
       </Grid>
 
-      <Card sx={{ marginBottom: 4, backgroundColor: '#f5f5f5', boxShadow: 3 }}>
-        <CardContent>
-          <Typography variant='h6' fontWeight='bold'>
-            Total Expense ({timeframe === 'day' ? 'Today' : timeframe === 'week' ? 'This Week' : 'This Month'})
-          </Typography>
-          {loading ? (
-            <CircularProgress />
-          ) : (
-            <Typography variant='h4' color='primary' sx={{ marginTop: 2 }}>
-              Rs {totalPrice.toFixed(2)}
-            </Typography>
-          )}
-        </CardContent>
-      </Card>
+      <Widget
+        label={`Total Expense
+        (${timeframe === 'day' ? 'Today' : timeframe === 'week' ? 'This Week' : 'This Month'})`}
+        value={totalPrice.toFixed(2)}
+        size={12}
+        md={12}
+      />
 
-      <div ref={printRef}>
+
+
+      <div ref={printRef} style={{ marginTop: 20 }}>
         {/* Expenses Table */}
-        <TableContainer component={Paper} sx={{ borderRadius: 2, boxShadow: 3, maxHeight: 400 }}>
+        <TableContainer component={Paper} sx={{ borderRadius: 2, boxShadow: 3, maxHeight: 800 }}>
           <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
             <Button onClick={handlePrint} variant='contained' color='primary'>
               Print Table
