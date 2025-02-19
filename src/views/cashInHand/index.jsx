@@ -150,6 +150,10 @@ const CashInHandView = ({ salesData, expenses, installments }) => {
         pendingAmount={pendingSales}
         remainingCash={remainingCash}
         Balance={Balance}
+        totalInBank={totalInBank}
+        totalInCash={totalInCash}
+        installmentTotal={installmentTotal}
+        
       />
 
       <TotalStats
