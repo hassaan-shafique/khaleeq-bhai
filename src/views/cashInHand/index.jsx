@@ -3,15 +3,15 @@ import { Grid, Typography, Box, Button, TextField, ButtonGroup } from '@mui/mate
 
 import { isSameDay, isSameMonth, isSameWeek } from '/src/utils/dateUtils'
 import { calculateTotalExpenses } from '/src/utils/expensesUtils'
-import InstallmentData from './../stats/installmentData'
-import CurrentStats from '../stats/currentStats'
-import TotalStats from '../stats/totalStats'
-import AdvInsAddStats from '../stats/advInsAddStats'
-import BalanceStats from '../stats/balanceStats'
-import useSaleDate from '../../../hooks/useSaleDate'
-import Charts from '../charts'
+import InstallmentData from './stats/installmentData'
+import CurrentStats from './stats/currentStats'
+import TotalStats from './stats/totalStats'
+import AdvInsAddStats from './stats/advInsAddStats'
+import BalanceStats from './stats/balanceStats'
+import useSaleDate from '/src/hooks/useSaleDate'
+import Charts from './charts'
 
-const CashInHand = ({ salesData, expenses, installments }) => {
+const CashInHandView = ({ salesData, expenses, installments }) => {
   const userRole = localStorage.getItem('userRole')
   const [timeframe, setTimeframe] = useState('day')
   const [customDate, setCustomDate] = useState({ start: '', end: '' })
@@ -79,7 +79,7 @@ const CashInHand = ({ salesData, expenses, installments }) => {
   const Balance = totalInHand + installmentTotal - totalExpenses
 
   return (
-    <Box sx={{ padding: 4, bgcolor: 'background.default', borderRadius: 2 }}>
+    <Box sx={{ padding: 4, bgcolor: 'background.default', borderRadius: 2, mt: 20 }}>
       <Typography variant='h4' gutterBottom sx={{ fontWeight: 'bold', mb: 4, mt: 4, color: '#333' }}>
         📊 Cash In Hand Overview
       </Typography>
@@ -192,4 +192,4 @@ const CashInHand = ({ salesData, expenses, installments }) => {
   )
 }
 
-export default CashInHand
+export default CashInHandView

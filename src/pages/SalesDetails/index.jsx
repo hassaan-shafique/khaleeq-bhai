@@ -1,10 +1,10 @@
 import React from 'react'
 import { Box, CircularProgress } from '@mui/material'
 import useCollection from '/src/hooks/useCollection'
-import ReportView from '../../views/report'
-import { COLLECTIONS } from '../../constants'
+import { COLLECTIONS } from '/src/constants'
+import SaleStats from '/src/views/saleStats'
 
-const ReportV2 = () => {
+const SalesDetails = () => {
   const {
     data: sales,
     loading: salesLoading,
@@ -41,7 +41,7 @@ const ReportV2 = () => {
     )
   }
 
-  return <ReportView salesData={sales} expenses={expenses} installments={installments} />
+  return <SaleStats salesData={sales} expenses={expenses} installments={installments} />
 }
 
-export default ReportV2
+export default SalesDetails

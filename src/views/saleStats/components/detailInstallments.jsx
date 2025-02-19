@@ -77,62 +77,45 @@ const DetailInstallments = ({ saleStats, loading, installments }) => {
             Detailed Installment Data
           </Typography>
         </Grid>
-        <Grid item xs={12} md={4}>
-          <Typography variant='h6' fontWeight='bold' gutterBottom>
-            Sales Overview
-          </Typography>
-        </Grid>
       </Grid>
 
-      <Grid container spacing={3}>
-        {/* Table Section */}
-        <Grid item xs={12} md={6}>
-          <Paper sx={{ borderRadius: 3, boxShadow: 4, padding: 2 }}>
-            <TableContainer sx={{ maxHeight: 450, overflowY: 'auto' }}>
-              <Table stickyHeader>
-                <TableHead>
-                  <TableRow>
-                    {['Sr No',  'Order No', 'Installment Date', 'Installment Amount'].map(
-                      (header, index) => (
-                        <TableCell key={index}>
-                          <Typography variant='subtitle1' fontWeight='bold'>
-                            {header}
-                          </Typography>
-                        </TableCell>
-                      )
-                    )}
-                  </TableRow>
-                </TableHead>
+      <Paper sx={{ borderRadius: 3, boxShadow: 4, padding: 2 }}>
+        <TableContainer sx={{ maxHeight: 450, overflowY: 'auto' }}>
+          <Table stickyHeader>
+            <TableHead>
+              <TableRow>
+                {['Sr No', 'Order No', 'Installment Date', 'Installment Amount'].map((header, index) => (
+                  <TableCell key={index}>
+                    <Typography variant='subtitle1' fontWeight='bold'>
+                      {header}
+                    </Typography>
+                  </TableCell>
+                ))}
+              </TableRow>
+            </TableHead>
 
-                <TableBody>
-                  {loading ? (
-                    <TableRow>
-                      <TableCell colSpan={5} align='center'>
-                        <CircularProgress />
-                      </TableCell>
-                    </TableRow>
-                  ) : saleStats.length > 0 ? (
-                    renderTableRows()
-                  ) : (
-                    <TableRow>
-                      <TableCell colSpan={5} align='center'>
-                        <Typography variant='body2' color='textSecondary'>
-                          No Installment data available.
-                        </Typography>
-                      </TableCell>
-                    </TableRow>
-                  )}
-                </TableBody>
-              </Table>
-            </TableContainer>
-          </Paper>
-        </Grid>
-
-        {/* Pie Chart Section */}
-        <Grid item xs={12} md={6}>
-          <SalemanPieChart saleStats={saleStats} />
-        </Grid>
-      </Grid>
+            <TableBody>
+              {loading ? (
+                <TableRow>
+                  <TableCell colSpan={5} align='center'>
+                    <CircularProgress />
+                  </TableCell>
+                </TableRow>
+              ) : saleStats.length > 0 ? (
+                renderTableRows()
+              ) : (
+                <TableRow>
+                  <TableCell colSpan={5} align='center'>
+                    <Typography variant='body2' color='textSecondary'>
+                      No Installment data available.
+                    </Typography>
+                  </TableCell>
+                </TableRow>
+              )}
+            </TableBody>
+          </Table>
+        </TableContainer>
+      </Paper>
     </Box>
   )
 }

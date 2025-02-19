@@ -31,7 +31,7 @@ const SalemanPieChart = ({ saleStats }) => {
     pieData.length > 0 ? pieData.reduce((max, entry) => (entry.value > max.value ? entry : max)) : null
 
   return (
-    <Paper sx={{ borderRadius: 3, boxShadow: 4, padding: 2, textAlign: 'center' }}>
+    <Paper sx={{ borderRadius: 3, boxShadow: 4, padding: 4, textAlign: 'right' }}>
       {/* Top Salesman Info */}
       {topSalesman && (
         <Box sx={{ mb: 2 }}>
@@ -39,14 +39,17 @@ const SalemanPieChart = ({ saleStats }) => {
             <strong>Top Salesman:</strong>
           </Typography>
           <Typography variant='body1' fontWeight='bold' color='primary'>
-            {topSalesman.name} with Rs {topSalesman.value}
+            {topSalesman.name.toUpperCase()} 
+          </Typography>
+          <Typography variant='body1' fontWeight='bold' color='primary'>
+           ({topSalesman.value})
           </Typography>
         </Box>
       )}
 
       {/* Centered Pie Chart */}
       <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
-        <ResponsiveContainer width={400} height={400}>
+        <ResponsiveContainer>
           <PieChart>
             <Pie
               data={pieData}
@@ -54,7 +57,7 @@ const SalemanPieChart = ({ saleStats }) => {
               nameKey='name'
               cx='50%'
               cy='50%'
-              outerRadius={120}
+              outerRadius={180}
               fill='#8884d8'
               label={entry => `${entry.name}: Rs ${entry.value}`}
             >

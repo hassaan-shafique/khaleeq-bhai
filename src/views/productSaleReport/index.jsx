@@ -12,129 +12,50 @@ import {
   TableRow,
   CircularProgress,
   TextField,
-  FormControl,
-  InputLabel,
-  MenuItem,
-  Select,
-  TableContainer,
-  Checkbox
+  TableContainer
 } from '@mui/material'
 
-const SaleByQuantity = ({ salesData }) => {
+const ProductSaleReportView = ({ salesData }) => {
   const [timeframe, setTimeframe] = useState('day') // Default to "day"
   // const [sales, setSales] = useState([]);
   const [loading, setLoading] = useState(false)
   const [customDate, setCustomDate] = useState({ start: '', end: '' })
   const [saleStats, setSaleStats] = useState([])
   const [productFilter, setProductFilter] = useState('')
-  const [kbcwProducts, setKbcwProducts] = useState([])
+  const [kbcwProducts, setKbceProducts] = useState([])
   const [glassesProducts, setGlassesProducts] = useState([])
-  const [kbcwTotal, setKbcwTotal] = useState(0)
-  const [glassesTotal, setGlassesTotal] = useState(0)
-  const [checkedProducts, setCheckedProducts] = useState({})
-
   const STATUS = {
     COMPLETED: 'Completed',
     PENDING: 'PENDING'
   }
   const userRole = localStorage.getItem('userRole')
-  useEffect(() => {
-    const stored = localStorage.getItem('checkedProducts')
-    if (stored) {
-      setCheckedProducts(JSON.parse(stored))
-    }
-  }, [])
-
-  // Helper: Save checkedProducts state to localStorage
-  const saveCheckedProducts = newState => {
-    localStorage.setItem('checkedProducts', JSON.stringify(newState))
-  }
-
-  // Handler for when a checkbox is toggled
-  const handleCheckboxChange = (event, product) => {
-    const { checked } = event.target
-    // Use product.kbcwBarcode as the key (adjust if you have another unique identifier)
-    const key = product.kbcwBarcode
-    const newState = { ...checkedProducts, [key]: checked }
-    setCheckedProducts(newState)
-    saveCheckedProducts(newState)
-  }
 
   useEffect(() => {
     const getSalesData = () => {
       setSaleStats([])
       let sales = []
-      let kbcwCount = 0
-      let glassesCount = 0
-
       salesData.forEach(sale => {
         if (sale.status === STATUS.COMPLETED) {
-          const saleDate = new Date(sale.startDate.seconds * 1000)
-          let isValidSale = false
-
-          // ✅ Single-day custom logic (start date === end date)
-          if (timeframe === 'custom' && customDate.start && customDate.end) {
-            const selectedStartDate = new Date(customDate.start)
-            const selectedEndDate = new Date(customDate.end)
-
-            // Normalize times to midnight for both start and end dates for precise comparison
-            selectedStartDate.setHours(0, 0, 0, 0)
-            selectedEndDate.setHours(23, 59, 59, 999) // Full end day (till 23:59:59.999)
-
-            // If start date equals end date, it's a single day
-            if (selectedStartDate.toDateString() === selectedEndDate.toDateString()) {
-              isValidSale = saleDate.toDateString() === selectedStartDate.toDateString()
-            } else {
-              // Date range logic (start to end date)
-              isValidSale = saleDate >= selectedStartDate && saleDate <= selectedEndDate
-            }
-          }
-          // ✅ Non-custom logic (day, week, month)
-          else {
-            isValidSale =
-              (timeframe === 'day' && isSameDay(sale.startDate)) ||
+          if (
+            (!productFilter || sale.payment === productFilter) && // Apply payment filter
+            ((timeframe === 'day' && isSameDay(sale.startDate)) ||
               (timeframe === 'week' && isSameWeek(sale.startDate)) ||
-              (timeframe === 'month' && isSameMonth(sale.startDate))
-          }
-
-          // ✅ Apply product filter and collect sales
-          if (isValidSale && (!productFilter || sale.productType === productFilter)) {
+              (timeframe === 'month' && isSameMonth(sale.startDate)))
+          ) {
             sales.push(sale)
-
-            // ✅ Accumulate and sort KBCW Products
-            if (sale.kbcwProducts) {
-              sale.kbcwProducts.forEach(product => {
-                kbcwCount += Number(product.enteredQuantity) || 0
-              })
-              sale.kbcwProducts.sort((a, b) => (b.enteredQuantity || 0) - (a.enteredQuantity || 0))
-            }
-
-            // ✅ Accumulate and sort Glasses Products
-            if (sale.glassesProducts) {
-              sale.glassesProducts.forEach(product => {
-                glassesCount += Number(product.enteredQuantity) || 0
-              })
-              sale.glassesProducts.sort((a, b) => (b.enteredQuantity || 0) - (a.enteredQuantity || 0))
-            }
           }
         }
       })
-
       setSaleStats(sales)
-      setKbcwTotal(kbcwCount)
-      setGlassesTotal(glassesCount)
     }
 
     if (salesData.length) {
       getSalesData()
     }
-  }, [timeframe, salesData, productFilter, customDate])
+  }, [timeframe, salesData, productFilter])
 
   const handleTimeframeChange = newTimeframe => {
     setTimeframe(newTimeframe)
-    if (newTimeframe === 'custom' && (!customDate.start || !customDate.end)) {
-      alert('Please select both start and end dates for the custom range.')
-    }
   }
 
   const isSameDay = orderDate => {
@@ -158,15 +79,96 @@ const SaleByQuantity = ({ salesData }) => {
     const saleDate = new Date(orderDate.seconds * 1000)
     return saleDate.getMonth() === now.getMonth() && saleDate.getFullYear() === now.getFullYear()
   }
+  const calculateKBCWQuantity = () => {
+    let dayQuantity = 0
+    let weekQuantity = 0
+    let monthQuantity = 0
 
-  const isInCustomRange = orderDate => {
-    if (!customDate.start || !customDate.end) return false
+    salesData.forEach(sale => {
+      if (sale.kbcwProducts && sale.status === STATUS.COMPLETED) {
+        sale.kbcwProducts.forEach(product => {
+          const saleDate = sale.startDate
+          if (isSameDay(saleDate)) {
+            dayQuantity += product.enteredQuantity
+          }
+          if (isSameWeek(saleDate)) {
+            weekQuantity += product.enteredQuantity
+          }
+          if (isSameMonth(saleDate)) {
+            monthQuantity += product.enteredQuantity
+          }
+        })
+      }
+    })
 
-    const startDate = new Date(customDate.start)
-    const endDate = new Date(customDate.end)
-    const saleDate = new Date(orderDate.seconds * 1000)
+    return { dayQuantity, weekQuantity, monthQuantity }
+  }
 
-    return saleDate >= startDate && saleDate <= endDate
+  const calculateGlassesQuantity = () => {
+    let dayQuantity = 0
+    let weekQuantity = 0
+    let monthQuantity = 0
+
+    salesData.forEach(sale => {
+      if (sale.glassesProducts && sale.status === STATUS.COMPLETED) {
+        sale.glassesProducts.forEach(product => {
+          const saleDate = sale.startDate
+          if (isSameDay(saleDate)) {
+            dayQuantity += product.enteredQuantity
+          }
+          if (isSameWeek(saleDate)) {
+            weekQuantity += product.enteredQuantity
+          }
+          if (isSameMonth(saleDate)) {
+            monthQuantity += product.enteredQuantity
+          }
+        })
+      }
+    })
+
+    return { dayQuantity, weekQuantity, monthQuantity }
+  }
+
+  const kbcwQuantities = calculateKBCWQuantity()
+  const glassesQuantities = calculateGlassesQuantity()
+
+  console.log('KBCW Quantities:', kbcwQuantities)
+  console.log('Glasses Quantities:', glassesQuantities)
+
+  const calculateKBCWTotal = () => {
+    let total = 0
+    salesData.forEach(sale => {
+      if (
+        sale.kbcwProducts &&
+        sale.status === STATUS.COMPLETED &&
+        ((timeframe === 'day' && isSameDay(sale.startDate)) ||
+          (timeframe === 'week' && isSameWeek(sale.startDate)) ||
+          (timeframe === 'month' && isSameMonth(sale.startDate)))
+      ) {
+        sale.kbcwProducts.forEach(product => {
+          total += product.kbcwPrice * product.enteredQuantity
+        })
+      }
+    })
+    return total
+  }
+
+  const calculateGlassesTotal = () => {
+    let total = 0
+    salesData.forEach(sale => {
+      if (
+        sale.glassesProducts &&
+        sale.status === STATUS.COMPLETED &&
+        ((timeframe === 'day' && isSameDay(sale.startDate)) ||
+          (timeframe === 'week' && isSameWeek(sale.startDate)) ||
+          (timeframe === 'month' && isSameMonth(sale.startDate)))
+      ) {
+        sale.glassesProducts.forEach(product => {
+          total += product.glassesPrice * product.enteredQuantity
+        })
+      }
+    })
+    return total
   }
 
   // Helper function to format Firestore timestamp
@@ -252,12 +254,10 @@ const SaleByQuantity = ({ salesData }) => {
     newWindow.document.close()
   }
 
-  const allowedUsers = ['admin', 'productController']
-
   return (
     <Box sx={{ padding: 4 }}>
       <Typography variant='h4' gutterBottom>
-        Products Quantity
+        KBCW Products Statistics
       </Typography>
 
       {/* Buttons for Timeframe Selection */}
@@ -272,7 +272,7 @@ const SaleByQuantity = ({ salesData }) => {
           </Button>
         </Grid>
         <Grid item>
-          {allowedUsers.includes(userRole) && (
+          {userRole === 'admin' && (
             <Button
               variant={timeframe === 'week' ? 'contained' : 'outlined'}
               color='primary'
@@ -283,7 +283,7 @@ const SaleByQuantity = ({ salesData }) => {
           )}
         </Grid>
         <Grid item>
-          {allowedUsers.includes(userRole) && (
+          {userRole === 'admin' && (
             <Button
               variant={timeframe === 'month' ? 'contained' : 'outlined'}
               color='primary'
@@ -294,61 +294,80 @@ const SaleByQuantity = ({ salesData }) => {
           )}
         </Grid>
         <Grid item>
-          {allowedUsers.includes(userRole) && (
-            <Button variant={timeframe === 'custom' ? 'contained' : 'outlined'} onClick={() => setTimeframe('custom')}>
+          {userRole === 'admin' && (
+            <Button
+              variant={timeframe === 'custom' ? 'contained' : 'outlined'}
+              color='primary'
+              onClick={() => handleTimeframeChange('custom')}
+            >
               Custom
             </Button>
           )}
         </Grid>
-        {timeframe === 'custom' && (
-          <Grid container spacing={2} sx={{ marginBottom: 4 }}>
-            <Grid item xs={6}>
-              <TextField
-                label='Start Date'
-                type='date'
-                fullWidth
-                value={customDate.start}
-                onChange={e => setCustomDate({ ...customDate, start: e.target.value })}
-              />
-            </Grid>
-            <Grid item xs={6}>
-              <TextField
-                label='End Date'
-                type='date'
-                fullWidth
-                value={customDate.end}
-                onChange={e => setCustomDate({ ...customDate, end: e.target.value })}
-              />
-            </Grid>
-          </Grid>
-        )}
       </Grid>
-      {/* Totals Summary */}
-      <Paper sx={{ padding: 4, marginBottom: 4 }}>
-        <Typography variant='h6' gutterBottom>
-          Summary
-        </Typography>
-        <Grid container spacing={2}>
+
+      {/* Custom Date Range Selection */}
+      {timeframe === 'custom' && (
+        <Grid container spacing={2} sx={{ marginBottom: 4 }}>
           <Grid item xs={6}>
-            <Typography variant='body1'>
-              <strong>KBCW Products Sold:</strong> {kbcwTotal}
-            </Typography>
+            <TextField
+              label='Start Date'
+              type='date'
+              fullWidth
+              InputLabelProps={{ shrink: true }}
+              value={customDate.start}
+              onChange={e => setCustomDate(prev => ({ ...prev, start: e.target.value }))}
+            />
           </Grid>
           <Grid item xs={6}>
-            <Typography variant='body1'>
-              <strong>Glasses Products Sold:</strong> {glassesTotal}
-            </Typography>
+            <TextField
+              label='End Date'
+              type='date'
+              fullWidth
+              InputLabelProps={{ shrink: true }}
+              value={customDate.end}
+              onChange={e => setCustomDate(prev => ({ ...prev, end: e.target.value }))}
+            />
           </Grid>
         </Grid>
-      </Paper>
+      )}
+
+      <Box>
+        <Grid container spacing={2} sx={{ marginBottom: 4 }}>
+          <Grid item xs={12} sm={6} md={6}>
+            <Paper elevation={3} sx={{ padding: 2 }}>
+              <Typography variant='h6'>Total KBCW Products Sales</Typography>
+              <Typography variant='h4' color='secondary'>
+                {loading ? <CircularProgress size={24} /> : `Rs ${calculateKBCWTotal()}/-`}
+              </Typography>
+            </Paper>
+          </Grid>
+          <Grid item xs={12} sm={6} md={6}>
+            <Paper elevation={3} sx={{ padding: 2 }}>
+              <Typography variant='h6'>Total Glasses Products Sales</Typography>
+              <Typography variant='h4' color='secondary'>
+                {loading ? <CircularProgress size={24} /> : `Rs ${calculateGlassesTotal()}/-`}
+              </Typography>
+            </Paper>
+          </Grid>
+        </Grid>
+      </Box>
 
       {/* Display Sales Data in a Table */}
       <Typography variant='h6' sx={{ marginBottom: 2 }}>
-        Product Quantity Data
+        Detailed Product Data
       </Typography>
 
       <div ref={printRef}>
-        <TableContainer component={Paper} sx={{ borderRadius: 2, boxShadow: 3, maxHeight: 600, overflow: 'auto' }}>
+        <TableContainer
+          component={Paper}
+          sx={{
+            borderRadius: 2,
+            boxShadow: 3,
+            maxHeight: 600, // Set the maximum height for the table
+            overflow: 'auto'
+          }}
+        >
           <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
             <Button onClick={handlePrint} variant='contained' color='primary'>
               Print Table
@@ -367,10 +386,10 @@ const SaleByQuantity = ({ salesData }) => {
                   <React.Fragment key={sale.id}>
                     <TableRow
                       sx={{
-                        backgroundColor: '#2f2f2f',
-                        color: 'white',
+                        backgroundColor: '#2f2f2f', // Light black background
+                        color: 'white', // White text color
                         '&:nth-of-type(odd)': {
-                          backgroundColor: '#3b3b3b'
+                          backgroundColor: '#3b3b3b' // Slightly lighter black for odd rows (if you want to alternate)
                         }
                       }}
                     >
@@ -386,6 +405,7 @@ const SaleByQuantity = ({ salesData }) => {
                       </TableCell>
                     </TableRow>
 
+                    {/* Display kbcwProducts */}
                     {sale.kbcwProducts && sale.kbcwProducts.length > 0 && (
                       <TableRow>
                         <TableCell colSpan={5} sx={{ paddingLeft: 4 }}>
@@ -395,12 +415,13 @@ const SaleByQuantity = ({ salesData }) => {
                           <Table size='small'>
                             <TableHead>
                               <TableRow sx={{ backgroundColor: '#1976d2' }}>
+                                {' '}
+                                {/* Blue Background */}
                                 <TableCell sx={{ backgroundColor: '#1976d2', color: 'white' }}>Image</TableCell>
                                 <TableCell sx={{ backgroundColor: '#1976d2', color: 'white' }}>Barcode</TableCell>
                                 <TableCell sx={{ backgroundColor: '#1976d2', color: 'white' }}>Price</TableCell>
                                 <TableCell sx={{ backgroundColor: '#1976d2', color: 'white' }}>Size</TableCell>
                                 <TableCell sx={{ backgroundColor: '#1976d2', color: 'white' }}>Quantity</TableCell>
-                                <TableCell sx={{ backgroundColor: '#1976d2', color: 'white' }}>Check</TableCell>
                               </TableRow>
                             </TableHead>
 
@@ -440,13 +461,6 @@ const SaleByQuantity = ({ salesData }) => {
                                   <TableCell>{product.kbcwPrice}</TableCell>
                                   <TableCell>{product.kbcwSize}</TableCell>
                                   <TableCell>{product.enteredQuantity}</TableCell>
-                                  <TableCell>
-                                    <Checkbox
-                                      color='primary'
-                                      checked={!!checkedProducts[product.kbcwBarcode]}
-                                      onChange={event => handleCheckboxChange(event, product)}
-                                    />
-                                  </TableCell>
                                 </TableRow>
                               ))}
                             </TableBody>
@@ -455,6 +469,7 @@ const SaleByQuantity = ({ salesData }) => {
                       </TableRow>
                     )}
 
+                    {/* Display glassesProducts */}
                     {sale.glassesProducts && sale.glassesProducts.length > 0 && (
                       <TableRow>
                         <TableCell colSpan={5} sx={{ paddingLeft: 4 }}>
@@ -464,7 +479,10 @@ const SaleByQuantity = ({ salesData }) => {
                           <Table size='small'>
                             <TableHead>
                               <TableRow sx={{ backgroundColor: '#1976d2' }}>
-                                <TableCell sx={{ backgroundColor: '#1976d2', color: 'white' }}>Product Type</TableCell>
+                                {' '}
+                                {/* Blue Background */}
+                                <TableCell sx={{ backgroundColor: '#1976d2', color: 'white' }}>Glass Name</TableCell>
+                                <TableCell sx={{ backgroundColor: '#1976d2', color: 'white' }}>Glass Type</TableCell>
                                 <TableCell sx={{ backgroundColor: '#1976d2', color: 'white' }}>Number</TableCell>
                                 <TableCell sx={{ backgroundColor: '#1976d2', color: 'white' }}>Quantity</TableCell>
                                 <TableCell sx={{ backgroundColor: '#1976d2', color: 'white' }}>Price</TableCell>
@@ -473,18 +491,11 @@ const SaleByQuantity = ({ salesData }) => {
                             <TableBody>
                               {sale.glassesProducts.map((product, i) => (
                                 <TableRow key={i}>
+                                  <TableCell>{product.glassesName}</TableCell>
                                   <TableCell>{product.glassesType}</TableCell>
                                   <TableCell>{product.glassesNumber}</TableCell>
                                   <TableCell>{product.enteredQuantity}</TableCell>
                                   <TableCell>{product.glassesPrice}</TableCell>
-                                  <TableCell>
-                                    <Checkbox
-                                      color='primary'
-                                      // Use product.kbcwBarcode as the key
-                                      checked={!!checkedProducts[product.kbcwBarcode]}
-                                      onChange={event => handleCheckboxChange(event, product)}
-                                    />
-                                  </TableCell>
                                 </TableRow>
                               ))}
                             </TableBody>
@@ -511,4 +522,4 @@ const SaleByQuantity = ({ salesData }) => {
   )
 }
 
-export default SaleByQuantity
+export default ProductSaleReportView

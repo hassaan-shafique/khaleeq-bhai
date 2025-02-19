@@ -18,6 +18,7 @@ import useSaleDate from '/src/hooks/useSaleDate'
 import TotalSales from './components/totalSales'
 import DetailSales from './components/detailSales'
 import DetailInstallments from './components/detailInstallments'
+import SalemanPieChart from './components/salemanPieChart'
 
 const SaleStats = ({ salesData, installments }) => {
   const [timeframe, setTimeframe] = useState('day')
@@ -76,9 +77,6 @@ const SaleStats = ({ salesData, installments }) => {
 
   const handleTimeframeChange = newTimeframe => {
     setTimeframe(newTimeframe)
-    if (newTimeframe === 'custom' && (!customDate.start || !customDate.end)) {
-      alert('Please select both start and end dates for the custom range.')
-    }
   }
 
   const calculateSales = (filter, params) => {
@@ -125,13 +123,13 @@ const SaleStats = ({ salesData, installments }) => {
   const discount = calculateSales(paymentFilter, 'discount')
 
   return (
-    <Box sx={{ padding: 4 }}>
-      <Typography variant='h4' gutterBottom>
-        Sales Statistics
+    <Box sx={{ padding: 4, mt: 16 }}>
+      <Typography variant='h4' gutterBottom sx={{ fontWeight: 'bold', mb: 4, mt: 4, color: '#333' }}>
+        📊 Sales Details
       </Typography>
 
       {/* Buttons for Timeframe Selection */}
-      <Grid container spacing={2} sx={{ marginBottom: 4 }}>
+      <Grid container spacing={2} sx={{ marginBottom: 4, marginTop: 4 }}>
         <Grid item>
           <Button
             variant={timeframe === 'day' ? 'contained' : 'outlined'}
@@ -216,6 +214,7 @@ const SaleStats = ({ salesData, installments }) => {
       <TotalSales totalSales={totalSales} totalInHand={totalInHand} discount={discount} pendingSales={pendingSales} />
       <DetailSales saleStats={saleStats} loading={loading} installments={installments} />
       <DetailInstallments saleStats={saleStats} loading={loading} installments={installments} />
+      <SalemanPieChart saleStats={saleStats} />
     </Box>
   )
 }

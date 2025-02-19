@@ -14,7 +14,7 @@ import {
   Grid
 } from '@mui/material'
 
-import SaleDataStats from './../saleDataStats'
+import SaleDataStats from '../saleDataStats'
 
 const DetailSales = ({ saleStats, loading, installments }) => {
   const printRef = useRef(null)

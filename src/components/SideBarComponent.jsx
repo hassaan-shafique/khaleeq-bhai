@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import {
   List,
   ListItem,
@@ -8,19 +8,19 @@ import {
   IconButton,
   Drawer,
   Box,
-  useMediaQuery
+  useMediaQuery,
+  Collapse
 } from '@mui/material'
-import MenuIcon from '@mui/icons-material/Menu'
-import ArrowBackIosNewIcon from '@mui/icons-material/ArrowBackIosNew'
-import ArrowForwardIosIcon from '@mui/icons-material/ArrowForwardIos'
+import ExpandLess from '@mui/icons-material/ExpandLess'
+import ExpandMore from '@mui/icons-material/ExpandMore'
+
 import {
   Inventory2Outlined,
   SettingsOutlined,
   DescriptionOutlined,
   MonetizationOnOutlined,
   CardTravelOutlined,
-  TrendingUpOutlined,
-  LocalHospital
+  TrendingUpOutlined
 } from '@mui/icons-material'
 import { useLocation, useNavigate } from 'react-router-dom'
 
@@ -34,55 +34,38 @@ export default function SideBarComponent() {
   const location = useLocation()
   const currentPage = location.pathname
 
+  const [openReports, setOpenReports] = useState(false)
+
   const sideBarComponent = [
-    {
-      title: 'Inventory',
-      component: <Inventory2Outlined fontSize='medium' color='primary' />
-    },
-    {
-      title: 'Sales',
-      component: <CardTravelOutlined fontSize='medium' color='primary' />
-    },
-    {
-      title: 'Glasses',
-      component: <MonetizationOnOutlined fontSize='medium' color='primary' />
-    },
-
-    {
-      title: 'Vendors',
-      component: <SettingsOutlined fontSize='medium' color='primary' />
-    },
-
-    {
-      title: 'Daily-Activity',
-      component: <TrendingUpOutlined fontSize='medium' color='primary' />
-    },
-    {
-      title: 'Expense',
-      component: <TrendingUpOutlined fontSize='medium' color='primary' />
-    },
+    { title: 'Inventory', component: <Inventory2Outlined fontSize='medium' /> },
+    { title: 'Sales', component: <CardTravelOutlined fontSize='medium' /> },
+    { title: 'Glasses', component: <MonetizationOnOutlined fontSize='medium' /> },
+    { title: 'Vendors', component: <SettingsOutlined fontSize='medium' /> },
+    { title: 'Daily-Activity', component: <TrendingUpOutlined fontSize='medium' /> },
+    { title: 'Expense', component: <TrendingUpOutlined fontSize='medium' /> },
     {
       title: 'Reports',
-      component: <DescriptionOutlined fontSize='medium' color='primary' />
+      component: <DescriptionOutlined fontSize='medium' />,
+      children: [
+        { title: 'Cash in Hand', path: 'cash-in-hand' },
+        { title: 'Sales Details', path: 'sales-details' },
+        { title: 'Expense Report', path: 'expense-report' },
+        { title: 'Product Details', path: 'product-details' },
+        { title: 'Product Quantity', path: 'product-quantity' }
+      ]
     },
-    {
-      title: 'Verification',
-      component: <TrendingUpOutlined fontSize='medium' color='primary' />
-    },
-    {
-      title: 'Contact',
-      component: <TrendingUpOutlined fontSize='medium' color='primary' />
-    }
+    { title: 'Verification', component: <TrendingUpOutlined fontSize='medium' /> },
+    { title: 'Contact', component: <TrendingUpOutlined fontSize='medium' /> }
   ]
 
   const [selected, setSelected] = useState(1)
   const [mobileOpen, setMobileOpen] = useState(false)
-  const [sidebarOpen, setSidebarOpen] = useState(true) // For desktop sidebar toggle
+  const [sidebarOpen, setSidebarOpen] = useState(true)
   const isMobile = useMediaQuery('(max-width:600px)')
 
   const handleSelectedComponent = (event, index) => {
     setSelected(index)
-    if (isMobile) setMobileOpen(false) // Close drawer on mobile after selection
+    if (isMobile) setMobileOpen(false)
   }
 
   const toggleDrawer = () => {
@@ -93,172 +76,140 @@ export default function SideBarComponent() {
     setSidebarOpen(!sidebarOpen)
   }
 
-  // Get role from localStorage
-
-  const checkSelection = (comp, index) => {
+  const checkSelection = comp => {
     return currentPage === '/' + comp.title.toLowerCase()
   }
 
-  console.log({ selected, currentPage })
+  const handleReportsClick = () => {
+    setOpenReports(!openReports)
+  }
+
+  const reportUrls = ['/cash-in-hand', '/sales-details', '/expense-report', '/product-details', '/product-quantity']
+
+  useEffect(() => {
+    if (currentPage) {
+      const check = reportUrls.includes(currentPage)
+      setOpenReports(check)
+    }
+  }, [currentPage])
 
   const sidebarContent = (
     <List>
       {sideBarComponent
         .filter(comp => {
-          // Show only the Verification component for the verifier role
-          if (userRole === 'verifyer') {
-            return comp.title === 'Verification'
-          }
-          if (userRole === 'productController') {
-            return comp.title === 'Inventory' || comp.title === 'Reports'
-          }
-
-          if (comp.title === 'Vendors' && userRole !== 'admin') {
-            return false
-          }
-          return true // Show other components for roles other than verifier
+          if (userRole === 'verifyer') return comp.title === 'Verification'
+          if (userRole === 'productController') return comp.title === 'Inventory' || comp.title === 'Reports'
+          if (comp.title === 'Vendors' && userRole !== 'admin') return false
+          return true
         })
         .map((comp, index) => (
-          <ListItem disablePadding dense key={index}>
-            <Box width='100%'>
-              {/* Check if the component is 'Vendors' and if the user is not an admin */}
-              {comp.title === 'Vendors' ? (
-                userRole === 'admin' && (
-                  <ListItemButton
-                    onClick={event => {
-                      handleSelectedComponent(event, index)
-                      navigateTo(comp.title.toLocaleLowerCase())
-                    }}
-                    // selected={checkSelection(comp, index)}
-                    sx={{
-                      mb: 3,
-                      borderLeft: 0,
-                      borderColor: 'primary.main',
-                      backgroundColor: checkSelection(comp, index) ? 'darkblue' : 'transparent'
-                    }}
-                  >
-                    <ListItemIcon>
-                      <IconButton>{comp.component}</IconButton>
-                    </ListItemIcon>
-
-                    {!isMobile && sidebarOpen && (
-                      <ListItemText
-                        primary={comp.title}
-                        primaryTypographyProps={{
-                          fontSize: 'large',
-                          fontWeight: selected === index ? 'bold' : '',
-                          color: 'white'
-                        }}
-                      />
-                    )}
-                  </ListItemButton>
-                )
-              ) : (
-                <ListItemButton
-                  onClick={event => {
+          <Box key={index} width='100%'>
+            <ListItem disablePadding dense>
+              <ListItemButton
+                onClick={event => {
+                  if (comp.title === 'Reports') {
+                    handleReportsClick()
+                  } else {
                     handleSelectedComponent(event, index)
-                    navigateTo(comp.title.toLocaleLowerCase())
-                  }}
-                  //   selected={checkSelection(comp, index)}
-                  sx={{
-                    mb: 3,
-                    borderLeft: 0,
-                    borderColor: 'primary.main',
-                    backgroundColor: checkSelection(comp, index) ? 'darkblue' : 'transparent'
-                  }}
-                >
-                  <ListItemIcon>
-                    <IconButton>{comp.component}</IconButton>
-                  </ListItemIcon>
+                    navigateTo(comp.title.toLowerCase())
+                  }
+                }}
+                sx={{
+                  mb: 1,
+                  borderRadius: '8px',
+                  backgroundColor: checkSelection(comp) ? '#1E3A8A' : 'transparent',
+                  color: 'white',
+                  '&:hover': {
+                    backgroundColor: '#1E40AF'
+                  }
+                }}
+              >
+                <ListItemIcon>
+                  <IconButton sx={{ color: 'white' }}>{comp.component}</IconButton>
+                </ListItemIcon>
 
-                  {!isMobile && sidebarOpen && (
-                    <ListItemText
-                      primary={comp.title}
-                      primaryTypographyProps={{
-                        fontSize: 'large',
-                        fontWeight: selected === index ? 'bold' : '',
-                        color: 'white'
+                {!isMobile && sidebarOpen && (
+                  <ListItemText
+                    primary={comp.title}
+                    primaryTypographyProps={{
+                      fontSize: 'large',
+                      fontWeight: selected === index ? 'bold' : '',
+                      color: 'white'
+                    }}
+                  />
+                )}
+
+                {comp.children && sidebarOpen && (openReports ? <ExpandLess /> : <ExpandMore />)}
+              </ListItemButton>
+            </ListItem>
+
+            {comp.children && (
+              <Collapse in={openReports} timeout='auto' unmountOnExit>
+                <List component='div' disablePadding>
+                  {comp.children.map((child, childIndex) => (
+                    <ListItemButton
+                      key={childIndex}
+                      sx={{
+                        pl: 4,
+                        ml: 8,
+                        borderRadius: '8px',
+                        backgroundColor: currentPage === '/' + child.path ? '#1E3A8A' : 'transparent',
+                        color: 'white',
+                        '&:hover': {
+                          backgroundColor: '#1E40AF'
+                        }
                       }}
-                    />
-                  )}
-                </ListItemButton>
-              )}
-            </Box>
-          </ListItem>
+                      onClick={() => navigateTo(child.path)}
+                    >
+                      <ListItemText
+                        primary={child.title}
+                        primaryTypographyProps={{ fontSize: 'medium', color: 'white' }}
+                      />
+                    </ListItemButton>
+                  ))}
+                </List>
+              </Collapse>
+            )}
+          </Box>
         ))}
     </List>
   )
 
   return (
-    <>
-      {/* Mobile toggle button */}
-      {isMobile && (
-        <IconButton
-          sx={{
-            position: 'fixed',
-            top: 70,
-            left: 9,
-            zIndex: 11000,
-            backgroundColor: 'white',
-            boxShadow: 3
-          }}
-          onClick={toggleDrawer}
-        >
-          <MenuIcon />
+    <Box
+      sx={{
+        width: sidebarOpen ? '300px' : '100px',
+        transition: 'width 0.3s ease',
+        backgroundColor: '#3884e7',
+        color: 'white',
+        height: '100vh',
+        padding: 2,
+        paddingTop: 20,
+        display: 'flex',
+        flexDirection: 'column'
+      }}
+    >
+      {/* Sidebar Toggle Button */}
+      {/* <Box sx={{ display: 'flex', justifyContent: 'flex-end' }}>
+        <IconButton onClick={toggleSidebar} sx={{ color: 'white' }}>
+          {sidebarOpen ? <ArrowBackIosNewIcon /> : <ArrowForwardIosIcon />}
         </IconButton>
-      )}
+      </Box> */}
 
-      {/* Drawer for mobile */}
-      <Drawer
-        anchor='left'
-        open={mobileOpen}
-        onClose={toggleDrawer}
-        sx={{
-          '& .MuiDrawer-paper': {
-            width: '230px',
-            backgroundColor: '#3884e7'
-          }
-        }}
-      >
-        {sidebarContent}
-      </Drawer>
-
-      {/* Sidebar for desktop */}
-      {!isMobile && (
-        <Box
-          sx={{
-            position: 'fixed', // Fixed position on the left
-            top: '60px', // Adjust this value to position the sidebar below the navbar
-            left: 0,
-            width: sidebarOpen ? '230px' : '60px', // Toggle width
-            height: 'calc(100vh - 60px)', // Full height minus the height of the navbar
-            backgroundColor: '#3884e7', // Sidebar background color
-            padding: 1,
-            zIndex: 10000,
-            borderTopRightRadius: '10px', // Top left corner
-            borderBottomRightRadius: '10px', // Bottom right corner
-            transition: 'width 0.3s ease' // Smooth transition
+      <Box sx={{ display: 'flex', justifyContent: 'center' }}>
+        <img
+          src='/glasses.png'
+          alt='Logo'
+          style={{
+            width: sidebarOpen ? '100px' : '50px',
+            height: sidebarOpen ? '100px' : '50px',
+            transition: 'width 0.3s ease'
           }}
-        >
-          {/* Toggle arrow button */}
-          <IconButton
-            sx={{
-              position: 'absolute',
-              top: '50%',
-              right: '-20px',
-              transform: 'translateY(-50%)',
-              backgroundColor: 'white',
-              boxShadow: 3,
-              zIndex: 11000
-            }}
-            onClick={toggleSidebar}
-          >
-            {sidebarOpen ? <ArrowBackIosNewIcon /> : <ArrowForwardIosIcon />}
-          </IconButton>
+        />
+      </Box>
 
-          {sidebarContent}
-        </Box>
-      )}
-    </>
+      {/* Sidebar Content */}
+      {sidebarContent}
+    </Box>
   )
 }
