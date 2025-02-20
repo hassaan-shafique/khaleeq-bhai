@@ -15,25 +15,22 @@ import {
   TableContainer,
   Checkbox
 } from '@mui/material'
+import Widget from '../shared/Widget'
+import ProductTable from './components/productTable'
+import { isSameDay, isSameMonth, isSameWeek } from '/src/utils/dateUtils'
+import useSaleDate from '/src/hooks/useSaleDate'
 
-const ProductQuantityReportView = ({ salesData }) => {
-  const [timeframe, setTimeframe] = useState('day') // Default to "day"
-  // const [sales, setSales] = useState([]);
-  const [loading, setLoading] = useState(false)
+const ProductQuantityReportView = ({ salesData, inventoryData }) => {
+  const [timeframe, setTimeframe] = useState('day')
   const [customDate, setCustomDate] = useState({ start: '', end: '' })
   const [saleStats, setSaleStats] = useState([])
-  const [productFilter, setProductFilter] = useState('')
-  const [kbcwProducts, setKbcwProducts] = useState([])
-  const [glassesProducts, setGlassesProducts] = useState([])
-  const [kbcwTotal, setKbcwTotal] = useState(0)
-  const [glassesTotal, setGlassesTotal] = useState(0)
   const [checkedProducts, setCheckedProducts] = useState({})
-
-  const STATUS = {
-    COMPLETED: 'Completed',
-    PENDING: 'PENDING'
-  }
+  const printRef = useRef(null)
   const userRole = localStorage.getItem('userRole')
+  const allowedUsers = ['admin', 'productController']
+
+  //   - check
+
   useEffect(() => {
     const stored = localStorage.getItem('checkedProducts')
     if (stored) {
@@ -56,132 +53,11 @@ const ProductQuantityReportView = ({ salesData }) => {
     saveCheckedProducts(newState)
   }
 
-  useEffect(() => {
-    const getSalesData = () => {
-      setSaleStats([])
-      let sales = []
-      let kbcwCount = 0
-      let glassesCount = 0
-
-      salesData.forEach(sale => {
-        if (sale.status === STATUS.COMPLETED) {
-          const saleDate = new Date(sale.startDate.seconds * 1000)
-          let isValidSale = false
-
-          // ✅ Single-day custom logic (start date === end date)
-          if (timeframe === 'custom' && customDate.start && customDate.end) {
-            const selectedStartDate = new Date(customDate.start)
-            const selectedEndDate = new Date(customDate.end)
-
-            // Normalize times to midnight for both start and end dates for precise comparison
-            selectedStartDate.setHours(0, 0, 0, 0)
-            selectedEndDate.setHours(23, 59, 59, 999) // Full end day (till 23:59:59.999)
-
-            // If start date equals end date, it's a single day
-            if (selectedStartDate.toDateString() === selectedEndDate.toDateString()) {
-              isValidSale = saleDate.toDateString() === selectedStartDate.toDateString()
-            } else {
-              // Date range logic (start to end date)
-              isValidSale = saleDate >= selectedStartDate && saleDate <= selectedEndDate
-            }
-          }
-          // ✅ Non-custom logic (day, week, month)
-          else {
-            isValidSale =
-              (timeframe === 'day' && isSameDay(sale.startDate)) ||
-              (timeframe === 'week' && isSameWeek(sale.startDate)) ||
-              (timeframe === 'month' && isSameMonth(sale.startDate))
-          }
-
-          // ✅ Apply product filter and collect sales
-          if (isValidSale && (!productFilter || sale.productType === productFilter)) {
-            sales.push(sale)
-
-            // ✅ Accumulate and sort KBCW Products
-            if (sale.kbcwProducts) {
-              sale.kbcwProducts.forEach(product => {
-                kbcwCount += Number(product.enteredQuantity) || 0
-              })
-              sale.kbcwProducts.sort((a, b) => (b.enteredQuantity || 0) - (a.enteredQuantity || 0))
-            }
-
-            // ✅ Accumulate and sort Glasses Products
-            if (sale.glassesProducts) {
-              sale.glassesProducts.forEach(product => {
-                glassesCount += Number(product.enteredQuantity) || 0
-              })
-              sale.glassesProducts.sort((a, b) => (b.enteredQuantity || 0) - (a.enteredQuantity || 0))
-            }
-          }
-        }
-      })
-
-      setSaleStats(sales)
-      setKbcwTotal(kbcwCount)
-      setGlassesTotal(glassesCount)
-    }
-
-    if (salesData.length) {
-      getSalesData()
-    }
-  }, [timeframe, salesData, productFilter, customDate])
+  //   - check
 
   const handleTimeframeChange = newTimeframe => {
     setTimeframe(newTimeframe)
-    if (newTimeframe === 'custom' && (!customDate.start || !customDate.end)) {
-      alert('Please select both start and end dates for the custom range.')
-    }
   }
-
-  const isSameDay = orderDate => {
-    const now = new Date()
-    const saleDate = new Date(orderDate.seconds * 1000)
-    return saleDate.toDateString() === now.toDateString()
-  }
-
-  const isSameWeek = orderDate => {
-    const now = new Date()
-    const startOfWeek = new Date(now)
-    startOfWeek.setDate(now.getDate() - now.getDay() - 7)
-    const endOfWeek = new Date(startOfWeek)
-    endOfWeek.setDate(startOfWeek.getDate() + 7)
-    const saleDate = new Date(orderDate.seconds * 1000)
-    return saleDate >= startOfWeek && saleDate <= endOfWeek
-  }
-
-  const isSameMonth = orderDate => {
-    const now = new Date()
-    const saleDate = new Date(orderDate.seconds * 1000)
-    return saleDate.getMonth() === now.getMonth() && saleDate.getFullYear() === now.getFullYear()
-  }
-
-  const isInCustomRange = orderDate => {
-    if (!customDate.start || !customDate.end) return false
-
-    const startDate = new Date(customDate.start)
-    const endDate = new Date(customDate.end)
-    const saleDate = new Date(orderDate.seconds * 1000)
-
-    return saleDate >= startDate && saleDate <= endDate
-  }
-
-  // Helper function to format Firestore timestamp
-  const formatTimestamp = timestamp => {
-    try {
-      const date = new Date(timestamp.seconds ? timestamp.seconds * 1000 : timestamp)
-      if (isNaN(date.getTime())) return 'Invalid Date'
-
-      const day = date.getDate().toString().padStart(2, '0')
-      const month = (date.getMonth() + 1).toString().padStart(2, '0') // Months are 0-based
-      const year = date.getFullYear()
-
-      // Format as "DD/MM/YYYY"
-      return `${day}/${month}/${year}`
-    } catch (error) {
-      return 'Invalid Date'
-    }
-  }
-  const printRef = useRef(null)
 
   const handlePrint = () => {
     // Clone the printRef content to a new window for printing
@@ -248,12 +124,85 @@ const ProductQuantityReportView = ({ salesData }) => {
     newWindow.document.close()
   }
 
-  const allowedUsers = ['admin', 'productController']
+  //   -
+  const calculateTotal = productSpecs => {
+    let total = 0
+    salesData.forEach(sale => {
+      const { saleDate, startDate, endDate } = useSaleDate(customDate, sale)
+      const withinCustomRange =
+        timeframe === 'custom' && startDate && endDate && saleDate >= startDate && saleDate <= endDate
+
+      const matchesTimeframe =
+        timeframe === 'day'
+          ? isSameDay(sale.startDate)
+          : timeframe === 'week'
+          ? isSameWeek(sale.startDate)
+          : timeframe === 'month'
+          ? isSameMonth(sale.startDate)
+          : withinCustomRange
+
+      if (matchesTimeframe && productSpecs === 'kbcw') {
+        total += sale.kbcwProducts.length
+      } else {
+        total += sale.glassesProducts.length
+      }
+    })
+    return total
+  }
+
+  const kbcwTotal = calculateTotal('kbcw')
+  const glassesTotal = calculateTotal('glasses')
+
+  useEffect(() => {
+    const getSalesData = () => {
+      setSaleStats([])
+      let sales = []
+      salesData.forEach(sale => {
+        let saleDate = null
+
+        if (sale?.startDate) {
+          if (sale.startDate.seconds) {
+            // Convert Firestore Timestamp to JS Date
+            saleDate = new Date(sale.startDate.seconds * 1000)
+          } else {
+            // Convert string date ('YYYY-MM-DD') to JS Date with time reset
+            saleDate = new Date(sale.startDate)
+            saleDate.setHours(0, 0, 0, 0)
+          }
+        }
+
+        // Convert customDate start & end to JS Dates
+        const startDate = customDate?.start ? new Date(customDate.start).setHours(0, 0, 0, 0) : null
+        const endDate = customDate?.end ? new Date(customDate.end).setHours(23, 59, 59, 999) : null
+
+        const withinCustomRange =
+          timeframe === 'custom' && startDate && endDate && saleDate >= startDate && saleDate <= endDate
+
+        const matchesTimeframe =
+          timeframe === 'day'
+            ? isSameDay(sale.startDate)
+            : timeframe === 'week'
+            ? isSameWeek(sale.startDate)
+            : timeframe === 'month'
+            ? isSameMonth(sale.startDate)
+            : withinCustomRange
+
+        if (matchesTimeframe) {
+          sales.push(sale)
+        }
+      })
+      setSaleStats(sales)
+    }
+
+    if (salesData.length) {
+      getSalesData()
+    }
+  }, [customDate, timeframe, salesData])
 
   return (
-    <Box sx={{ padding: 4 }}>
-      <Typography variant='h4' gutterBottom>
-        Products Quantity
+    <Box sx={{ padding: 4, marginTop: 20, height: '100vh' }}>
+      <Typography variant='h4' gutterBottom sx={{ fontWeight: 'bold', mb: 6, mt: 4, color: '#333' }}>
+        📊 Product Quantity Stats
       </Typography>
 
       {/* Buttons for Timeframe Selection */}
@@ -268,7 +217,7 @@ const ProductQuantityReportView = ({ salesData }) => {
           </Button>
         </Grid>
         <Grid item>
-          {allowedUsers.includes(userRole) && (
+          {userRole === 'admin' && (
             <Button
               variant={timeframe === 'week' ? 'contained' : 'outlined'}
               color='primary'
@@ -279,7 +228,7 @@ const ProductQuantityReportView = ({ salesData }) => {
           )}
         </Grid>
         <Grid item>
-          {allowedUsers.includes(userRole) && (
+          {userRole === 'admin' && (
             <Button
               variant={timeframe === 'month' ? 'contained' : 'outlined'}
               color='primary'
@@ -290,218 +239,68 @@ const ProductQuantityReportView = ({ salesData }) => {
           )}
         </Grid>
         <Grid item>
-          {allowedUsers.includes(userRole) && (
-            <Button variant={timeframe === 'custom' ? 'contained' : 'outlined'} onClick={() => setTimeframe('custom')}>
+          {userRole === 'admin' && (
+            <Button
+              variant={timeframe === 'custom' ? 'contained' : 'outlined'}
+              color='primary'
+              onClick={() => handleTimeframeChange('custom')}
+            >
               Custom
             </Button>
           )}
         </Grid>
-        {timeframe === 'custom' && (
-          <Grid container spacing={2} sx={{ marginBottom: 4 }}>
-            <Grid item xs={6}>
-              <TextField
-                label='Start Date'
-                type='date'
-                fullWidth
-                value={customDate.start}
-                onChange={e => setCustomDate({ ...customDate, start: e.target.value })}
-              />
-            </Grid>
-            <Grid item xs={6}>
-              <TextField
-                label='End Date'
-                type='date'
-                fullWidth
-                value={customDate.end}
-                onChange={e => setCustomDate({ ...customDate, end: e.target.value })}
-              />
-            </Grid>
-          </Grid>
-        )}
       </Grid>
-      {/* Totals Summary */}
-      <Paper sx={{ padding: 4, marginBottom: 4 }}>
-        <Typography variant='h6' gutterBottom>
-          Summary
-        </Typography>
-        <Grid container spacing={2}>
+
+      {/* Custom Date Range Selection */}
+      {timeframe === 'custom' && (
+        <Grid container spacing={2} sx={{ marginBottom: 4, marginTop: 6 }}>
           <Grid item xs={6}>
-            <Typography variant='body1'>
-              <strong>KBCW Products Sold:</strong> {kbcwTotal}
-            </Typography>
+            <TextField
+              label='Start Date'
+              type='date'
+              fullWidth
+              InputLabelProps={{ shrink: true }}
+              value={customDate.start}
+              onChange={e => setCustomDate(prev => ({ ...prev, start: e.target.value }))}
+            />
           </Grid>
           <Grid item xs={6}>
-            <Typography variant='body1'>
-              <strong>Glasses Products Sold:</strong> {glassesTotal}
-            </Typography>
+            <TextField
+              label='End Date'
+              type='date'
+              fullWidth
+              InputLabelProps={{ shrink: true }}
+              value={customDate.end}
+              onChange={e => setCustomDate(prev => ({ ...prev, end: e.target.value }))}
+            />
           </Grid>
         </Grid>
-      </Paper>
+      )}
+
+      {/* Totals Summary */}
+      <Grid container spacing={2} sx={{ marginBottom: 4 }}>
+        <Widget label='KBCW Products Sold' value={kbcwTotal} rupees={false} xs={12} sm={6} md={6} />
+        <Widget label='Glasses Products Sold' value={glassesTotal} rupees={false} xs={12} sm={6} md={6} />
+      </Grid>
 
       {/* Display Sales Data in a Table */}
       <Typography variant='h6' sx={{ marginBottom: 2 }}>
-        Product Quantity Data
+        Product Quantity
       </Typography>
 
+      <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+        <Button onClick={handlePrint} variant='contained' color='primary'>
+          Print Table
+        </Button>
+      </div>
+
       <div ref={printRef}>
-        <TableContainer component={Paper} sx={{ borderRadius: 2, boxShadow: 3, maxHeight: 600, overflow: 'auto' }}>
-          <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
-            <Button onClick={handlePrint} variant='contained' color='primary'>
-              Print Table
-            </Button>
-          </div>
-          <Table>
-            <TableBody>
-              {loading ? (
-                <TableRow>
-                  <TableCell colSpan={5} align='center'>
-                    <CircularProgress />
-                  </TableCell>
-                </TableRow>
-              ) : saleStats.length > 0 ? (
-                saleStats.map((sale, index) => (
-                  <React.Fragment key={sale.id}>
-                    <TableRow
-                      sx={{
-                        backgroundColor: '#2f2f2f',
-                        color: 'white',
-                        '&:nth-of-type(odd)': {
-                          backgroundColor: '#3b3b3b'
-                        }
-                      }}
-                    >
-                      <TableCell>
-                        <Typography variant='body2' sx={{ color: 'white' }}>
-                          {index + 1}
-                        </Typography>
-                      </TableCell>
-                      <TableCell>
-                        <Typography variant='body2' sx={{ color: 'white' }}>
-                          {formatTimestamp(sale.startDate)}
-                        </Typography>
-                      </TableCell>
-                    </TableRow>
-
-                    {sale.kbcwProducts && sale.kbcwProducts.length > 0 && (
-                      <TableRow>
-                        <TableCell colSpan={5} sx={{ paddingLeft: 4 }}>
-                          <Typography variant='subtitle1' fontWeight='bold'>
-                            KBCW Products:
-                          </Typography>
-                          <Table size='small'>
-                            <TableHead>
-                              <TableRow sx={{ backgroundColor: '#1976d2' }}>
-                                <TableCell sx={{ backgroundColor: '#1976d2', color: 'white' }}>Image</TableCell>
-                                <TableCell sx={{ backgroundColor: '#1976d2', color: 'white' }}>Barcode</TableCell>
-                                <TableCell sx={{ backgroundColor: '#1976d2', color: 'white' }}>Price</TableCell>
-                                <TableCell sx={{ backgroundColor: '#1976d2', color: 'white' }}>Size</TableCell>
-                                <TableCell sx={{ backgroundColor: '#1976d2', color: 'white' }}>Quantity</TableCell>
-                                <TableCell sx={{ backgroundColor: '#1976d2', color: 'white' }}>Check</TableCell>
-                              </TableRow>
-                            </TableHead>
-
-                            <TableBody>
-                              {sale.kbcwProducts.map((product, i) => (
-                                <TableRow key={i}>
-                                  <TableCell>
-                                    {product.kbcwImage ? (
-                                      <img
-                                        src={product.kbcwImage}
-                                        alt='Product'
-                                        style={{
-                                          width: '100%',
-                                          height: 'auto',
-                                          maxHeight: '150px',
-                                          objectFit: 'cover',
-                                          borderRadius: '12px',
-                                          backgroundColor: '#808080'
-                                        }}
-                                      />
-                                    ) : (
-                                      <div
-                                        style={{
-                                          width: '100%',
-                                          height: '150px',
-                                          backgroundColor: '#f0f0f0',
-                                          textAlign: 'center',
-                                          lineHeight: '150px',
-                                          borderRadius: '12px'
-                                        }}
-                                      >
-                                        No Image Available
-                                      </div>
-                                    )}
-                                  </TableCell>
-                                  <TableCell>{product.kbcwBarcode}</TableCell>
-                                  <TableCell>{product.kbcwPrice}</TableCell>
-                                  <TableCell>{product.kbcwSize}</TableCell>
-                                  <TableCell>{product.enteredQuantity}</TableCell>
-                                  <TableCell>
-                                    <Checkbox
-                                      color='primary'
-                                      checked={!!checkedProducts[product.kbcwBarcode]}
-                                      onChange={event => handleCheckboxChange(event, product)}
-                                    />
-                                  </TableCell>
-                                </TableRow>
-                              ))}
-                            </TableBody>
-                          </Table>
-                        </TableCell>
-                      </TableRow>
-                    )}
-
-                    {sale.glassesProducts && sale.glassesProducts.length > 0 && (
-                      <TableRow>
-                        <TableCell colSpan={5} sx={{ paddingLeft: 4 }}>
-                          <Typography variant='subtitle1' fontWeight='bold'>
-                            Glasses Products:
-                          </Typography>
-                          <Table size='small'>
-                            <TableHead>
-                              <TableRow sx={{ backgroundColor: '#1976d2' }}>
-                                <TableCell sx={{ backgroundColor: '#1976d2', color: 'white' }}>Product Type</TableCell>
-                                <TableCell sx={{ backgroundColor: '#1976d2', color: 'white' }}>Number</TableCell>
-                                <TableCell sx={{ backgroundColor: '#1976d2', color: 'white' }}>Quantity</TableCell>
-                                <TableCell sx={{ backgroundColor: '#1976d2', color: 'white' }}>Price</TableCell>
-                              </TableRow>
-                            </TableHead>
-                            <TableBody>
-                              {sale.glassesProducts.map((product, i) => (
-                                <TableRow key={i}>
-                                  <TableCell>{product.glassesType}</TableCell>
-                                  <TableCell>{product.glassesNumber}</TableCell>
-                                  <TableCell>{product.enteredQuantity}</TableCell>
-                                  <TableCell>{product.glassesPrice}</TableCell>
-                                  <TableCell>
-                                    <Checkbox
-                                      color='primary'
-                                      // Use product.kbcwBarcode as the key
-                                      checked={!!checkedProducts[product.kbcwBarcode]}
-                                      onChange={event => handleCheckboxChange(event, product)}
-                                    />
-                                  </TableCell>
-                                </TableRow>
-                              ))}
-                            </TableBody>
-                          </Table>
-                        </TableCell>
-                      </TableRow>
-                    )}
-                  </React.Fragment>
-                ))
-              ) : (
-                <TableRow>
-                  <TableCell colSpan={5} align='center'>
-                    <Typography variant='body2' color='textSecondary'>
-                      No sales data available.
-                    </Typography>
-                  </TableCell>
-                </TableRow>
-              )}
-            </TableBody>
-          </Table>
-        </TableContainer>
+        <ProductTable
+          saleStats={saleStats}
+          handleCheckboxChange={handleCheckboxChange}
+          checkedProducts={checkedProducts}
+          inventoryData={inventoryData}
+        />
       </div>
     </Box>
   )

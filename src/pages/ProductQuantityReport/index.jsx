@@ -5,7 +5,10 @@ import { COLLECTIONS } from '/src/constants'
 import ProductQuantityReportView from '/src/views/productQuantityReport'
 
 const ProductQuantity = () => {
-  const { data: sales, loading } = useCollection(COLLECTIONS.SALES)
+  const { data: sales, loading: salesLoading } = useCollection(COLLECTIONS.SALES)
+  const { data: inventory, loading: inventoryLoading } = useCollection(COLLECTIONS.INVENTORY)
+
+  const loading = salesLoading || inventoryLoading
 
   if (loading) {
     return (
@@ -22,7 +25,7 @@ const ProductQuantity = () => {
     )
   }
 
-  return <ProductQuantityReportView salesData={sales} />
+  return <ProductQuantityReportView salesData={sales} inventoryData={inventory} />
 }
 
 export default ProductQuantity

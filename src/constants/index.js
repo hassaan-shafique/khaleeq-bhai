@@ -1,7 +1,8 @@
 export const COLLECTIONS = {
   SALES: 'sales',
   EXPENSES: 'expenses',
-  INSTALLMENTS: 'salesInstallments'
+  INSTALLMENTS: 'salesInstallments',
+  INVENTORY: 'inventory'
 }
 
 export const TABS = [

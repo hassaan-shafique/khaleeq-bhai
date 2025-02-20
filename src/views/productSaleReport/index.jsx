@@ -1,16 +1,10 @@
 import React, { useState, useEffect, useRef } from 'react'
-import {
-  Box,
-  Button,
-  Grid,
-  Typography,
-  CircularProgress,
-  TextField
-} from '@mui/material'
+import { Box, Button, Grid, Typography, CircularProgress, TextField } from '@mui/material'
 
 import { isSameDay, isSameMonth, isSameWeek, formatDateDisplay } from '/src/utils/dateUtils'
 import Widget from '../shared/Widget'
 import ProductTable from './components/productTable'
+import useSaleDate from '/src/hooks/useSaleDate'
 
 const ProductSaleReportView = ({ salesData }) => {
   const [timeframe, setTimeframe] = useState('day')
@@ -30,15 +24,37 @@ const ProductSaleReportView = ({ salesData }) => {
       setSaleStats([])
       let sales = []
       salesData.forEach(sale => {
-        if (sale.status === STATUS.COMPLETED) {
-          if (
-            (!productFilter || sale.payment === productFilter) && // Apply payment filter
-            ((timeframe === 'day' && isSameDay(sale.startDate)) ||
-              (timeframe === 'week' && isSameWeek(sale.startDate)) ||
-              (timeframe === 'month' && isSameMonth(sale.startDate)))
-          ) {
-            sales.push(sale)
+        let saleDate = null
+
+        if (sale?.startDate) {
+          if (sale.startDate.seconds) {
+            // Convert Firestore Timestamp to JS Date
+            saleDate = new Date(sale.startDate.seconds * 1000)
+          } else {
+            // Convert string date ('YYYY-MM-DD') to JS Date with time reset
+            saleDate = new Date(sale.startDate)
+            saleDate.setHours(0, 0, 0, 0)
           }
+        }
+
+        // Convert customDate start & end to JS Dates
+        const startDate = customDate?.start ? new Date(customDate.start).setHours(0, 0, 0, 0) : null
+        const endDate = customDate?.end ? new Date(customDate.end).setHours(23, 59, 59, 999) : null
+
+        const withinCustomRange =
+          timeframe === 'custom' && startDate && endDate && saleDate >= startDate && saleDate <= endDate
+
+        const matchesTimeframe =
+          timeframe === 'day'
+            ? isSameDay(sale.startDate)
+            : timeframe === 'week'
+            ? isSameWeek(sale.startDate)
+            : timeframe === 'month'
+            ? isSameMonth(sale.startDate)
+            : withinCustomRange
+
+        if (matchesTimeframe) {
+          sales.push(sale)
         }
       })
       setSaleStats(sales)
@@ -47,47 +63,48 @@ const ProductSaleReportView = ({ salesData }) => {
     if (salesData.length) {
       getSalesData()
     }
-  }, [timeframe, salesData, productFilter])
+  }, [customDate, timeframe, salesData, productFilter])
 
   const handleTimeframeChange = newTimeframe => {
     setTimeframe(newTimeframe)
   }
 
-  const calculateKBCWTotal = () => {
+  const calculateTotal = productSpecs => {
     let total = 0
     salesData.forEach(sale => {
-      if (
-        sale.kbcwProducts &&
-        sale.status === STATUS.COMPLETED &&
-        ((timeframe === 'day' && isSameDay(sale.startDate)) ||
-          (timeframe === 'week' && isSameWeek(sale.startDate)) ||
-          (timeframe === 'month' && isSameMonth(sale.startDate)))
-      ) {
-        sale.kbcwProducts.forEach(product => {
-          total += product.kbcwPrice * product.enteredQuantity
-        })
+      const { saleDate, startDate, endDate } = useSaleDate(customDate, sale)
+      const withinCustomRange =
+        timeframe === 'custom' && startDate && endDate && saleDate >= startDate && saleDate <= endDate
+
+      const matchesTimeframe =
+        timeframe === 'day'
+          ? isSameDay(sale.startDate)
+          : timeframe === 'week'
+          ? isSameWeek(sale.startDate)
+          : timeframe === 'month'
+          ? isSameMonth(sale.startDate)
+          : withinCustomRange
+
+      if (matchesTimeframe && productSpecs === 'kbcw') {
+        if (sale.kbcwProducts && matchesTimeframe) {
+          sale.kbcwProducts.forEach(product => {
+            let price = product.kbcwPrice * product.enteredQuantity
+            total += price
+          })
+        }
+      } else {
+        if (sale.glassesProducts && matchesTimeframe) {
+          sale.glassesProducts.forEach(product => {
+            total += product.glassesPrice * product.enteredQuantity
+          })
+        }
       }
     })
     return total
   }
 
-  const calculateGlassesTotal = () => {
-    let total = 0
-    salesData.forEach(sale => {
-      if (
-        sale.glassesProducts &&
-        sale.status === STATUS.COMPLETED &&
-        ((timeframe === 'day' && isSameDay(sale.startDate)) ||
-          (timeframe === 'week' && isSameWeek(sale.startDate)) ||
-          (timeframe === 'month' && isSameMonth(sale.startDate)))
-      ) {
-        sale.glassesProducts.forEach(product => {
-          total += product.glassesPrice * product.enteredQuantity
-        })
-      }
-    })
-    return total
-  }
+  const kbcwTotal = calculateTotal('kbcw')
+  const glassesTotal = calculateTotal('glasses')
 
   const printRef = useRef(null)
 
@@ -235,8 +252,8 @@ const ProductSaleReportView = ({ salesData }) => {
       )}
 
       <Grid container spacing={2} sx={{ marginBottom: 4 }}>
-        <Widget label='Total KBCW Products Sales' value={calculateKBCWTotal()} xs={12} sm={6} md={6} />
-        <Widget label='Total Glasses Products Sales' value={calculateGlassesTotal()} xs={12} sm={6} md={6} />
+        <Widget label='Total KBCW Products Sales' value={kbcwTotal} xs={12} sm={6} md={6} />
+        <Widget label='Total Glasses Products Sales' value={glassesTotal} xs={12} sm={6} md={6} />
       </Grid>
 
       <Grid container>

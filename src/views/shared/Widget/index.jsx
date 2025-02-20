@@ -1,6 +1,6 @@
 import { Grid, Card, CardContent, Typography, Box } from '@mui/material'
 
-const Widget = ({ label, value, size, md }) => {
+const Widget = ({ label, value, size, md, rupees = true }) => {
   return (
     <Grid item xs={size} md={md || size} sx={{ mt: 3 }}>
       <Card
@@ -19,7 +19,7 @@ const Widget = ({ label, value, size, md }) => {
               {label}
             </Typography>
             <Typography variant='h4' fontWeight={700} color='primary'>
-              Rs {value.toLocaleString()}
+              {rupees && 'Rs'} {value.toLocaleString()}
             </Typography>
           </Box>
         </CardContent>
