@@ -12,16 +12,22 @@ import Inventory from './components/bodyComponents/inventory/Inventory'
 import Glasses from './components/bodyComponents/glasses/Glasses'
 import Expense from './components/bodyComponents/expense/Expense'
 import Report from './components/bodyComponents/report/Report'
-import reportExpense from './components/bodyComponents/report/reportExpense'
+// import reportExpense from './components/bodyComponents/report/reportExpense'
 import Vendors from './components/bodyComponents/Vendors/Vendors'
 import Activity from './components/bodyComponents/activity/Activity'
 import Sales from './components/bodyComponents/sale/Sales'
 import ViewProducts from './components/bodyComponents/sale/Products/ViewProducts'
+
 import { app } from './config/Firebase'
 import { db } from './config/Firebase'
 import { collection, getDocs, doc } from 'firebase/firestore'
 import Verify from './components/bodyComponents/verification/verify'
 import Contact from './components/bodyComponents/contact/contact'
+import CashInHand from './pages/CashInHand'
+import SalesDetails from './pages/SalesDetails'
+import ExpenseReport from './pages/ExpenseReport'
+import ProductSaleReport from './pages/ProductSaleReport'
+import ProductQuantity from './pages/ProductQuantityReport'
 
 // Custom Protected Route Component
 const ProtectedRoute = ({ isAuthenticated, children }) => {
@@ -143,9 +149,16 @@ function App() {
             <Route path='daily-activity' element={<Activity />} />
             <Route path='expense' element={<Expense expenses={expenses} loading={loading} setRefresh={setRefresh} />} />
             <Route path='reports' element={<Report />} />
+
+            <Route path='cash-in-hand' element={<CashInHand />} />
+            <Route path='sales-details' element={<SalesDetails />} />
+            <Route path='expense-report' element={<ExpenseReport />} />
+            <Route path='product-details' element={<ProductSaleReport />} />
+            <Route path='product-quantity' element={<ProductQuantity />} />
+
             <Route path='vendors' element={<Vendors />} />
-            <Route path = 'verification' element= {<Verify/>}/> 
-            <Route path = 'contact' element= {<Contact/>}/> 
+            <Route path='verification' element={<Verify />} />
+            <Route path='contact' element={<Contact />} />
           </Route>
         </Routes>
       </BrowserRouter>

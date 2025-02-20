@@ -96,17 +96,18 @@ useEffect(() => {
     <Grid container>
       <Grid item md={12}>
         <Paper elevation={4}>
-          <AppBar
-            sx={{
-              padding: 2,
-              position: "fixed", // Make the navbar fixed
-              top: 0, // Fix it at the top
-              left: 0,
-              right: 0,
-              zIndex: 1100, // Make sure it stays on top
-            }}
-            position="static"
-          >
+        <AppBar
+  sx={{
+    padding: 2,
+    position: "fixed",
+    top: 0,
+    left: 0,
+    right: 0,
+    zIndex: 1100,
+    backgroundColor: "#616161", // Changed background color to grey
+  }}
+  position="static"
+>
             <Container maxWidth="xxl">
               <Box
                 sx={{
@@ -127,8 +128,16 @@ useEffect(() => {
                     color: "inherit",
                     textDecoration: "none",
                   }}
-                >
-                  Khurshid ChasmaWala PWD
+                > 
+               
+                        <img
+                          src='/glasses.png'
+                          alt='Logo'
+                         height={40}
+                         width={50}
+                        />
+                      
+                 Kbcw Shop
                 </Typography>
 
                 <Box
