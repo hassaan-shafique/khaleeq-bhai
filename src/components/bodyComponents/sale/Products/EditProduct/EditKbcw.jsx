@@ -1,5 +1,4 @@
-
-import React, { useState } from "react";
+import React from "react";
 import {
   TextField,
   Box,
@@ -25,20 +24,22 @@ const EditKbcwDialog = ({
   onSubmit = () => {},
 }) => {
   const handleKbcwProductChange = (field, value) => {
-    const newProduct = { ...editKbcwProduct };
-    newProduct[field] = value;
-    setEditKbcwProduct(newProduct);
+    setEditKbcwProduct((prev) => ({
+      ...prev,
+      [field]: value,
+    }));
   };
 
   const handleDateChange = (date, key) => {
-    const newProduct = { ...editKbcwProduct };
-    newProduct[key] = date;
-    setEditKbcwProduct(newProduct);
+    setEditKbcwProduct((prev) => ({
+      ...prev,
+      [key]: date,
+    }));
   };
 
   return (
     <Dialog open={open} onClose={onClose} maxWidth="md" fullWidth>
-      <DialogTitle>Edit Kbcw Product</DialogTitle>
+      <DialogTitle>Edit KBCW Product</DialogTitle>
       <DialogContent>
         <Box sx={{ marginTop: "20px" }}>
           <Grid container spacing={2} sx={{ marginBottom: "10px" }}>
@@ -46,19 +47,15 @@ const EditKbcwDialog = ({
               <FormControl fullWidth>
                 <InputLabel>KBCW Inventory Type</InputLabel>
                 <Select
-                  value={editKbcwProduct.kbcwInventoryType}
+                  value={editKbcwProduct.kbcwInventoryType || ""}
                   onChange={(e) =>
-                    handleKbcwProductChange(
-                      index,
-                      "kbcwInventoryType",
-                      e.target.value
-                    )
+                    handleKbcwProductChange("kbcwInventoryType", e.target.value)
                   }
                 >
                   <MenuItem value="Cleaners">Cleaners</MenuItem>
                   <MenuItem value="Solutions">Solutions</MenuItem>
                   <MenuItem value="Frames">Frames</MenuItem>
-                  <MenuItem value="contact Lense">Contact Lenses</MenuItem>
+                  <MenuItem value="Contact Lense">Contact Lenses</MenuItem>
                   <MenuItem value="Covers">Covers</MenuItem>
                 </Select>
               </FormControl>
@@ -66,9 +63,9 @@ const EditKbcwDialog = ({
             <Grid item xs={4}>
               <TextField
                 label="KBCW Barcode"
-                value={editKbcwProduct.kbcwBarcode}
+                value={editKbcwProduct.kbcwBarcode || ""}
                 onChange={(e) =>
-                  handleKbcwProductChange(index, "kbcwBarcode", e.target.value)
+                  handleKbcwProductChange("kbcwBarcode", e.target.value)
                 }
                 fullWidth
               />
@@ -76,9 +73,9 @@ const EditKbcwDialog = ({
             <Grid item xs={4}>
               <TextField
                 label="Name"
-                value={editKbcwProduct.kbcwName}
+                value={editKbcwProduct.kbcwName || ""}
                 onChange={(e) =>
-                  handleKbcwProductChange(index, "kbcwName", e.target.value)
+                  handleKbcwProductChange("kbcwName", e.target.value)
                 }
                 fullWidth
               />
@@ -86,9 +83,9 @@ const EditKbcwDialog = ({
             <Grid item xs={4}>
               <TextField
                 label="Size"
-                value={editKbcwProduct.kbcwSize}
+                value={editKbcwProduct.kbcwSize || ""}
                 onChange={(e) =>
-                  handleKbcwProductChange(index, "kbcwSize", e.target.value)
+                  handleKbcwProductChange("kbcwSize", e.target.value)
                 }
                 fullWidth
               />
@@ -96,9 +93,9 @@ const EditKbcwDialog = ({
             <Grid item xs={4}>
               <TextField
                 label="Quantity"
-                value={editKbcwProduct.enteredQuantity}
+                value={editKbcwProduct.enteredQuantity || ""}
                 onChange={(e) =>
-                  handleKbcwProductChange(index, "enteredQuantity", e.target.value)
+                  handleKbcwProductChange("enteredQuantity", e.target.value)
                 }
                 fullWidth
               />
@@ -106,9 +103,9 @@ const EditKbcwDialog = ({
             <Grid item xs={4}>
               <TextField
                 label="Price"
-                value={editKbcwProduct.kbcwPrice}
+                value={editKbcwProduct.kbcwPrice || ""}
                 onChange={(e) =>
-                  handleKbcwProductChange(index, "kbcwPrice", e.target.value)
+                  handleKbcwProductChange("kbcwPrice", e.target.value)
                 }
                 fullWidth
               />
@@ -121,9 +118,7 @@ const EditKbcwDialog = ({
                     ? new Date(editKbcwProduct.kbcwDeliveredDate)
                     : null
                 }
-                onChange={(date) =>
-                  handleDateChange(date, "kbcwDeliveredDate", index)
-                }
+                onChange={(date) => handleDateChange(date, "kbcwDeliveredDate")}
                 customInput={
                   <TextField
                     fullWidth
@@ -167,6 +162,3 @@ const EditKbcwDialog = ({
 };
 
 export default EditKbcwDialog;
-
-
- 

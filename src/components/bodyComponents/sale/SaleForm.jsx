@@ -308,7 +308,7 @@ const SalesForm = ({ setRefresh }) => {
         }}
       >
         Sales
-        <Button variant='contained' sx={{ bgcolor: '#448EE4', m: 1, px: 9 }} onClick={handleClickOpen}>
+        <Button variant='contained' sx={{ bgcolor: '#616161', m: 1, px: 9 }} onClick={handleClickOpen}>
           Add Sale
         </Button>
       </Typography>

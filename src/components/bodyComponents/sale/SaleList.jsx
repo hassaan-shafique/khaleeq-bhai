@@ -449,10 +449,11 @@ const SaleList = ({ sales = [], loading = false }) => {
           style={{
             display: 'flex',
             justifyContent: 'flex-start',
-            marginBottom: '1rem'
+            marginBottom: '1rem',
+           
           }}
         >
-          <Button variant='contained' color='primary' onClick={handlePrint}>
+          <Button variant='contained'  sx = { { background:'#616161',}}color='primary' onClick={handlePrint}>
             Print Sale Information
           </Button>
         </div>
@@ -463,7 +464,7 @@ const SaleList = ({ sales = [], loading = false }) => {
           fontWeight: 'bold',
 
           marginRight: '4',
-          color: '#1976d2' // Optional: Adjust color as needed
+          color: 'red' // Optional: Adjust color as needed
         }}
       >
         Total Pending Amount: Rs: {calculatePendingTotal().toFixed(2)}
@@ -476,7 +477,8 @@ const SaleList = ({ sales = [], loading = false }) => {
             flexDirection: 'column',
             justifyContent: 'center',
             height: '100vh', // Full viewport height
-            overflowY: 'auto'
+            overflowY: 'auto',
+          
           }}
         >
           <CircularProgress />
@@ -517,33 +519,33 @@ const SaleList = ({ sales = [], loading = false }) => {
                 >
                   {/* Listing Table */}
                   <Table stickyHeader>
-                    <TableHead>
-                      <TableRow sx={{ height: '40px' }}>
-                        <TableCell sx={{ fontWeight: 'bold' }}>Sale ID</TableCell>
-                        <TableCell sx={{ fontWeight: 'bold' }}>Order Date</TableCell>
-                        <TableCell sx={{ fontWeight: 'bold' }}>Delivery Date</TableCell>
-                        <TableCell sx={{ fontWeight: 'bold' }}>Delivered Date</TableCell>
+                    <TableHead >
+                      <TableRow sx={{ height: '60px' , width : " 120px" , backgroundColor: "#616161" }}>
+                        <TableCell sx={{ fontWeight: 'bold' , backgroundColor: "#616161" ,color :"white"}}>Sale ID</TableCell>
+                        <TableCell sx={{ fontWeight: 'bold', backgroundColor: "#616161" ,color :"white" }}>Order Date</TableCell>
+                        <TableCell sx={{ fontWeight: 'bold' , backgroundColor: "#616161" ,color :"white"}}>Delivery Date</TableCell>
+                        <TableCell sx={{ fontWeight: 'bold' , backgroundColor: "#616161",color :"white" }}>Delivered Date</TableCell>
                         {/* <TableCell sx={{ fontWeight: "bold" }}>Source</TableCell>
                     <TableCell sx={{ fontWeight: "bold" }}>Barcode</TableCell> */}
-                        <TableCell sx={{ fontWeight: 'bold' }}>Order No</TableCell>
-                        <TableCell sx={{ fontWeight: 'bold' }}>Customer Name</TableCell>
-                        <TableCell sx={{ fontWeight: 'bold' }}>Contact</TableCell>
+                        <TableCell sx={{ fontWeight: 'bold' , backgroundColor: "#616161" ,color :"white"}}>Order No</TableCell>
+                        <TableCell sx={{ fontWeight: 'bold' , backgroundColor: "#616161" ,color :"white"}}>Customer Name</TableCell>
+                        <TableCell sx={{ fontWeight: 'bold' , backgroundColor: "#616161" ,color :"white"}}>Contact</TableCell>
 
-                        <TableCell sx={{ fontWeight: 'bold' }}>Salesman</TableCell>
-                        <TableCell sx={{ fontWeight: 'bold' }}>Doctor</TableCell>
+                        <TableCell sx={{ fontWeight: 'bold', backgroundColor: "#616161" ,color :"white" }}>Salesman</TableCell>
+                        <TableCell sx={{ fontWeight: 'bold', backgroundColor: "#616161" ,color :"white" }}>Doctor</TableCell>
 
                         {/* <TableCell sx={{ fontWeight: "bold" }}>
                       Total Amount
                     </TableCell> */}
                         {/* <TableCell sx={{ fontWeight: "bold" }}>Advance</TableCell> */}
-                        <TableCell sx={{ fontWeight: 'bold' }}>Pending Amount</TableCell>
+                        <TableCell sx={{ fontWeight: 'bold', backgroundColor: "#616161"  ,color :"white"}}>Pending Amount</TableCell>
 
                         {/* <TableCell sx={{ fontWeight: "bold" }}>
                       Instruction
                     </TableCell> */}
-                        <TableCell sx={{ fontWeight: 'bold' }}>Status</TableCell>
-                        <TableCell sx={{ fontWeight: 'bold' }}>Actions</TableCell>
-                        <TableCell sx={{ fontWeight: 'bold' }}>view Details</TableCell>
+                        <TableCell sx={{ fontWeight: 'bold', backgroundColor: "#616161" ,color :"white" }}>Status</TableCell>
+                        <TableCell sx={{ fontWeight: 'bold' , backgroundColor: "#616161" ,color :"white"}}>Actions</TableCell>
+                        <TableCell sx={{ fontWeight: 'bold' , backgroundColor: "#616161",color :"white" }}>view Details</TableCell>
                       </TableRow>
                     </TableHead>
                     <TableBody>

@@ -19,6 +19,8 @@ import TotalSales from './components/totalSales'
 import DetailSales from './components/detailSales'
 import DetailInstallments from './components/detailInstallments'
 import SalemanPieChart from './components/salemanPieChart'
+import customInstallment from './components/customInstallments'
+import CustomInstallments from './components/customInstallments'
 
 const SaleStats = ({ salesData, installments }) => {
   const [timeframe, setTimeframe] = useState('day')
@@ -214,6 +216,7 @@ const SaleStats = ({ salesData, installments }) => {
       <TotalSales totalSales={totalSales} totalInHand={totalInHand} discount={discount} pendingSales={pendingSales} />
       <DetailSales saleStats={saleStats} loading={loading} installments={installments} />
       <DetailInstallments saleStats={saleStats} loading={loading} installments={installments} />
+      <CustomInstallments saleStats={saleStats} loading={loading} installments={installments} />
       <SalemanPieChart saleStats={saleStats} />
     </Box>
   )
