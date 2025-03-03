@@ -811,6 +811,22 @@ const SaleList = ({ sales = [], loading = false }) => {
             margin='normal'
             sx={{ mr: 1 }}
           />
+          <FormControl fullWidth margin="normal" sx={{ mr: 1 }}>
+  <InputLabel>Payment Method</InputLabel>
+  <Select
+    name="payment"
+    value={editSale?.payment || ""}
+    onChange={(e) =>
+      setEditSale({ ...editSale, payment: e.target.value })
+    }
+  >
+    <MenuItem value="Cash">Cash</MenuItem>
+    <MenuItem value="Bank">Bank</MenuItem>
+    <MenuItem value="EasyPaisa">EasyPaisa</MenuItem>
+    <MenuItem value="JazzCash">JazzCash</MenuItem>
+  </Select>
+</FormControl>
+
 
           {/* Additional Table for SPH, CYL, AXIS, ADD, IPD */}
           <TableContainer>

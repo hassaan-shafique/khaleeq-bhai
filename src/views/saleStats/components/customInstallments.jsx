@@ -15,17 +15,17 @@ import {
     Button
 } from '@mui/material';
 
-const CustomInstallments = ({ saleStats, loading, installments }) => {
+const CustomInstallments = ({ loading, installments, saleStats, salesData }) => {
     const [customDate, setCustomDate] = useState({ start: '', end: '' });
     const [filteredInstallments, setFilteredInstallments] = useState(installments);
 
-    // Function to handle date input changes
+    // Handle Date Change
     const handleDateChange = (e) => {
         const { name, value } = e.target;
         setCustomDate((prev) => ({ ...prev, [name]: value }));
     };
 
-    // Function to filter installments based on selected date range
+    // Apply Date Filter
     const applyFilter = () => {
         if (!customDate.start || !customDate.end) {
             setFilteredInstallments(installments);
@@ -34,9 +34,9 @@ const CustomInstallments = ({ saleStats, loading, installments }) => {
 
         const startDate = new Date(customDate.start);
         const endDate = new Date(customDate.end);
-        endDate.setHours(23, 59, 59, 999); // Include entire end day
+        endDate.setHours(23, 59, 59, 999); // Include full day
 
-        const filtered = installments.filter((inst) => {
+        const filtered = installments.filter(inst => {
             const instDate = new Date(inst.date);
             return instDate >= startDate && instDate <= endDate;
         });
@@ -44,63 +44,84 @@ const CustomInstallments = ({ saleStats, loading, installments }) => {
         setFilteredInstallments(filtered);
     };
 
+    // Sort installments by latest date
+    const sortedInstallments = [...filteredInstallments].sort((a, b) => new Date(b.date) - new Date(a.date));
+
     const renderTableRows = () => {
-        return saleStats.map((sale, index) => {
-            // Filter installments for the current sale
-            const saleInstallments = filteredInstallments.filter(inst => inst.saleId === sale.id);
-
-            // Calculate total installment amount
-            const totalInstallmentAmount = saleInstallments.reduce((total, inst) => total + Number(inst.amount || 0), 0);
-
-            // Get the latest installment date
-            const latestInstallmentDate = saleInstallments.length
-                ? new Date(Math.max(...saleInstallments.map(inst => new Date(inst.date)))).toLocaleDateString('en-GB') // "dd/mm/yyyy"
-                : 'No Date';
-
-            // Skip rows where totalInstallmentAmount is 0
-            if (totalInstallmentAmount === 0) {
-                return null;
-            }
-
+        if (sortedInstallments.length === 0) {
             return (
-                <TableRow key={sale.id} hover sx={{
+                <TableRow>
+                    <TableCell colSpan={5} align="center">
+                        <Typography variant="body2" color="textSecondary">
+                            No Installment data available.
+                        </Typography>
+                    </TableCell>
+                </TableRow>
+            );
+        }
+    
+       return sortedInstallments.map((installment, index) => {
+    const normalizedSaleId = String(installment.saleId).trim();
+    
+    const matchingSale = saleStats.find(sale => String(sale.id).trim() === normalizedSaleId) 
+        || salesData.find(sale => String(sale.id).trim() === normalizedSaleId);
+
+    if (!matchingSale) {
+        console.warn(`⚠️ No matching sale found for saleId: "${normalizedSaleId}"`);
+    } else {
+        console.log(`✅ Found Sale for saleId: "${normalizedSaleId}" → Order No: "${matchingSale.orderNo}"`);
+    }
+    
+    const orderNo = matchingSale ? matchingSale.orderNo : 'N/A';
+
+    
+            return (
+                <TableRow key={installment.id} hover sx={{
                     '&:nth-of-type(odd)': { backgroundColor: '#f9f9f9' },
                     '&:nth-of-type(even)': { backgroundColor: '#ffffff' }
                 }}>
                     <TableCell>
-                        <Typography variant='body2'>{index + 1}</Typography>
+                        <Typography variant="body2">{index + 1}</Typography>
                     </TableCell>
                     <TableCell>
-                        <Typography variant='body2' color='primary'>
-                            {sale.orderNo}
+                        <Typography variant="body2" color="primary">
+                            {orderNo}
                         </Typography>
                     </TableCell>
-                    <TableCell align='left'>
-                        <Typography variant='body2' color='secondary'>
-                            {latestInstallmentDate}
+                    <TableCell align="left">
+                        <Typography variant="body2" color="secondary">
+                            {new Date(installment.date).toLocaleDateString('en-GB')}
                         </Typography>
                     </TableCell>
                     <TableCell>
-                        <Typography variant='body2' fontWeight='bold' color='secondary'>
-                            Rs {totalInstallmentAmount}
+                        <Typography variant="body2" fontWeight="bold" color="secondary">
+                            Rs {Number(installment.amount || 0).toLocaleString()}
+                        </Typography>
+                    </TableCell>
+                    <TableCell>
+                        <Typography variant="body2" fontWeight="bold" color="secondary">
+                            {(installment.payment || "Not Added").toLocaleString()}
                         </Typography>
                     </TableCell>
                 </TableRow>
             );
         });
     };
+    
+    
+    
 
     return (
         <Box sx={{ padding: 3 }}>
             {/* Header and Filters */}
             <Grid container spacing={2} alignItems="center" sx={{ marginBottom: 2 }}>
                 <Grid item xs={12} md={4}>
-                    <Typography variant='h6' fontWeight='bold'>
+                    <Typography variant="h6" fontWeight="bold">
                         Custom Installment Data
                     </Typography>
                 </Grid>
 
-                {/* Date Filters - Aligned in One Row */}
+                {/* Date Filters */}
                 <Grid item xs={12} md={8} container spacing={2} alignItems="center">
                     <Grid item xs={5} md={4}>
                         <TextField
@@ -143,9 +164,9 @@ const CustomInstallments = ({ saleStats, loading, installments }) => {
                     <Table stickyHeader>
                         <TableHead>
                             <TableRow sx={{ backgroundColor: '#f5f5f5' }}>
-                                {['Sr No', 'Order No', 'Installment Date', 'Installment Amount'].map((header, index) => (
+                                {['Sr No', 'Order No', 'Installment Date', 'Installment Amount', 'Method'].map((header, index) => (
                                     <TableCell key={index}>
-                                        <Typography variant='subtitle1' fontWeight='bold'>
+                                        <Typography variant="subtitle1" fontWeight="bold">
                                             {header}
                                         </Typography>
                                     </TableCell>
@@ -156,20 +177,12 @@ const CustomInstallments = ({ saleStats, loading, installments }) => {
                         <TableBody>
                             {loading ? (
                                 <TableRow>
-                                    <TableCell colSpan={5} align='center'>
+                                    <TableCell colSpan={4} align="center">
                                         <CircularProgress />
                                     </TableCell>
                                 </TableRow>
-                            ) : saleStats.length > 0 ? (
-                                renderTableRows()
                             ) : (
-                                <TableRow>
-                                    <TableCell colSpan={5} align='center'>
-                                        <Typography variant='body2' color='textSecondary'>
-                                            No Installment data available.
-                                        </Typography>
-                                    </TableCell>
-                                </TableRow>
+                                renderTableRows()
                             )}
                         </TableBody>
                     </Table>

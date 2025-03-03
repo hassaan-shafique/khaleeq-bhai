@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useEffect, useState } from 'react'
 import {
   Typography,
   Paper,
@@ -9,24 +9,29 @@ import {
   TableRow,
   TableContainer,
   Checkbox,
-  Card
 } from '@mui/material'
 import Product from '../product'
 
 const ProductTable = ({ saleStats, handleCheckboxChange, checkedProducts, inventoryData }) => {
-  const groupAndSortProducts = saleStats => {
+  const [groupedByProducts, setGroupedByProducts] = useState([])
+
+  // Function to group and sort products
+  const groupAndSortProducts = () => {
     const groupedProducts = {}
+
     saleStats.forEach(sale => {
       sale.kbcwProducts.forEach(product => {
         const barcode = product.kbcwBarcode
-        const inventoryProduct = inventoryData.filter(f => f.barcode === barcode)
+        const inventoryProduct = inventoryData.find(f => f.barcode === barcode)
+
         if (!groupedProducts[barcode]) {
           groupedProducts[barcode] = {
             ...product,
             totalQuantity: 0,
-            remainingQuantity: inventoryProduct[0]?.quantity || 'N/A'
+            remainingQuantity: inventoryProduct ? inventoryProduct.quantity : 'N/A'
           }
         }
+
         groupedProducts[barcode].totalQuantity += Number(product.enteredQuantity)
       })
     })
@@ -34,7 +39,11 @@ const ProductTable = ({ saleStats, handleCheckboxChange, checkedProducts, invent
     return Object.values(groupedProducts).sort((a, b) => b.totalQuantity - a.totalQuantity)
   }
 
-  const groupedByProducts = groupAndSortProducts(saleStats)
+  // Update grouped products whenever saleStats or inventoryData changes
+  useEffect(() => {
+    setGroupedByProducts(groupAndSortProducts())
+  }, [saleStats, inventoryData]) // Depend on both `saleStats` and `inventoryData`
+
   return (
     <InventoryTable
       groupedByProducts={groupedByProducts}
@@ -44,19 +53,19 @@ const ProductTable = ({ saleStats, handleCheckboxChange, checkedProducts, invent
   )
 }
 
-const displayQuantity = quantity => {
-  return <Typography sx={{ fontSize: '50px', fontWeight: 'bold' }}>{quantity}</Typography>
-}
+const displayQuantity = quantity => (
+  <Typography sx={{ fontSize: '20px', fontWeight: 'bold' }}>{quantity}</Typography>
+)
 
-const TableHeading = heading => {
-  return <Typography sx={{ fontSize: '20px', fontWeight: 'bold' }}>{heading}</Typography>
-}
+const TableHeading = heading => (
+  <Typography sx={{ fontSize: '16px', fontWeight: 'bold' }}>{heading}</Typography>
+)
 
 const InventoryTable = ({ groupedByProducts, handleCheckboxChange, checkedProducts }) => {
   return (
-    <TableContainer component={Paper} sx={{ borderRadius: 2, boxShadow: 3, maxHeight: 600, overflow: 'auto', mt: 10 }}>
+    <TableContainer component={Paper} sx={{ borderRadius: 2, boxShadow: 3, maxHeight: 600, overflow: 'auto', mt: 5 }}>
       <Table>
-        <TableHead>
+        <TableHead sx={{ backgroundColor: "#616161" }}>
           <TableRow>
             <TableCell>#</TableCell>
             <TableCell>{TableHeading('Product')}</TableCell>
@@ -73,15 +82,13 @@ const InventoryTable = ({ groupedByProducts, handleCheckboxChange, checkedProduc
                 <Product product={item} />
               </TableCell>
               <TableCell>{displayQuantity(item.totalQuantity || 'N/A')}</TableCell>
-              <TableCell>{displayQuantity(item.inventoryQuantity || 'N/A')}</TableCell>
+              <TableCell>{displayQuantity(item.remainingQuantity || 'N/A')}</TableCell>
               <TableCell>
-                <TableCell>
-                  <Checkbox
-                    color='primary'
-                    checked={!!checkedProducts[item.kbcwBarcode]}
-                    onChange={event => handleCheckboxChange(event, item)}
-                  />
-                </TableCell>
+                <Checkbox
+                  color='primary'
+                  checked={!!checkedProducts[item.kbcwBarcode]}
+                  onChange={event => handleCheckboxChange(event, item)}
+                />
               </TableCell>
             </TableRow>
           ))}
