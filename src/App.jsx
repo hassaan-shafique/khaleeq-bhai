@@ -28,6 +28,7 @@ import SalesDetails from './pages/SalesDetails'
 import ExpenseReport from './pages/ExpenseReport'
 import ProductSaleReport from './pages/ProductSaleReport'
 import ProductQuantity from './pages/ProductQuantityReport'
+import InstallmentDetail from './views/installmentDetail'
 
 // Custom Protected Route Component
 const ProtectedRoute = ({ isAuthenticated, children }) => {
@@ -152,9 +153,11 @@ function App() {
 
             <Route path='cash-in-hand' element={<CashInHand />} />
             <Route path='sales-details' element={<SalesDetails />} />
+            <Route path='installments-details' element={<InstallmentDetail />} />
             <Route path='expense-report' element={<ExpenseReport />} />
             <Route path='product-details' element={<ProductSaleReport />} />
             <Route path='product-quantity' element={<ProductQuantity />} />
+            
 
             <Route path='vendors' element={<Vendors />} />
             <Route path='verification' element={<Verify />} />

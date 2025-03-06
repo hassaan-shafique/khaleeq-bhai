@@ -368,7 +368,7 @@ const InventoryList = ({ inventory = [], loading = false, setInventoryRefresh,  
             </Typography>
           ) : (
             <div ref={printRef}>
-              <TableContainer component={Paper} sx={{ maxHeight: 500, maxWidth: '100%', overflowX: 'auto' }}>
+              <TableContainer component={Paper} sx={{ maxHeight:750, maxWidth: '100%', overflowX: 'auto' }}>
                 <Table stickyHeader>
                   <TableHead>
                     <TableRow>

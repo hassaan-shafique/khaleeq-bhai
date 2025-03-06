@@ -49,6 +49,7 @@ export default function SideBarComponent() {
       children: [
         { title: 'Cash in Hand', path: 'cash-in-hand' },
         { title: 'Sales Details', path: 'sales-details' },
+        { title: 'Installment Details', path: 'installments-details' },
         { title: 'Expense Report', path: 'expense-report' },
         { title: 'Product Details', path: 'product-details' },
         { title: 'Product Quantity', path: 'product-quantity' }
@@ -84,7 +85,7 @@ export default function SideBarComponent() {
     setOpenReports(!openReports)
   }
 
-  const reportUrls = ['/cash-in-hand', '/sales-details', '/expense-report', '/product-details', '/product-quantity']
+  const reportUrls = ['/cash-in-hand', '/sales-details', '/installments-details', '/expense-report', '/product-details', '/product-quantity']
 
   useEffect(() => {
     if (currentPage) {
