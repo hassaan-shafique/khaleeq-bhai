@@ -26,23 +26,23 @@ import { db } from "../../../config/Firebase";
 
 const ActivityList = ({ refresh }) => {
   const [activities, setActivities] = useState([]);
-  const [editing, setEditing] = useState(false); // State for edit mode
-  const [editedActivity, setEditedActivity] = useState(null); // Store edited activity data
+  const [editing, setEditing] = useState(false); 
+  const [editedActivity, setEditedActivity] = useState(null); 
   const [openDialog, setOpenDialog] = useState(false);
-  const [vendorSearch, setVendorSearch] = useState(""); // Search query for vendor
-  const [itemSearch, setItemSearch] = useState(""); // Search query for item name
-  const [startDate, setStartDate] = useState(""); // Start date state
-  const [endDate, setEndDate] = useState(""); // End date state
+  const [vendorSearch, setVendorSearch] = useState(""); 
+  const [itemSearch, setItemSearch] = useState(""); 
+  const [startDate, setStartDate] = useState(""); 
+  const [endDate, setEndDate] = useState(""); 
   const [refSearch, setRefSearch] = useState("");
 
-  // Fetch data from Firebase
+  
   const fetchActivities = async () => {
     try {
       const dailyActivityCollectionRef = collection(db, "daily-activity");
       const querySnapshot = await getDocs(dailyActivityCollectionRef);
       const activitiesData = querySnapshot.docs.map((doc) => ({
-        id: doc.id, // Include document ID
-        ...doc.data(), // Include document data
+        id: doc.id, 
+        ...doc.data(), 
       }));
       setActivities(activitiesData);
     } catch (error) {
@@ -58,12 +58,11 @@ const ActivityList = ({ refresh }) => {
      }, 0);
    };
 
-  // Fetch activities on component mount or when refresh changes
+ 
   useEffect(() => {
     fetchActivities();
   }, [refresh]);
 
-  // Function to format timestamp
   const formatTimestamp = (timestamp) => {
     try {
       const date = new Date(
@@ -83,14 +82,14 @@ const ActivityList = ({ refresh }) => {
     }
   };
 
-  // Handle edit activity
+  
   const handleEdit = (activity) => {
     setEditing(true);
     setEditedActivity({ ...activity });
     setOpenDialog(true);
   };
 
-  // Handle delete activity
+
   const handleDelete = async (id) => {
     try {
       const activityRef = doc(db, "daily-activity", id);
@@ -101,7 +100,7 @@ const ActivityList = ({ refresh }) => {
     }
   };
 
-  // Handle update activity
+  
   const handleUpdate = async () => {
     if (editedActivity) {
       try {
@@ -115,28 +114,28 @@ const ActivityList = ({ refresh }) => {
           quantity: editedActivity.quantity,
           remarks: editedActivity.remarks,
         });
-        setEditing(false); // Exit editing mode
+        setEditing(false); 
         fetchActivities();
-        setOpenDialog(false); // Close the dialog after update
+        setOpenDialog(false); 
       } catch (error) {
         console.error("Error updating document: ", error);
       }
     }
   };
 
-  // Handle cancel edit
+ 
   const handleCancel = () => {
     setEditing(false);
     setEditedActivity(null);
     setOpenDialog(false);
   };
 
-  // Handle search for vendor
+ 
   const handleVendorSearchChange = (e) => {
     setVendorSearch(e.target.value);
   };
 
-  // Handle search for item name
+  
   const handleItemSearchChange = (e) => {
     setItemSearch(e.target.value);
   };
@@ -145,17 +144,17 @@ const ActivityList = ({ refresh }) => {
     setRefSearch(e.target.value);
   }
 
-  // Handle start date change
+ 
   const handleStartDateChange = (e) => {
     setStartDate(e.target.value);
   };
 
-  // Handle end date change
+  
   const handleEndDateChange = (e) => {
     setEndDate(e.target.value);
   };
 
-  // Filter activities based on search queries and date range
+  
   const filteredActivities = activities.filter((activity) => {
     const matchVendor = activity.vendor
       .toLowerCase()
@@ -167,13 +166,13 @@ const ActivityList = ({ refresh }) => {
       const matchref= activity.refNo.toLowerCase().includes(refSearch.toLowerCase());
 
 
-    // Convert selectedDate to date object for comparison
+    
     const activityDate = new Date(
       activity.selectedDate.seconds
         ? activity.selectedDate.seconds * 1000
         : activity.selectedDate
     );
-      // Normalize dates for comparison
+     
       const start = startDate ? new Date(startDate).setHours(0, 0, 0, 0) : null;
       const end = endDate ? new Date(endDate).setHours(23, 59, 59, 999) : null;
 
@@ -189,7 +188,7 @@ const ActivityList = ({ refresh }) => {
 
   return (
     <div>
-      {/* Search and Date Filters */}
+    
       
         <div style={{ marginBottom: "20px", display: "flex" }}>
           <TextField
@@ -241,9 +240,9 @@ const ActivityList = ({ refresh }) => {
         <TableContainer 
   component={Paper} 
   sx={{
-    mt: 2,            // Add top margin
-    maxHeight: '450px', // Set maximum height for scrolling
-    overflowY: 'auto', // Enable vertical scrolling
+    mt: 2,            
+    maxHeight: '450px', 
+    overflowY: 'auto', 
   }}
 >
         <Table>
@@ -251,10 +250,10 @@ const ActivityList = ({ refresh }) => {
             <TableRow>
               <TableCell
                 sx={{
-                  backgroundColor: "#1976d2", // Background color
-                  color: "white", // Text color
-                  fontWeight: "bold", // Bold text
-                  padding: "12px", // Adjust padding as needed
+                  backgroundColor: "#1976d2", 
+                  color: "white", 
+                  fontWeight: "bold", 
+                  padding: "12px", 
                 }}
               >
                 <strong>Sr.No</strong>

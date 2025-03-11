@@ -209,7 +209,7 @@ export default function SideBarComponent() {
         />
       </Box>
 
-      {/* Sidebar Content */}
+     
       {sidebarContent}
     </Box>
   )

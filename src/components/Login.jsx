@@ -16,7 +16,7 @@ const Login = () => {
 
   const navigate = useNavigate()
   const theme = useTheme()
-  const isSmallScreen = useMediaQuery(theme.breakpoints.down('md')) // Responsive for tablets and phones
+  const isSmallScreen = useMediaQuery(theme.breakpoints.down('md')) 
 
   const handleLogin = async e => {
     e.preventDefault()
@@ -56,10 +56,9 @@ const Login = () => {
       sx={{
         height: '100vh',
         display: 'flex',
-        flexDirection: isSmallScreen ? 'column' : 'row' // Stack on small screens
+        flexDirection: isSmallScreen ? 'column' : 'row' 
       }}
     >
-      {/* Left Side - Image */}
       <Box
         sx={{
           flex: 1,
@@ -70,12 +69,12 @@ const Login = () => {
           backgroundSize: 'cover',
           backgroundPosition: 'center',
           backgroundRepeat: 'no-repeat',
-          opacity: 0.9, // Slight transparency for better contrast
+          opacity: 0.9, 
           minHeight: isSmallScreen ? '40vh' : '100vh'
         }}
       />
 
-      {/* Right Side - Login Form */}
+     
       <Box
         sx={{
           flex: 1,
@@ -84,7 +83,7 @@ const Login = () => {
           alignItems: 'center',
           justifyContent: 'center',
           padding: isSmallScreen ? 4 : 6,
-          backgroundColor: 'rgba(255, 255, 255, 0.9)', // Semi-transparent white
+          backgroundColor: 'rgba(255, 255, 255, 0.9)', 
           boxShadow: 3,
           minHeight: isSmallScreen ? '60vh' : '100vh'
         }}

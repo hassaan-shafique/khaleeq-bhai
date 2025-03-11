@@ -8,7 +8,7 @@ import {
   DialogTitle,
   Typography,
 } from "@mui/material";
-import { db } from "../../../config/Firebase"; // Import your Firebase config
+import { db } from "../../../config/Firebase";
 import {
   query,
   where,
@@ -16,40 +16,40 @@ import {
   collection,
   updateDoc,
   doc,
-} from "firebase/firestore"; // For updating and fetching document
+} from "firebase/firestore"; 
 
 const UpdateQuantity = ({ setRefresh }) => {
 
-  const [open, setOpen] = useState(false); // To control dialog open/close
-  const [barcode, setBarcode] = useState(""); // State for barcode input
-  const [quantity, setQuantity] = useState(""); // State for quantity input
-  const [error, setError] = useState(null); // State to store error messages
+  const [open, setOpen] = useState(false); 
+  const [barcode, setBarcode] = useState(""); 
+  const [quantity, setQuantity] = useState(""); 
+  const [error, setError] = useState(null); 
 
-  const handleOpen = () => setOpen(true); // Open dialog
-  const handleClose = () => setOpen(false); // Close dialog
+  const handleOpen = () => setOpen(true); 
+  const handleClose = () => setOpen(false); 
 
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    // Check if barcode and quantity are entered
+    
     if (!barcode || !quantity) {
       setError("Please provide both barcode and quantity.");
       return;
     }
 
     try {
-      // Trim barcode input to avoid extra spaces
+     
       const barcodeStr = barcode.trim();
 
       console.log("Searching for barcode:", barcodeStr);
 
-      // Query Firestore to find the inventory document by barcode
+     
       const q = query(
         collection(db, "inventory"),
         where("barcode", "==", barcodeStr)
       );
 
-      // Fetch documents that match the barcode
+     
       const querySnapshot = await getDocs(q);
 
       if (querySnapshot.empty) {
@@ -58,16 +58,16 @@ const UpdateQuantity = ({ setRefresh }) => {
         return;
       }
 
-      // Get the first matching document
+    
       const docSnapshot = querySnapshot.docs[0];
       const inventoryDocRef = docSnapshot.ref;
 
       console.log("Document found:", docSnapshot.data());
 
-      // Get the current quantity value and parse it as an integer
+      
       const currentQuantity = parseInt(docSnapshot.data().quantity, 10);
 
-      // Parse the input quantity as an integer
+    
       const quantityToAdd = parseInt(quantity, 10);
 
       if (isNaN(quantityToAdd)) {
@@ -75,10 +75,10 @@ const UpdateQuantity = ({ setRefresh }) => {
         return;
       }
 
-      // Calculate the new quantity
+     
       const newQuantity = currentQuantity + quantityToAdd;
 
-      // Update the quantity field in Firestore
+     
       await updateDoc(inventoryDocRef, {
         quantity: newQuantity,
       });
@@ -86,8 +86,8 @@ const UpdateQuantity = ({ setRefresh }) => {
 
       alert("Quantity updated successfully!");
       window.location.reload(); 
-       // Refresh the inventory list
-      setOpen(false); // Close the dialog after successful update
+     
+      setOpen(false); 
     } catch (error) {
       console.error("Error updating quantity: ", error);
       setError(
@@ -101,15 +101,15 @@ const UpdateQuantity = ({ setRefresh }) => {
 
   return (
     <div>
-      {/* Update Quantity Button */}
+     
       <Button variant="contained" color="success" onClick={handleOpen}>
         Update Quantity
       </Button>
 
-      {/* Display Error Message */}
+     
       {error && <Typography color="error">{error}</Typography>}
 
-      {/* Dialog for updating quantity */}
+      
       <Dialog open={open} onClose={handleClose} fullWidth maxWidth="sm">
         <DialogTitle>Update Quantity</DialogTitle>
         <DialogContent>

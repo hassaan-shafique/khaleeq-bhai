@@ -15,8 +15,7 @@ export default function RootComponent() {
       <Box
         sx={
           {
-            // bgcolor: "#DEE3E9",
-            // height: 899,
+           
           }
         }
       >

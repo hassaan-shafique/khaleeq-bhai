@@ -1,10 +1,10 @@
 import React, { useState } from "react";
 import { Box } from "@mui/material";
-import ActivityForm from "./ActivityForm"; // Adjust path as necessary
-import ActivityList from "./ActivityList"; // Adjust path as necessary
+import ActivityForm from "./ActivityForm"; 
+import ActivityList from "./ActivityList"; 
 
 const Activity = () => {
-  const [refresh, setRefresh] = useState(false); // State to trigger re-fetch
+  const [refresh, setRefresh] = useState(false); 
  
 
   return (

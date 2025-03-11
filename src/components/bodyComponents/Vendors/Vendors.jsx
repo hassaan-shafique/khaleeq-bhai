@@ -18,7 +18,7 @@ const AllVendorSales = () => {
   const [salesData, setSalesData] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  // State for search filters
+  
   const [vendorSearch, setVendorSearch] = useState("");
   const [branchSearch, setBranchSearch] = useState("");
   const [customerSearch, setCustomerSearch] = useState("");
@@ -55,18 +55,18 @@ const AllVendorSales = () => {
   }, []);
 
 const handlePrint = () => {
-  // Temporarily hide other parts of the UI during printing
+ 
   const printContents = printRef.current.innerHTML;
   const originalContents = document.body.innerHTML;
 
   document.body.innerHTML = printContents;
   window.print();
   document.body.innerHTML = originalContents;
-  window.location.reload(); // Reload to restore original content
+  window.location.reload(); 
 };
 
 
-  // Filter sales data based on search inputs and date range
+  
  const filteredSalesData = salesData.filter(
    (sale) =>
      Array.isArray(sale.vendorProducts) &&
@@ -107,7 +107,7 @@ const handlePrint = () => {
         All Vendor Sales
       </Typography>
 
-      {/* Search Fields */}
+     
       <div style={{ marginBottom: "1rem", display: "flex", gap: "1rem" }}>
         <TextField
           label="Search by Vendor Name"
@@ -173,7 +173,7 @@ const handlePrint = () => {
         <TableContainer component={Paper}>
           <Table>
             <TableHead sticky sx={{ backgroundColor: "#2a9df4" }}>
-              {/* Optional: Light blue background */}
+             
               <TableRow>
                 <TableCell sx={{ color: "black", fontWeight: "bold" }}>
                   Sale ID

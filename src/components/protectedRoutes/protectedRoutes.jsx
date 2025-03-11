@@ -6,15 +6,15 @@ const ProtectedRoute = ({ allowedRoles, children }) => {
   const { user, role, loading } = useUser();
 
   if (loading) {
-    return <p>Loading...</p>; // Render a loading state
+    return <p>Loading...</p>; 
   }
 
   if (!user) {
-    return <Navigate to="/login" replace />; // Redirect unauthenticated users
+    return <Navigate to="/login" replace />; 
   }
 
   if (!allowedRoles.includes(role)) {
-    return <Navigate to="/unauthorized" replace />; // Redirect unauthorized users
+    return <Navigate to="/unauthorized" replace />; 
   }
 
   return children;

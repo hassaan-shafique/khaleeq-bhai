@@ -28,8 +28,8 @@ import { LazyLoadImage } from 'react-lazy-load-image-component';
 import 'react-lazy-load-image-component/src/effects/blur.css';
 
 import EditIcon from '@mui/icons-material/Edit'
-import { db } from '../../../config/Firebase' // Adjust to your Firebase setup
-import { doc, updateDoc, deleteDoc, collection } from 'firebase/firestore' // Firestore functions
+import { db } from '../../../config/Firebase' 
+import { doc, updateDoc, deleteDoc, collection } from 'firebase/firestore' 
 import UpdateQuantity from './updateQuantity'
 import {getDocs } from 'firebase/firestore'
 
@@ -76,16 +76,16 @@ const InventoryList = ({ inventory = [], loading = false, setInventoryRefresh,  
   const handleCloseDialog = () => setOpenDialog(false)
 
   const openEditDialog = item => {
-    setEditableItem({ ...item }) // Clone the item to avoid mutating the original object
+    setEditableItem({ ...item }) 
     setEditDialogOpen(true)
   }
   const handleColorChange = event => {
     const { name, value } = event.target
 
-    // Update the editableItem state with the new color value
+    
     setEditableItem(prevState => ({
       ...prevState,
-      [name]: value // This will set the color based on input (name is "color")
+      [name]: value 
     }))
   }
 
@@ -126,7 +126,7 @@ const InventoryList = ({ inventory = [], loading = false, setInventoryRefresh,  
         setEditDialogOpen(false)
 
         if (setInventoryRefresh) {
-          setInventoryRefresh(prev => !prev) // Toggle the state to trigger a re-render
+          setInventoryRefresh(prev => !prev) 
         }
 
         alert('Item updated successfully!')
@@ -198,11 +198,11 @@ const InventoryList = ({ inventory = [], loading = false, setInventoryRefresh,  
   const inventoryFilterTypes = [...new Set(inventory.map(item => item.type))]
 
   const handlePrint = () => {
-    // Clone the printRef content to a new window for printing
+    
     const printContents = printRef.current.innerHTML
     const newWindow = window.open('', '_blank')
 
-    // Write the content to the new window
+    
     newWindow.document.open()
     newWindow.document.write(`
     <!DOCTYPE html>
@@ -374,7 +374,7 @@ const InventoryList = ({ inventory = [], loading = false, setInventoryRefresh,  
                     <TableRow>
                       <TableCell
                         sx={{
-                          backgroundColor: '#1976d2', // Primary color
+                          backgroundColor: '#1976d2', 
                           color: 'white',
                           fontWeight: 'bold',
                           fontSize: '16px'
@@ -475,7 +475,7 @@ const InventoryList = ({ inventory = [], loading = false, setInventoryRefresh,  
                             textAlign: 'center',
                             color: '#333',
 
-                            borderRight: '1px solid #ccc' // Separate columns with border
+                            borderRight: '1px solid #ccc' 
                           }}
                         >
                           {i + 1}
@@ -490,9 +490,9 @@ const InventoryList = ({ inventory = [], loading = false, setInventoryRefresh,  
                           {item.image ? (
 
 <LazyLoadImage
-src={item.image} // Base64 image will render here
+src={item.image} 
 alt={`Image ${i + 1}`}
-effect="blur" // Add a blur effect while loading
+effect="blur" 
 style={{
   width: '150px',
   height: '100px',
@@ -551,9 +551,9 @@ onClick={() => handleImageClick(item.image)}
                           sx={{
                             borderRight: '1px solid #ccc',
                             backgroundColor: '#deeff5',
-                            display: 'flex', // Flexbox to center content
-                            justifyContent: 'center', // Horizontally center
-                            alignItems: 'center' // Vertically center
+                            display: 'flex', 
+                            justifyContent: 'center', 
+                            alignItems: 'center' 
                           }}
                         >
                           <div
@@ -610,7 +610,7 @@ onClick={() => handleImageClick(item.image)}
       {isLoading && <CircularProgress />}
 
 
-          {/* Image Preview Dialog */}
+         
           <Dialog open={openDialog} onClose={handleCloseDialog} maxWidth='md'>
             <DialogTitle>Image Preview</DialogTitle>
             <DialogContent>
@@ -624,7 +624,7 @@ onClick={() => handleImageClick(item.image)}
           </Dialog>
 
 
-          {/* Edit Item Dialog */}
+        
 
           <Dialog open={editDialogOpen} onClose={() => setEditDialogOpen(false)} maxWidth='sm'>
             <DialogTitle>Edit Inventory Item</DialogTitle>

@@ -43,7 +43,7 @@ const InventoryForm = ({ setRefresh }) => {
     selectedDate: new Date()
   })
   const [image, setImage] = useState(null)
-  const [customType, setCustomType] = useState('') // State to handle custom type
+  const [customType, setCustomType] = useState('') 
   const [errors, setErrors] = useState({})
   const [barcode, setBarcode] = useState()
   const [imageBlob, setImageBlob] = useState('')
@@ -85,7 +85,7 @@ const InventoryForm = ({ setRefresh }) => {
       const snapshot = await getDocs(typesCollection)
       const fetchedTypes = snapshot.docs.map(doc => doc.data())
       setInventoryTypes(prev => [
-        ...prev.filter(type => type.value === 'other'), // Keep "Other" always in dropdown
+        ...prev.filter(type => type.value === 'other'), 
         ...fetchedTypes
       ])
     }
@@ -97,14 +97,14 @@ const InventoryForm = ({ setRefresh }) => {
     if (customType.trim() && !inventoryTypes.some(type => type.value.toLowerCase() === customType.toLowerCase())) {
       const newType = {
         label: customType,
-        value: customType.toLowerCase().replace(/\s+/g, '_') // Normalize value
+        value: customType.toLowerCase().replace(/\s+/g, '_') 
       }
 
       try {
         const typesCollection = collection(db, 'inventoryTypes')
         await addDoc(typesCollection, newType)
-        setInventoryTypes(prev => [...prev, newType]) // Update dropdown
-        setFormData(prev => ({ ...prev, type: newType.value })) // Set the selected type
+        setInventoryTypes(prev => [...prev, newType]) 
+        setFormData(prev => ({ ...prev, type: newType.value })) 
         setCustomType('') // Clear input field
       } catch (error) {
         console.error('Error adding custom type to Firestore:', error)
@@ -127,26 +127,25 @@ const InventoryForm = ({ setRefresh }) => {
     const q = query(inventoryCollectionRef, where('barcode', '==', barcode))
 
     try {
-      // Add logs to track query execution and barcode being passed
+      
       console.log('Checking for barcode:', barcode)
 
       const querySnapshot = await getDocs(q)
 
-      // Debug the query result
-      console.log('Query snapshot empty:', querySnapshot.empty) // This will log true if no matching documents, false if found
+      console.log('Query snapshot empty:', querySnapshot.empty) 
 
       querySnapshot.forEach(doc => {
-        console.log('Matching document:', doc.id, doc.data()) // Log the document ID and its data
+        console.log('Matching document:', doc.id, doc.data())
       })
 
-      return !querySnapshot.empty // If the snapshot is empty, it means no matching barcode was found
+      return !querySnapshot.empty 
     } catch (error) {
       console.error('Error checking barcode existence:', error)
       return false
     }
   }
 
-  // Utility function to convert Base64 to Blob
+  
 
   const handleSubmit = async e => {
     e.preventDefault()
@@ -160,34 +159,34 @@ const InventoryForm = ({ setRefresh }) => {
 
       if (isBarcodeExists) {
         alert(`An item with the barcode "${value.barcode}" already exists.`)
-        setLoading(false) // Reset loading state
-        return // Stop further processing
+        setLoading(false) 
+        return 
       }
 
-      // Ensure the image exists before proceeding
+      
       if (image) {
         const uniqueImageName = `${Date.now()}-${image.name}`
         const storageRef = ref(storage, `inventory-images/${uniqueImageName}`)
 
-        // Upload the file directly
+       
         const snapshot = await uploadBytes(storageRef, image)
         console.log('Upload snapshot:', snapshot)
 
-        // Get the download URL
+        
         const imageUrl = await getDownloadURL(storageRef)
         console.log('Image URL:', imageUrl)
 
-        // Save the data to Firestore
+        
         const inventoryCollectionRef = collection(db, 'inventory')
         const docRef = await addDoc(inventoryCollectionRef, {
           ...value,
           type: value.type === 'other' ? customType : value.type,
-          image: imageUrl // Save the download URL in Firestore
+          image: imageUrl 
         })
 
         console.log('Document added with ID:', docRef.id)
 
-        // Reset form and UI states
+       
         setOpen(false)
         setRefresh(prev => !prev)
       } else {
@@ -205,7 +204,7 @@ const InventoryForm = ({ setRefresh }) => {
   const handleClose = () => {
     setOpen(false)
     setErrors({})
-    setImage(null) // Clear image selection on close
+    setImage(null)
   }
 
   return (
@@ -259,7 +258,7 @@ const InventoryForm = ({ setRefresh }) => {
             />
 
             <Box>
-              {/* Image Upload Section */}
+             
               <Box sx={{ display: 'flex', alignItems: 'center', my: 2 }}>
                 <label
                   htmlFor='image-upload'
@@ -289,7 +288,7 @@ const InventoryForm = ({ setRefresh }) => {
                   type='file'
                   id='image-upload'
                   accept='image/*'
-                  capture='environment' // Opens back camera by default
+                  capture='environment' 
                   style={{ display: 'none' }}
                   onChange={handleImageChange}
                 />
@@ -308,7 +307,7 @@ const InventoryForm = ({ setRefresh }) => {
                 )}
               </Box>
 
-              {/* Captured Image Section */}
+           
               {image && (
                 <Box
                   sx={{
@@ -350,7 +349,7 @@ const InventoryForm = ({ setRefresh }) => {
               </Select>
             </FormControl>
 
-            {/* Custom Type Text Field */}
+           
             {value.type === 'other' && (
               <div>
                 <TextField
@@ -364,7 +363,7 @@ const InventoryForm = ({ setRefresh }) => {
                   variant='outlined'
                   color='primary'
                   onClick={handleAddCustomType}
-                  disabled={!customType.trim()} // Disable if input is empty
+                  disabled={!customType.trim()} 
                 >
                   Add Custom Type
                 </Button>

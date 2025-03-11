@@ -16,7 +16,7 @@ import { db } from "../../../config/Firebase";
 const ActivityForm = ({ setRefresh }) => {
   const [open, setOpen] = useState(false);
 
-  // State for form values
+  
   const [value, setValue] = useState({
     selectedDate: new Date(),
     itemName: "",
@@ -27,29 +27,29 @@ const ActivityForm = ({ setRefresh }) => {
     quantity: "",
   });
 
-  // Update form state when inputs change
+  
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setValue((prev) => ({
       ...prev,
-      [name]: value, // Update corresponding state field
+      [name]: value, 
     }));
   };
 
-  // Update date state when the date changes
+  
   const handleDateChange = (date) => {
     setValue((prev) => ({
       ...prev,
-      selectedDate: date, // Ensure selected date is updated
+      selectedDate: date, 
     }));
   };
 
-  // Open the dialog
+  
   const handleClickOpen = () => {
     setOpen(true);
   };
 
-  // Handle form submission
+  
   const handleSubmit = async (e) => {
     e.preventDefault();
     const { selectedDate, itemName, refNo, vendor, price, quantity,remarks } = value;
@@ -67,7 +67,7 @@ const ActivityForm = ({ setRefresh }) => {
       });
 
       setOpen(false);
-      setRefresh((prev) => !prev); // Trigger refresh after adding a new entry
+      setRefresh((prev) => !prev); 
     } catch (error) {
       console.error("Error adding document: ", error);
     }
@@ -108,13 +108,13 @@ const ActivityForm = ({ setRefresh }) => {
                 className="datePicker"
                 selected={value.selectedDate}
                 onChange={handleDateChange}
-                dateFormat="MM/dd/yyyy" // Format the date
+                dateFormat="MM/dd/yyyy" 
                 customInput={
                   <TextField
                     fullWidth
                     variant="outlined"
                     sx={{ mt: 1 }}
-                    value={value.selectedDate.toLocaleDateString()} // Display selected date
+                    value={value.selectedDate.toLocaleDateString()} 
                   />
                 }
               />

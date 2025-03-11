@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Grid, Box } from "@mui/material";
+import { Grid, Box, TextField, Button } from "@mui/material";
 import InventoryList from "./InventoryList";
 import InventoryForm from "./InventoryForm";
 import { db } from "../../../config/Firebase";
@@ -10,57 +10,62 @@ import {
   orderBy,
   limit,
   startAfter,
-  where,
 } from "firebase/firestore";
 
 const Inventory = () => {
   const [inventory, setInventory] = useState([]);
   const [loading, setLoading] = useState(true);
   const [inventoryRefresh, setInventoryRefresh] = useState(false);
-  const [refresh, setRefresh] = useState(false)
+  const [lastVisible, setLastVisible] = useState(null);
+
   const [pagination, setPagination] = useState({
     pageNo: 0,
-    pageSize: 3000,
+    pageSize: 10, 
   });
-  const [lastVisible, setLastVisible] = useState(null);
 
   const fetchInventory = async () => {
     try {
       setLoading(true);
 
-      let queryRef = query(collection(db, "inventory"));
-
-      
-
-      // Apply pagination
-      queryRef = query(queryRef, orderBy("name"), limit(pagination.pageSize));
+      let queryRef = query(
+        collection(db, "inventory"),
+        orderBy("name"),
+        limit(pagination.pageSize) 
+      );
 
       if (lastVisible) {
         queryRef = query(queryRef, startAfter(lastVisible));
       }
 
       const querySnapshot = await getDocs(queryRef);
-
-      const inventoryData = [];
-      querySnapshot.forEach((doc) => {
-        inventoryData.push({ id: doc.id, ...doc.data() });
-      });
+      const inventoryData = querySnapshot.docs.map((doc) => ({
+        id: doc.id,
+        ...doc.data(),
+      }));
 
       setInventory(inventoryData);
       setLastVisible(querySnapshot.docs[querySnapshot.docs.length - 1]);
-      setLoading(false);
     } catch (error) {
       console.error("Error fetching Inventory: ", error);
+    } finally {
       setLoading(false);
     }
   };
 
-  
   useEffect(() => {
     fetchInventory();
-  }, [ pagination]);
- 
-  
+  }, [pagination]);
+
+  const handlePageSizeChange = (e) => {
+    const value = e.target.value;
+    if (value === "" || /^[0-9\b]+$/.test(value)) {
+      setPagination((prev) => ({
+        ...prev,
+        pageSize: value === "" ? "" : parseInt(value, 10),
+        pageNo: 0, 
+      }));
+    }
+  };
   
 
   const handleNextPage = () => {
@@ -93,23 +98,43 @@ const Inventory = () => {
               height: "100%",
             }}
           >
-            <InventoryForm
-              setRefresh={setInventoryRefresh}
-              
+           
+            <InventoryForm setRefresh={setInventoryRefresh} />
+
+           
+            <TextField
+              type="number"
+              label="Rows per page"
+              variant="outlined"
+              value={pagination.pageSize || ""}
+              onChange={handlePageSizeChange}
+              sx={{ mb: 2, width: 150 }}
             />
 
+            {/* Inventory List */}
             <InventoryList
-  inventory={inventory}
-  setInventoryRefresh={setInventoryRefresh}
-  loading={loading}
-  pagination={pagination}
-  setPagination={setPagination}
-  handleNextPage={handleNextPage}
-  handlePreviousPage={handlePreviousPage}
-  fetchInventory={fetchInventory}
- 
- 
-/>
+              inventory={inventory}
+              setInventoryRefresh={setInventoryRefresh}
+              loading={loading}
+              pagination={pagination}
+              setPagination={setPagination}
+              handleNextPage={handleNextPage}
+              handlePreviousPage={handlePreviousPage}
+              fetchInventory={fetchInventory}
+            />
+
+           
+            <Box sx={{ display: "flex", gap: 2, mt: 2 }}>
+              <Button
+                onClick={handlePreviousPage}
+                disabled={pagination.pageNo === 0 || loading}
+              >
+                Previous
+              </Button>
+              <Button onClick={handleNextPage} disabled={loading}>
+                Next
+              </Button>
+            </Box>
           </Box>
         </Grid>
       </Grid>

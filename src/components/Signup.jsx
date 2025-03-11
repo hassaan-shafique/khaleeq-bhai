@@ -14,7 +14,7 @@ import {
   InputLabel,
   Select
 } from '@mui/material'
-import Logo from '../../public/logo.png' // Ensure this path is correct
+import Logo from '../../public/logo.png' 
 import { setDoc, doc } from 'firebase/firestore'
 import { db } from '../config/Firebase'
 

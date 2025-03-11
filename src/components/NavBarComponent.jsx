@@ -32,7 +32,7 @@ const auth = getAuth(app);
 export default function NavBarComponent() {
   const [notificationAnchorEl, setNotificationAnchorEl] = useState(null);
   const [anchorEl, setAnchorEl] = useState(null);
-  const [userName, setUserName] = useState(""); // State to store the user's name
+  const [userName, setUserName] = useState(""); 
   const auth = getAuth();
   const open = Boolean(anchorEl);
   const notificationOpen = Boolean(notificationAnchorEl);
@@ -55,13 +55,13 @@ export default function NavBarComponent() {
 useEffect(() => {
   const fetchUserName = async () => {
     try {
-      const user = auth.currentUser; // Get the current logged-in user
+      const user = auth.currentUser; 
       if (user) {
-        const userDoc = await getDoc(doc(db, "users", user.uid)); // Fetch Firestore document by UID
+        const userDoc = await getDoc(doc(db, "users", user.uid)); 
         if (userDoc.exists()) {
           const userData = userDoc.data();
           if (userData.name) {
-            setUserName(userData.name); // Set the user's name
+            setUserName(userData.name); 
           } else {
             console.error("Name field does not exist in Firestore document.");
           }
@@ -104,7 +104,7 @@ useEffect(() => {
     left: 0,
     right: 0,
     zIndex: 1100,
-    backgroundColor: "#616161", // Changed background color to grey
+    backgroundColor: "#616161", 
   }}
   position="static"
 >
@@ -157,7 +157,7 @@ useEffect(() => {
                       <Avatar sx={{ width: 32, height: 32 }}></Avatar>
                     </Tooltip>
                   </IconButton>
-                  {/* Display the user's name */}
+                 
                   <Typography fontFamily={"Inter"}>
                     {userName || "user"}
                   </Typography>
