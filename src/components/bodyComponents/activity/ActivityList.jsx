@@ -24,8 +24,9 @@ import {
 } from "firebase/firestore";
 import { db } from "../../../config/Firebase";
 
-const ActivityList = ({ refresh }) => {
-  const [activities, setActivities] = useState([]);
+const ActivityList = ({ refresh,activities,fetchActivities,
+  }) => {
+    
   const [editing, setEditing] = useState(false); 
   const [editedActivity, setEditedActivity] = useState(null); 
   const [openDialog, setOpenDialog] = useState(false);
@@ -36,32 +37,7 @@ const ActivityList = ({ refresh }) => {
   const [refSearch, setRefSearch] = useState("");
 
   
-  const fetchActivities = async () => {
-    try {
-      const dailyActivityCollectionRef = collection(db, "daily-activity");
-      const querySnapshot = await getDocs(dailyActivityCollectionRef);
-      const activitiesData = querySnapshot.docs.map((doc) => ({
-        id: doc.id, 
-        ...doc.data(), 
-      }));
-      setActivities(activitiesData);
-    } catch (error) {
-      console.error("Error fetching data: ", error);
-    }
-  };
-
-   const calculateGrandTotal = () => {
-     return filteredActivities.reduce((total, activity) => {
-       const price = parseFloat(activity.price) || 0;
-       
-       return total + price ;
-     }, 0);
-   };
-
  
-  useEffect(() => {
-    fetchActivities();
-  }, [refresh]);
 
   const formatTimestamp = (timestamp) => {
     try {
@@ -388,17 +364,7 @@ const ActivityList = ({ refresh }) => {
           </TableBody>
         </Table>
       </TableContainer>
-
-      <Typography
-        variant="h6"
-        sx={{
-          marginTop: 2,
-          textAlign: "left ",
-          fontWeight: "bold",
-        }}
-      >
-        Grand Total: {calculateGrandTotal().toFixed(2)}
-      </Typography>
+     
 
       {/* Edit Dialog */}
       {openDialog && editedActivity && (

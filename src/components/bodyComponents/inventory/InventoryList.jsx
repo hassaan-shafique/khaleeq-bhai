@@ -39,6 +39,7 @@ const InventoryList = ({ inventory = [], loading = false, setInventoryRefresh,  
   handlePreviousPage,
   pagination,
    }) => {
+    console.log({inventory})
   const [selectedType, setSelectedType] = useState('')
   const [selectedPriceRange, setSelectedPriceRange] = useState('')
   const [openDialog, setOpenDialog] = useState(false)
@@ -264,7 +265,6 @@ const InventoryList = ({ inventory = [], loading = false, setInventoryRefresh,  
 
   const userRole = localStorage.getItem('userRole')
 
-  console.log({ inventoryTypes })
 
   return (
     <Box>

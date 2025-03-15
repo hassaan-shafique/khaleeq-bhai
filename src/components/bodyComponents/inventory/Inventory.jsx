@@ -15,12 +15,14 @@ import {
 const Inventory = () => {
   const [inventory, setInventory] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [inventoryRefresh, setInventoryRefresh] = useState(false);
   const [lastVisible, setLastVisible] = useState(null);
+  const [firstVisible, setFirstVisible] = useState(null);
+  const [previousPages, setPreviousPages] = useState([]);
+  const [inventoryRefresh, setInventoryRefresh] = useState(false);
 
   const [pagination, setPagination] = useState({
     pageNo: 0,
-    pageSize: 10, 
+    pageSize: 10,
   });
 
   const fetchInventory = async () => {
@@ -29,11 +31,11 @@ const Inventory = () => {
 
       let queryRef = query(
         collection(db, "inventory"),
-        orderBy("name"),
-        limit(pagination.pageSize) 
+        orderBy("name"), 
+        limit(pagination.pageSize)
       );
 
-      if (lastVisible) {
+      if (pagination.pageNo > 0 && lastVisible) {
         queryRef = query(queryRef, startAfter(lastVisible));
       }
 
@@ -44,7 +46,17 @@ const Inventory = () => {
       }));
 
       setInventory(inventoryData);
-      setLastVisible(querySnapshot.docs[querySnapshot.docs.length - 1]);
+
+      if (querySnapshot.docs.length > 0) {
+        setLastVisible(querySnapshot.docs[querySnapshot.docs.length - 1]);
+        setFirstVisible(querySnapshot.docs[0]);
+
+        if (pagination.pageNo === 0) {
+          setPreviousPages([]);
+        } else {
+          setPreviousPages((prev) => [...prev, querySnapshot.docs[0]]);
+        }
+      }
     } catch (error) {
       console.error("Error fetching Inventory: ", error);
     } finally {
@@ -58,11 +70,26 @@ const Inventory = () => {
 
   const handlePageSizeChange = (e) => {
     const value = e.target.value;
+  
+    // Allow empty input and only numbers
     if (value === "" || /^[0-9\b]+$/.test(value)) {
       setPagination((prev) => ({
         ...prev,
-        pageSize: value === "" ? "" : parseInt(value, 10),
-        pageNo: 0, 
+        pageSize: value, // Temporarily store as a string
+      }));
+    }
+  };
+  
+  const handlePageSizeBlur = () => {
+    const parsedValue = parseInt(pagination.pageSize, 10);
+  
+    if (!isNaN(parsedValue) && parsedValue > 0) {
+      setPagination({ pageNo: 0, pageSize: parsedValue });
+      setLastVisible(null);
+    } else {
+      setPagination((prev) => ({
+        ...prev,
+        pageSize: 10, // Default value if invalid input
       }));
     }
   };
@@ -81,6 +108,7 @@ const Inventory = () => {
         ...prev,
         pageNo: prev.pageNo - 1,
       }));
+      setLastVisible(previousPages[pagination.pageNo - 1] || null);
     }
   };
 
@@ -98,18 +126,19 @@ const Inventory = () => {
               height: "100%",
             }}
           >
-           
             <InventoryForm setRefresh={setInventoryRefresh} />
 
-           
+            
             <TextField
-              type="number"
-              label="Rows per page"
-              variant="outlined"
-              value={pagination.pageSize || ""}
-              onChange={handlePageSizeChange}
-              sx={{ mb: 2, width: 150 }}
-            />
+  type="number"
+  label="Rows per page"
+  variant="outlined"
+  value={pagination.pageSize}
+  onChange={handlePageSizeChange}
+  onBlur={handlePageSizeBlur} 
+  sx={{ mb: 2, width: 150 }}
+/>
+
 
             {/* Inventory List */}
             <InventoryList
@@ -123,7 +152,7 @@ const Inventory = () => {
               fetchInventory={fetchInventory}
             />
 
-           
+            {/* Pagination Buttons */}
             <Box sx={{ display: "flex", gap: 2, mt: 2 }}>
               <Button
                 onClick={handlePreviousPage}

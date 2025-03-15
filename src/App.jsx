@@ -157,8 +157,6 @@ function App() {
             <Route path='expense-report' element={<ExpenseReport />} />
             <Route path='product-details' element={<ProductSaleReport />} />
             <Route path='product-quantity' element={<ProductQuantity />} />
-            
-
             <Route path='vendors' element={<Vendors />} />
             <Route path='verification' element={<Verify />} />
             <Route path='contact' element={<Contact />} />
