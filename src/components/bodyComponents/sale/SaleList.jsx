@@ -24,7 +24,8 @@ import {
   FormControl,
   InputLabel,
   Select,
-  MenuItem
+  MenuItem,
+  Grid
 } from '@mui/material'
 import { createTheme, ThemeProvider } from '@mui/material/styles'
 import { Timestamp } from 'firebase/firestore'
@@ -76,11 +77,6 @@ const SaleList = ({ sales = [], loading = false }) => {
   const [statusFilter, setStatusFilter] = React.useState('All')
   const [filterStartDate, setFilterStartDate] = useState('')
   const [filterEndDate, setFilterEndDate] = useState('')
-  const [sortDate, setSortDate] = useState('asc')
-
-  const handleSort = () => {
-    setSortDate(prevSortDate => (prevSortDate === 'asc' ? 'desc' : 'asc'))
-  }
 
   const getCurrentDate = () => {
     const today = new Date()
@@ -151,12 +147,9 @@ const SaleList = ({ sales = [], loading = false }) => {
     const bDate = b.startDate ? new Date(b.startDate.seconds * 1000) : null
 
     if (!aDate || !bDate) return 0 // If either date is missing, no sorting
-
-    if (sortDate === 'asc') {
-      return aDate - bDate // Ascending order
-    } else {
-      return bDate - aDate // Descending order
-    }
+    
+      return bDate - aDate 
+    
   })
 
   const handlePrint = () => {
@@ -373,91 +366,112 @@ const SaleList = ({ sales = [], loading = false }) => {
 
   return (
     <Box>
-      <Box
-        sx={{
-          display: 'flex',
-          flexDirection: 'row',
-          gap: 2,
-          marginBottom: '1rem'
-        }}
-      >
-        <FormControl>
-          <InputLabel>Sale Status</InputLabel>
-          <Select value={statusFilter} onChange={e => setStatusFilter(e.target.value)} label='Sale Status'>
-            <MenuItem value='All'>All Sales</MenuItem>
-            <MenuItem value='Pending'>Pending</MenuItem>
-            <MenuItem value='Completed'>Completed</MenuItem>
-          </Select>
-        </FormControl>
-        <TextField
-          label='Search by OrderNo'
-          variant='outlined'
-          value={searchOrder}
-          onChange={e => setSearchOrder(e.target.value)}
-          sx={{ maxWidth: '300px' }}
-        />
-        <TextField
-          label='Search by Salesman'
-          variant='outlined'
-          value={searchSalesman}
-          onChange={e => setSearchSalesman(e.target.value)}
-          sx={{ maxWidth: '300px' }}
-        />
-        <TextField
-          label='Search by Contact No'
-          variant='outlined'
-          value={searchContact}
-          onChange={e => setSearchContact(e.target.value)}
-          sx={{ maxWidth: '300px' }}
-        />
-        <TextField
-          label='Search by Customer Name'
-          variant='outlined'
-          value={searchCustomer}
-          onChange={e => setSearchCustomer(e.target.value)}
-          sx={{ maxWidth: '300px' }}
-        />
+      <Box sx={{ marginBottom: '1rem' }}>
+        <Grid container spacing={2} alignItems='center'>
+          {/* Sale Status Dropdown */}
+          <Grid item xs={2}>
+            <FormControl fullWidth>
+              <InputLabel>Sale Status</InputLabel>
+              <Select value={statusFilter} onChange={e => setStatusFilter(e.target.value)} label='Sale Status'>
+                <MenuItem value='All'>All Sales</MenuItem>
+                <MenuItem value='Pending'>Pending</MenuItem>
+                <MenuItem value='Completed'>Completed</MenuItem>
+              </Select>
+            </FormControl>
+          </Grid>
+
+          {/* Search by Order No */}
+          <Grid item xs={12} sm={6} md={2}>
+            <TextField
+              fullWidth
+              label='Search by Order No'
+              variant='outlined'
+              value={searchOrder}
+              onChange={e => setSearchOrder(e.target.value)}
+            />
+          </Grid>
+
+          {/* Search by Salesman */}
+          <Grid item xs={12} sm={6} md={2}>
+            <TextField
+              fullWidth
+              label='Search by Salesman'
+              variant='outlined'
+              value={searchSalesman}
+              onChange={e => setSearchSalesman(e.target.value)}
+            />
+          </Grid>
+
+          {/* Search by Contact No */}
+          <Grid item xs={12} sm={6} md={3}>
+            <TextField
+              fullWidth
+              label='Search by Contact No'
+              variant='outlined'
+              value={searchContact}
+              onChange={e => setSearchContact(e.target.value)}
+            />
+          </Grid>
+
+          {/* Search by Customer Name */}
+          <Grid item xs={12} sm={6} md={3}>
+            <TextField
+              fullWidth
+              label='Search by Customer Name'
+              variant='outlined'
+              value={searchCustomer}
+              onChange={e => setSearchCustomer(e.target.value)}
+            />
+          </Grid>
+        </Grid>
       </Box>
 
-      <div style={{ marginBottom: '1rem', display: 'flex', gap: '1rem' }}>
-        <TextField
-          label='Start Date'
-          type='date'
-          variant='outlined'
-          size='small'
-          value={filterStartDate}
-          onChange={e => setFilterStartDate(e.target.value)}
-          InputLabelProps={{
-            shrink: true
-          }}
-        />
-        <TextField
-          label='End Date'
-          type='date'
-          variant='outlined'
-          size='small'
-          value={filterEndDate}
-          onChange={e => setFilterEndDate(e.target.value)}
-          InputLabelProps={{
-            shrink: true
-          }}
-        />
-      </div>
+      <Box sx={{ marginBottom: '1rem' }}>
+        <Grid container spacing={2} alignItems='center'>
+          {/* Start Date */}
+          <Grid item xs={12} sm={6} >
+            <TextField
+              fullWidth
+              label='Start Date'
+              type='date'
+              variant='outlined'
+              size='small'
+              value={filterStartDate}
+              onChange={e => setFilterStartDate(e.target.value)}
+              InputLabelProps={{ shrink: true }}
+            />
+          </Grid>
+
+          {/* End Date */}
+          <Grid item xs={12} sm={6} >
+            <TextField
+              fullWidth
+              label='End Date'
+              type='date'
+              variant='outlined'
+              size='small'
+              value={filterEndDate}
+              onChange={e => setFilterEndDate(e.target.value)}
+              InputLabelProps={{ shrink: true }}
+            />
+          </Grid>
+        </Grid>
+      </Box>
 
       {userRole == 'admin' && (
         <div
           style={{
             display: 'flex',
-            justifyContent: 'flex-start',
-            marginBottom: '1rem',
-           
+            justifyContent: 'flex-end',
+            marginBottom: '1rem'
           }}
         >
-          <Button variant='contained'  sx = { { background:'#616161',}}color='primary' onClick={handlePrint}>
+          <Button variant='contained' sx={{ background: '#616161' }} color='primary' onClick={handlePrint}>
             Print Sale Information
           </Button>
         </div>
       )}
+
       <Typography
         variant='h6'
         sx={{
@@ -477,8 +491,7 @@ const SaleList = ({ sales = [], loading = false }) => {
             flexDirection: 'column',
             justifyContent: 'center',
             height: '100vh', // Full viewport height
-            overflowY: 'auto',
-          
+            overflowY: 'auto'
           }}
         >
           <CircularProgress />
@@ -519,33 +532,59 @@ const SaleList = ({ sales = [], loading = false }) => {
                 >
                   {/* Listing Table */}
                   <Table stickyHeader>
-                    <TableHead >
-                      <TableRow sx={{ height: '60px' , width : " 120px" , backgroundColor: "#616161" }}>
-                        <TableCell sx={{ fontWeight: 'bold' , backgroundColor: "#616161" ,color :"white"}}>Sale ID</TableCell>
-                        <TableCell sx={{ fontWeight: 'bold', backgroundColor: "#616161" ,color :"white" }}>Order Date</TableCell>
-                        <TableCell sx={{ fontWeight: 'bold' , backgroundColor: "#616161" ,color :"white"}}>Delivery Date</TableCell>
-                        <TableCell sx={{ fontWeight: 'bold' , backgroundColor: "#616161",color :"white" }}>Delivered Date</TableCell>
+                    <TableHead>
+                      <TableRow sx={{ height: '60px', width: ' 120px', backgroundColor: '#616161' }}>
+                        <TableCell sx={{ fontWeight: 'bold', backgroundColor: '#616161', color: 'white' }}>
+                          Sale ID
+                        </TableCell>
+                        <TableCell sx={{ fontWeight: 'bold', backgroundColor: '#616161', color: 'white' }}>
+                          Order Date
+                        </TableCell>
+                        <TableCell sx={{ fontWeight: 'bold', backgroundColor: '#616161', color: 'white' }}>
+                          Delivery Date
+                        </TableCell>
+                        <TableCell sx={{ fontWeight: 'bold', backgroundColor: '#616161', color: 'white' }}>
+                          Delivered Date
+                        </TableCell>
                         {/* <TableCell sx={{ fontWeight: "bold" }}>Source</TableCell>
                     <TableCell sx={{ fontWeight: "bold" }}>Barcode</TableCell> */}
-                        <TableCell sx={{ fontWeight: 'bold' , backgroundColor: "#616161" ,color :"white"}}>Order No</TableCell>
-                        <TableCell sx={{ fontWeight: 'bold' , backgroundColor: "#616161" ,color :"white"}}>Customer Name</TableCell>
-                        <TableCell sx={{ fontWeight: 'bold' , backgroundColor: "#616161" ,color :"white"}}>Contact</TableCell>
+                        <TableCell sx={{ fontWeight: 'bold', backgroundColor: '#616161', color: 'white' }}>
+                          Order No
+                        </TableCell>
+                        <TableCell sx={{ fontWeight: 'bold', backgroundColor: '#616161', color: 'white' }}>
+                          Customer Name
+                        </TableCell>
+                        <TableCell sx={{ fontWeight: 'bold', backgroundColor: '#616161', color: 'white' }}>
+                          Contact
+                        </TableCell>
 
-                        <TableCell sx={{ fontWeight: 'bold', backgroundColor: "#616161" ,color :"white" }}>Salesman</TableCell>
-                        <TableCell sx={{ fontWeight: 'bold', backgroundColor: "#616161" ,color :"white" }}>Doctor</TableCell>
+                        <TableCell sx={{ fontWeight: 'bold', backgroundColor: '#616161', color: 'white' }}>
+                          Salesman
+                        </TableCell>
+                        <TableCell sx={{ fontWeight: 'bold', backgroundColor: '#616161', color: 'white' }}>
+                          Doctor
+                        </TableCell>
 
                         {/* <TableCell sx={{ fontWeight: "bold" }}>
                       Total Amount
                     </TableCell> */}
                         {/* <TableCell sx={{ fontWeight: "bold" }}>Advance</TableCell> */}
-                        <TableCell sx={{ fontWeight: 'bold', backgroundColor: "#616161"  ,color :"white"}}>Pending Amount</TableCell>
+                        <TableCell sx={{ fontWeight: 'bold', backgroundColor: '#616161', color: 'white' }}>
+                          Pending Amount
+                        </TableCell>
 
                         {/* <TableCell sx={{ fontWeight: "bold" }}>
                       Instruction
                     </TableCell> */}
-                        <TableCell sx={{ fontWeight: 'bold', backgroundColor: "#616161" ,color :"white" }}>Status</TableCell>
-                        <TableCell sx={{ fontWeight: 'bold' , backgroundColor: "#616161" ,color :"white"}}>Actions</TableCell>
-                        <TableCell sx={{ fontWeight: 'bold' , backgroundColor: "#616161",color :"white" }}>view Details</TableCell>
+                        <TableCell sx={{ fontWeight: 'bold', backgroundColor: '#616161', color: 'white' }}>
+                          Status
+                        </TableCell>
+                        <TableCell sx={{ fontWeight: 'bold', backgroundColor: '#616161', color: 'white' }}>
+                          Actions
+                        </TableCell>
+                        <TableCell sx={{ fontWeight: 'bold', backgroundColor: '#616161', color: 'white' }}>
+                          view Details
+                        </TableCell>
                       </TableRow>
                     </TableHead>
                     <TableBody>
@@ -811,22 +850,19 @@ const SaleList = ({ sales = [], loading = false }) => {
             margin='normal'
             sx={{ mr: 1 }}
           />
-          <FormControl fullWidth margin="normal" sx={{ mr: 1 }}>
-  <InputLabel>Payment Method</InputLabel>
-  <Select
-    name="payment"
-    value={editSale?.payment || ""}
-    onChange={(e) =>
-      setEditSale({ ...editSale, payment: e.target.value })
-    }
-  >
-    <MenuItem value="Cash">Cash</MenuItem>
-    <MenuItem value="Bank">Bank</MenuItem>
-    <MenuItem value="EasyPaisa">EasyPaisa</MenuItem>
-    <MenuItem value="JazzCash">JazzCash</MenuItem>
-  </Select>
-</FormControl>
-
+          <FormControl fullWidth margin='normal' sx={{ mr: 1 }}>
+            <InputLabel>Payment Method</InputLabel>
+            <Select
+              name='payment'
+              value={editSale?.payment || ''}
+              onChange={e => setEditSale({ ...editSale, payment: e.target.value })}
+            >
+              <MenuItem value='Cash'>Cash</MenuItem>
+              <MenuItem value='Bank'>Bank</MenuItem>
+              <MenuItem value='EasyPaisa'>EasyPaisa</MenuItem>
+              <MenuItem value='JazzCash'>JazzCash</MenuItem>
+            </Select>
+          </FormControl>
 
           {/* Additional Table for SPH, CYL, AXIS, ADD, IPD */}
           <TableContainer>
