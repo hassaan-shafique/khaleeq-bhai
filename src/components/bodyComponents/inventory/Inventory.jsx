@@ -22,7 +22,7 @@ const Inventory = () => {
 
   const [pagination, setPagination] = useState({
     pageNo: 0,
-    pageSize: 10,
+    pageSize: 3000,
   });
 
   const fetchInventory = async () => {

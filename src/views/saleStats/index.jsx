@@ -216,7 +216,7 @@ const SaleStats = ({ salesData, installments }) => {
       <TotalSales totalSales={totalSales} totalInHand={totalInHand} discount={discount} pendingSales={pendingSales} />
       <DetailSales saleStats={saleStats} loading={loading} installments={installments} />
       <DetailInstallments saleStats={saleStats} loading={loading} installments={installments} />
-      <CustomInstallments saleStats={saleStats} salesData={salesData} loading={loading} installments={installments} />
+      {/* <CustomInstallments saleStats={saleStats} salesData={salesData} loading={loading} installments={installments} /> */}
       <SalemanPieChart saleStats={saleStats} />
     </Box>
   )

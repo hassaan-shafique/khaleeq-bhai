@@ -2,20 +2,57 @@ import React from 'react'
 import { Grid, Typography, Card, CardContent, Box } from '@mui/material'
 
 const STAT_CARDS = [
-  { label: 'IN (Cash)', key: 'totalInCash', color: 'linear-gradient(135deg, #4caf50, #66bb6a)', xs: 12, sm: 6, md: 4 },
+  { label: 'Total Advance', key: 'totalAdvance', color: 'linear-gradient(135deg, #16A085,rgb(23, 185, 47))', xs: 12, sm: 6, md: 4 },
+  { label: 'IN (Cash)', key: 'totalInCash', color: 'linear-gradient(135deg, #1D976C, #93F9B9)', xs: 12, sm: 6, md: 2 },
+  { label: 'CC (Bank)', key: 'totalInBank', color: 'linear-gradient(135deg, #1E3C72, #2A5298)', xs: 12, sm: 6, md: 2 },
+  { label: 'JazzCash', key: 'totalinJazzcash', color: 'linear-gradient(135deg, #FF758C,rgb(234, 66, 136))', xs: 12, sm: 6, md: 2 },
+  { label: 'EasyPaisa', key: 'totalinEasyPaisa', color: 'linear-gradient(135deg,rgb(59, 137, 60),rgb(15, 72, 30))', xs: 12, sm: 6, md: 2 },
+
   {
     label: 'Out (Total Installments)',
-    key: 'installmentTotal',
-    color: 'linear-gradient(135deg, #ff9800, #ffb74d)',
+    key: 'totalInstallment',
+    color: 'linear-gradient(135deg,rgb(240, 50, 56),rgb(222, 101, 41))',
     xs: 12,
     sm: 6,
     md: 4
   },
-  { label: 'CC (Bank)', key: 'totalInBank', color: 'linear-gradient(135deg, #3f51b5, #7986cb)', xs: 12, sm: 6, md: 4 },
+  {
+    label: 'Cash Installments',
+    key: 'cashInstallmentTotal',
+    color: 'linear-gradient(135deg,rgb(43, 127, 195),rgb(75, 126, 238))',
+    xs: 12,
+    sm: 6,
+    md: 2
+  },
+  {
+    label: 'Bank Installments',
+    key: 'bankInstallmentTotal',
+    color: 'linear-gradient(135deg,rgb(224, 69, 69),rgb(227, 69, 69))',
+    xs: 12,
+    sm: 6,
+    md: 2
+  },
+  {
+    label: 'JazzCash Installments',
+    key: 'jazzcashInstallmentTotal',
+    color: 'linear-gradient(135deg,rgb(89, 48, 203),rgb(131, 82, 223))',
+    xs: 12,
+    sm: 6,
+    md: 2
+  },
+  {
+    label: 'EasyPaisa Installments',
+    key: 'easypaisaInstallmentTotal',
+    color: 'linear-gradient(135deg, #F7971E, #FFD200)',
+    xs: 12,
+    sm: 6,
+    md: 2
+  },
+
   {
     label: 'Total = In + Out + CC',
-    key: 'final',
-    color: 'linear-gradient(135deg, #673ab7, #9575cd)',
+    key: 'total',
+    color: 'linear-gradient(135deg,rgb(246, 200, 49),rgb(170, 172, 98))',
     xs: 12,
     sm: 6,
     md: 6
@@ -23,7 +60,7 @@ const STAT_CARDS = [
   {
     label: 'Cash = Total - CC',
     key: 'finalCash',
-    color: 'linear-gradient(135deg, #009688, #26a69a)',
+    color: 'linear-gradient(135deg,rgb(167, 89, 235),rgb(148, 106, 233))',
     xs: 12,
     sm: 6,
     md: 6
@@ -31,27 +68,34 @@ const STAT_CARDS = [
   {
     label: 'Total Expenses',
     key: 'totalExpenses',
-    color: 'linear-gradient(135deg, #f44336, #ef5350)',
+    color: 'linear-gradient(135deg,rgb(255, 0, 0),rgb(255, 7, 7))',
     xs: 12,
     sm: 6,
     md: 4
   },
   {
-    label: 'NewBalance = Cash - Expense',
+    label: 'FinalCash = Cash - Expense',
     key: 'newBalance',
-    color: 'linear-gradient(135deg, #ff5722, #ff7043)',
+    color: 'linear-gradient(135deg,rgb(66, 178, 58),rgb(45, 131, 19),rgb(85, 178, 62))',
     xs: 12,
     sm: 6,
     md: 4
   }
-]
+];
 
-const CurrentStats = ({ totalInCash = 0, totalInBank = 0, totalExpenses = 0, installmentTotal = 0 }) => {
-  const final = totalInCash + installmentTotal + totalInBank
-  const finalCash = final - totalInBank
-  const newBalance = finalCash - totalExpenses
 
-  const data = { totalInCash, totalInBank, totalExpenses, installmentTotal, final, finalCash, newBalance }
+const CurrentStats = ({ totalInCash = 0, totalInBank = 0, totalinJazzcash=0,totalinEasyPaisa=0, totalExpenses = 0, installmentTotal = 0 ,cashInstallmentTotal = 0,bankInstallmentTotal = 0 , jazzcashInstallmentTotal= 0, easypaisaInstallmentTotal =0 }) => {
+
+ 
+  
+ const totalAdvance = totalInCash + totalInBank + totalinEasyPaisa + totalinJazzcash;
+ const totalInstallment = cashInstallmentTotal + bankInstallmentTotal + jazzcashInstallmentTotal + easypaisaInstallmentTotal;
+ const total = totalAdvance + totalInstallment;
+ const finalCash = total - totalInBank - totalinJazzcash - totalinJazzcash -bankInstallmentTotal -jazzcashInstallmentTotal - easypaisaInstallmentTotal;
+ const newBalance = finalCash - totalExpenses;
+
+
+  const data = { totalInCash,totalAdvance, totalInstallment, totalInBank, totalExpenses, installmentTotal,totalinJazzcash, totalinEasyPaisa , total, finalCash, newBalance , cashInstallmentTotal , bankInstallmentTotal, jazzcashInstallmentTotal , easypaisaInstallmentTotal }
 
   return (
     <Box sx={{ mt: 5 }}>

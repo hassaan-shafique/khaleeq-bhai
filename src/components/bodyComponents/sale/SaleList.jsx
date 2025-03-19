@@ -83,7 +83,7 @@ const SaleList = ({ sales = [], loading = false }) => {
     const year = today.getFullYear()
     const month = String(today.getMonth() + 1).padStart(2, '0')
     const day = String(today.getDate()).padStart(2, '0')
-    return `${year}-${month}-${day}` // Returns date in "YYYY-MM-DD" format
+    return `${year}-${month}-${day}` 
   }
 
   const currentDate = getCurrentDate()

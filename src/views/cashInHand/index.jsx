@@ -139,8 +139,14 @@ const CashInHandView = ({ salesData, expenses, installments }) => {
       <CurrentStats
         totalInCash={totalInCash}
         totalInBank={totalInBank}
+        totalInJazzCash= {totalInJazzCash}
+        totalInEasyPaisa ={totalInEasyPaisa}
         totalExpenses={totalExpenses}
         installmentTotal={installmentTotal}
+        cashInstallmentTotal={cashInstallmentTotal}
+        bankInstallmentTotal={bankInstallmentTotal}
+        jazzcashInstallmentTotal={jazzcashInstallmentTotal}
+        easypaisaInstallmentTotal={easypaisaInstallmentTotal}
       />
 
       <Charts

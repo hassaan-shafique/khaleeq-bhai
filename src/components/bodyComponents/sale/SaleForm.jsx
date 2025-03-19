@@ -80,6 +80,26 @@ const SalesForm = ({ setRefresh }) => {
   const [totalGlassesPrice, setTotalGlassesPrice] = useState(0)
   const errorLogs = []
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [openConfirm, setOpenConfirm] = useState(false);
+
+  const handleOpenConfirm = () => {
+    setOpenConfirm(true);
+  };
+  
+  const handleCloseConfirm = () => {
+    setOpenConfirm(false);
+  };
+  
+  const handleConfirmSubmit = () => {
+    console.log("Confirming sale submission..."); // Debugging log
+    setOpenConfirm(false); // Close confirmation dialog
+  
+    setTimeout(() => {
+      console.log("Calling handleSubmit...");
+      handleSubmit(); // Ensure handleSubmit is called
+    }, 0); // Delay to ensure state updates before execution
+  };
+
 
   const handleVendorPriceChange = total => {
     setTotalVendorPrice(total)
@@ -177,8 +197,8 @@ const SalesForm = ({ setRefresh }) => {
     }
   }
 
-  const handleSubmit = async e => {
-    e.preventDefault()
+  const handleSubmit = async (e) => {
+    if (e) e.preventDefault(); 
     // Prevent multiple submissions
   if (isSubmitting) return;
 
@@ -316,13 +336,20 @@ const SalesForm = ({ setRefresh }) => {
       <Dialog open={open} onClose={handleClose} fullWidth maxWidth='md'>
         <DialogTitle>Add Sale</DialogTitle>
         <DialogContent>
-          <Box sx={{ paddingTop: 5 }}>
-            <form onSubmit={handleSubmit}
-             onKeyDown={(e) => {
-              if (e.key === "Enter" && isSubmitting) {
-                e.preventDefault();
-              }
-            }}>
+    <Box sx={{ paddingTop: 5 }}>
+      <form
+        onSubmit={(e) => {
+          e.preventDefault();
+          handleOpenConfirm(); // Open confirmation dialog instead of submitting
+        }}
+        onKeyDown={(e) => {
+          if (e.key === "Enter" && isSubmitting) {
+            e.preventDefault();
+          }
+        }}
+      >
+
+
               <Grid
                 container
                 spacing={3}
@@ -690,22 +717,47 @@ const SalesForm = ({ setRefresh }) => {
                 </FormControl>
               </Box>
 
-              <DialogActions sx={{ marginTop: '50px' }}>
-                <Button onClick={handleClose} color='secondary'>
-                  Cancel
-                </Button>
-                <Button 
-                type='submit' 
-                 disabled={isSubmitting}
-                 variant='contained' sx={{ bgcolor: '#448EE4' }}>
-                 {isSubmitting ? "Submitting..." : "Submit Sale"}
-                </Button>
-              </DialogActions>
+
+              <DialogActions sx={{ marginTop: "50px" }}>
+          <Button onClick={handleClose} color="secondary">
+            Cancel
+          </Button>
+          <Button 
+            type="submit"
+            disabled={isSubmitting}
+            variant="contained"
+            sx={{ bgcolor: "#448EE4" }}
+          >
+            {isSubmitting ? "Submitting..." : "Submit Sale"}
+          </Button>
+        </DialogActions>
+
+
             </form>
           </Box>
         </DialogContent>
       </Dialog>
+      <Dialog open={openConfirm} onClose={handleCloseConfirm} fullWidth maxWidth="xs">
+  <DialogTitle>Confirm Sale</DialogTitle>
+  <DialogContent>
+    <Typography>Are you sure you want to submit the sale?</Typography>
+  </DialogContent>
+  <DialogActions>
+    <Button onClick={handleCloseConfirm} color="secondary">
+      No
+    </Button>
+    <Button 
+      onClick={handleConfirmSubmit} 
+      variant="contained" 
+      sx={{ bgcolor: "#448EE4" }}
+    >
+      Yes
+    </Button>
+  </DialogActions>
+</Dialog>
     </div>
+
+
   )
 }
 
